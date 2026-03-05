@@ -1,0 +1,214 @@
+<?= $this->extend('users/layout') ?>
+
+<?= $this->section('pageTitle') ?>Ticket Details<?= $this->endSection() ?>
+<?= $this->section('pageSubtitle') ?>ICTU-<?= date('Y', strtotime($ticket['created_at'] ?? 'now')) ?>-<?= str_pad($ticket['job_ticket_id'] ?? 0, 5, '0', STR_PAD_LEFT) ?><?= $this->endSection() ?>
+
+<?= $this->section('content') ?>
+<div class="p-8 space-y-6">
+
+  <a href="<?= base_url('my-tickets') ?>" class="inline-flex items-center text-sm text-slate-600 hover:text-slate-800 font-medium transition-colors">
+    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    Back to My Tickets
+  </a>
+
+  <!-- Ticket Info -->
+  <div class="fade-in delay-1 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 shadow-lg">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-bold text-gray-900 text-lg">Ticket Information</h3>
+      <?= (\App\Enums\JobStatus::tryFrom((int) $ticket['job_status']))?->badgeMd() ?? '<span class="text-sm font-bold px-3 py-1.5 rounded-full bg-gray-100 text-gray-600">Unknown</span>' ?>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="space-y-4">
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Ticket ID</span>
+          <p class="mono text-sm font-bold text-slate-700">ICTU-<?= date('Y', strtotime($ticket['created_at'])) ?>-<?= str_pad($ticket['job_ticket_id'], 5, '0', STR_PAD_LEFT) ?></p>
+        </div>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Date Submitted</span>
+          <p class="text-sm text-gray-700"><?= date('F d, Y h:i A', strtotime($ticket['created_at'])) ?></p>
+        </div>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Problem Description</span>
+          <p class="text-sm text-gray-700"><?= esc($ticket['problem_description'] ?? 'N/A') ?></p>
+        </div>
+        <?php if(!empty($ticket['hardware_issues'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Hardware Issues</span>
+          <p class="text-sm text-gray-700"><?= esc($ticket['hardware_issues']) ?></p>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($ticket['sofware_issues'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Software Issues</span>
+          <p class="text-sm text-gray-700"><?= esc($ticket['sofware_issues']) ?></p>
+        </div>
+        <?php endif; ?>
+      </div>
+      <div class="space-y-4">
+        <?php if(!empty($ticket['equipment_name'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Equipment</span>
+          <p class="text-sm text-gray-700"><?= esc($ticket['equipment_name']) ?></p>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($ticket['serial_no'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Serial No.</span>
+          <p class="mono text-sm text-gray-700"><?= esc($ticket['serial_no']) ?></p>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($ticket['property_no'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Property No.</span>
+          <p class="mono text-sm text-gray-700"><?= esc($ticket['property_no']) ?></p>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($ticket['attachments'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Attachment</span>
+          <a href="<?= base_url('uploads/tickets/' . $ticket['attachments']) ?>" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 underline"><?= esc($ticket['attachments']) ?></a>
+        </div>
+        <?php endif; ?>
+      </div>
+    </div>
+  </div>
+
+  <!-- Response Info -->
+  <?php if(!empty($response)): ?>
+  <div class="fade-in delay-2 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 shadow-lg">
+    <h3 class="font-bold text-gray-900 text-lg mb-5">Response / Resolution</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="space-y-4">
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Assigned Staff</span>
+          <p class="text-sm font-semibold text-gray-700"><?= esc($response['staff_name'] ?? 'N/A') ?></p>
+        </div>
+        <?php if(!empty($response['action_performed'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Action Performed</span>
+          <p class="text-sm text-gray-700"><?= esc($response['action_performed']) ?></p>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($response['completion_status'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Completion Status</span>
+          <?php
+            $csMap = ['completed' => 'bg-emerald-100 text-emerald-700', 'in_progress' => 'bg-blue-100 text-blue-700'];
+            $csColor = $csMap[$response['completion_status']] ?? 'bg-gray-100 text-gray-600';
+          ?>
+          <span class="text-xs font-bold px-2 py-1 rounded-full <?= $csColor ?>"><?= ucwords(str_replace('_', ' ', $response['completion_status'])) ?></span>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($response['completion_date'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Completion Date</span>
+          <p class="text-sm text-gray-700"><?= date('F d, Y', strtotime($response['completion_date'])) ?></p>
+        </div>
+        <?php endif; ?>
+      </div>
+      <div class="space-y-4">
+        <?php if(!empty($responseParts)): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-2">Parts Replaced / Used</span>
+          <div class="overflow-hidden rounded-xl border border-gray-200">
+            <table class="w-full text-sm">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Type</th>
+                  <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Part</th>
+                  <th class="px-3 py-2 text-center text-xs font-semibold text-gray-500 uppercase">Qty</th>
+                  <th class="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">Unit Cost</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <?php foreach($responseParts as $part): ?>
+                <tr class="hover:bg-gray-50/50">
+                  <td class="px-3 py-2">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold <?= $part['part_type'] === 'replaced' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700' ?>">
+                      <?= ucfirst($part['part_type']) ?>
+                    </span>
+                  </td>
+                  <td class="px-3 py-2 text-gray-700"><?= esc($part['part_name']) ?></td>
+                  <td class="px-3 py-2 text-center text-gray-700"><?= (int)$part['quantity'] ?></td>
+                  <td class="px-3 py-2 text-right text-gray-700 mono"><?= $part['unit_cost'] ? '₱' . number_format((float)$part['unit_cost'], 2) : '-' ?></td>
+                </tr>
+                <?php endforeach; ?>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($response['estimated_cost'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Estimated Cost</span>
+          <p class="mono text-sm font-semibold text-gray-700">₱<?= number_format((float)$response['estimated_cost'], 2) ?></p>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($response['verified_date'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Verified</span>
+          <p class="text-sm text-emerald-600 font-semibold">✓ Verified on <?= date('F d, Y', strtotime($response['verified_date'])) ?></p>
+        </div>
+        <?php endif; ?>
+      </div>
+    </div>
+  </div>
+  <?php else: ?>
+  <div class="fade-in delay-2 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 shadow-lg text-center">
+    <div class="text-gray-300 text-4xl mb-3">⏳</div>
+    <p class="text-gray-500 text-sm">No response yet. Your ticket is being processed.</p>
+  </div>
+  <?php endif; ?>
+
+  <!-- Ticket History Timeline -->
+  <?php if (!empty($history)): ?>
+  <div class="fade-in delay-3 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 shadow-lg">
+    <h3 class="font-bold text-gray-900 text-lg mb-5 flex items-center gap-2">
+      <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Ticket History
+    </h3>
+    <div class="relative">
+      <div class="absolute left-[15px] top-2 bottom-2 w-0.5 bg-gray-200"></div>
+      <div class="space-y-5">
+        <?php
+          $actionConfig = [
+            'created'     => ['icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>',       'color' => 'bg-blue-500',    'label' => 'Ticket Created'],
+            'assigned'    => ['icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>',  'color' => 'bg-indigo-500', 'label' => 'Assigned'],
+            'in_progress' => ['icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>',  'color' => 'bg-amber-500',  'label' => 'In Progress'],
+            'completed'   => ['icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>',  'color' => 'bg-emerald-500','label' => 'Completed'],
+            'verified'    => ['icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>',  'color' => 'bg-teal-500',   'label' => 'Verified & Closed'],
+            'transferred' => ['icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>',  'color' => 'bg-purple-500', 'label' => 'Transferred'],
+            'cancelled'   => ['icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>',  'color' => 'bg-red-500',    'label' => 'Cancelled'],
+          ];
+        ?>
+        <?php foreach ($history as $entry): ?>
+          <?php
+            $cfg   = $actionConfig[$entry['action']] ?? ['icon' => '<circle cx="12" cy="12" r="3"/>', 'color' => 'bg-gray-400', 'label' => ucwords(str_replace('_', ' ', $entry['action']))];
+            $time  = $entry['created_at'] ? date('M j, Y \a\t g:i A', strtotime($entry['created_at'])) : '';
+          ?>
+          <div class="relative flex items-start gap-4 pl-1">
+            <div class="relative z-10 flex-shrink-0 w-[30px] h-[30px] rounded-full <?= $cfg['color'] ?> flex items-center justify-center shadow-sm">
+              <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><?= $cfg['icon'] ?></svg>
+            </div>
+            <div class="pt-0.5 min-w-0">
+              <p class="text-sm font-semibold text-gray-800"><?= $cfg['label'] ?></p>
+              <?php if (!empty($entry['remarks'])): ?>
+                <p class="text-xs text-gray-500 mt-0.5"><?= esc($entry['remarks']) ?></p>
+              <?php endif; ?>
+              <div class="flex items-center gap-2 mt-1">
+                <?php if (!empty($entry['performer_name'])): ?>
+                  <span class="text-xs text-gray-400">by <?= esc($entry['performer_name']) ?></span>
+                  <span class="text-gray-300">&middot;</span>
+                <?php endif; ?>
+                <span class="text-xs text-gray-400 mono"><?= $time ?></span>
+              </div>
+            </div>
+          </div>
+        <?php endforeach; ?>
+      </div>
+    </div>
+  </div>
+  <?php endif; ?>
+
+</div>
+<?= $this->endSection() ?>
