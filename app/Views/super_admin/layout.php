@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ICTU Job Ticketing - Admin Dashboard</title>
+  <link rel="icon" href="<?= base_url('ictu.ico') ?>" type="image/x-icon">
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
     <script src="https://cdn.datatables.net/2.0.0/js/dataTables.js"></script>
@@ -20,7 +21,8 @@
       33% { transform: translate(40px, -60px) scale(1.15); }
       66% { transform: translate(-30px, 30px) scale(0.9); }
     }
-    .animate-blob { animation: blob 8s infinite; }
+    .animate-blob { animation: blob 8s infinite; will-change: transform; }
+    @media (prefers-reduced-motion: reduce) { .animate-blob { animation: none; } }
     .animation-delay-2000 { animation-delay: 2s; }
     .animation-delay-4000 { animation-delay: 4s; }
 
@@ -51,8 +53,7 @@
     .sidebar-item:hover .sidebar-icon { transform: translateX(3px); }
     .sidebar-icon { transition: transform 0.2s ease; }
 
-    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
-    .stat-card { transition: all 0.3s ease; }
+    /* stat-card: display-only, no hover interaction */
 
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -138,6 +139,11 @@
         <a href="<?= base_url('super-admin/keyword-rules') ?>" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:text-blue-700 hover:bg-blue-50 font-medium text-sm transition-all">
           <svg class="sidebar-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
           Keyword Rules
+        </a>
+
+        <a href="<?= base_url('super-admin/sections') ?>" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:text-blue-700 hover:bg-blue-50 font-medium text-sm transition-all">
+          <svg class="sidebar-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Sections
         </a>
 
         <!-- Site Components Dropdown -->

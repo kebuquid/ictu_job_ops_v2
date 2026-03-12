@@ -6,18 +6,20 @@ use App\Controllers\BaseController;
 use App\Models\JobTicketModel;
 use App\Models\JobTicketRequestModel;
 use App\Models\JobTicketResponseModel;
+use App\Models\SectionModel;
 use App\Models\UserModel;
 use App\Models\KeywordRuleModel;
 use App\Models\ResponsePartModel;
 use App\Models\TicketHistoryModel;
-use App\Enums\JobStatus;
-use App\Enums\UserRole;
+use App\Models\JobStatusModel;
+use App\Models\RoleModel;
 
 class SectionHeadController extends BaseController
 {
     private JobTicketModel $jobTicketModel;
     private JobTicketRequestModel $jobTicketRequestModel;
     private JobTicketResponseModel $jobTicketResponseModel;
+    private SectionModel $sectionModel;
     private UserModel $userModel;
     private KeywordRuleModel $keywordRuleModel;
     private ResponsePartModel $responsePartModel;
@@ -28,6 +30,7 @@ class SectionHeadController extends BaseController
         $this->jobTicketModel         = new JobTicketModel();
         $this->jobTicketRequestModel  = new JobTicketRequestModel();
         $this->jobTicketResponseModel = new JobTicketResponseModel();
+        $this->sectionModel           = new SectionModel();
         $this->userModel              = new UserModel();
         $this->keywordRuleModel       = new KeywordRuleModel();
         $this->responsePartModel      = new ResponsePartModel();
@@ -66,13 +69,17 @@ class SectionHeadController extends BaseController
 
         $rows = $builder->findAll();
 
+        $openId       = JobStatusModel::getIdByLabel('Open');
+        $inProgressId = JobStatusModel::getIdByLabel('In Progress');
+        $completedId  = JobStatusModel::getIdByLabel('Completed');
+
         $stats = ['total' => 0, 'open' => 0, 'in_progress' => 0, 'completed' => 0, 'pending_verification' => 0];
         foreach ($rows as $r) {
             $stats['total'] += (int) $r['cnt'];
             match ((int) $r['job_status']) {
-                JobStatus::OPEN->value       => $stats['open'] += (int) $r['cnt'],
-                JobStatus::IN_PROGRESS->value => $stats['in_progress'] += (int) $r['cnt'],
-                JobStatus::COMPLETED->value  => $stats['completed'] += (int) $r['cnt'],
+                $openId       => $stats['open'] += (int) $r['cnt'],
+                $inProgressId => $stats['in_progress'] += (int) $r['cnt'],
+                $completedId  => $stats['completed'] += (int) $r['cnt'],
                 default => null,
             };
         }
@@ -99,7 +106,7 @@ class SectionHeadController extends BaseController
 
         // Section staff with active ticket counts
         $sectionStaff = $this->userModel
-            ->whereIn('role_id', [UserRole::TECHNICIAN->value, UserRole::STAFF->value])
+            ->whereIn('role_id', [3])
             ->where('section_id', $sectionId)
             ->findAll();
 
@@ -107,7 +114,7 @@ class SectionHeadController extends BaseController
             $staff['active_tickets'] = $this->jobTicketResponseModel
                 ->join('job_tickets', 'job_tickets.job_ticket_id = job_ticket_responses.job_ticket_id')
                 ->where('job_ticket_responses.staff_id', $staff['user_id'])
-                ->whereIn('job_tickets.job_status', [JobStatus::OPEN->value, JobStatus::IN_PROGRESS->value])
+                ->whereIn('job_tickets.job_status', [$openId, $inProgressId])
                 ->countAllResults();
         }
 
@@ -151,13 +158,15 @@ class SectionHeadController extends BaseController
             ->select('users.*, sections.name as section_name, sections.acronym')
             ->join('sections', 'users.section_id = sections.section_id', 'left')
             ->where('users.section_id', $sectionId)
-            ->whereIn('users.role_id', [UserRole::TECHNICIAN->value, UserRole::STAFF->value])
+            ->whereIn('users.role_id', [3])
             ->findAll();
 
+        $roleModel = new RoleModel();
         foreach ($employees as &$emp) {
-            $emp['initials'] = $this->userModel->get_initials($emp['name']);
-            $emp['role'] = UserRole::from($emp['role_id'])->label();
-            $emp['role_color'] = UserRole::from($emp['role_id'])->role_color();
+            $emp['initials']    = $this->userModel->get_initials($emp['name']);
+            $roleData           = $roleModel->find((int) $emp['role_id']);
+            $emp['role']        = $roleData['label']      ?? 'Unknown';
+            $emp['role_color']  = $roleData['role_color'] ?? 'gray';
         }
 
         return view('section_heads/employees', [
@@ -203,18 +212,28 @@ class SectionHeadController extends BaseController
         // Also close the parent ticket
         $response = $this->jobTicketResponseModel->find($responseId);
         if ($response) {
+            $completedId = JobStatusModel::getIdByLabel('Completed');
+            $closedId    = JobStatusModel::getIdByLabel('Closed');
             $this->jobTicketModel->update($response['job_ticket_id'], [
-                'job_status' => JobStatus::CLOSED->value,
+                'job_status' => $closedId,
             ]);
 
             // Log: verified
             $this->ticketHistoryModel->log(
                 (int) $response['job_ticket_id'],
                 'verified',
-                JobStatus::COMPLETED->value,
-                JobStatus::CLOSED->value,
+                $completedId,
+                $closedId,
                 $userId,
                 'Verified and closed by section head'
+            );
+
+            // Notify the requestor their ticket has been verified and closed
+            $this->sendStatusUpdateEmail(
+                (int) $response['job_ticket_id'],
+                'closed',
+                'Closed',
+                'Your ticket has been verified and officially closed by the section head. Thank you for using our services.'
             );
         }
 
@@ -325,22 +344,32 @@ class SectionHeadController extends BaseController
         // If marking as completed, update parent ticket
         if ($this->request->getPost('completion_status') === 'completed') {
             $updateData['completion_date'] = $updateData['completion_date'] ?: date('Y-m-d');
+            $completedId  = JobStatusModel::getIdByLabel('Completed');
+            $inProgressId = JobStatusModel::getIdByLabel('In Progress');
             $this->jobTicketModel->update($existing['job_ticket_id'], [
-                'job_status' => JobStatus::COMPLETED->value,
+                'job_status' => $completedId,
             ]);
 
             // Log: status changed to completed
             $this->ticketHistoryModel->log(
                 (int) $existing['job_ticket_id'],
                 'completed',
-                JobStatus::IN_PROGRESS->value,
-                JobStatus::COMPLETED->value,
+                $inProgressId,
+                $completedId,
                 $userId,
                 'Marked as completed'
             );
 
             // Promote the next queued OPEN ticket for this staff to IN_PROGRESS
             $this->promoteNextTicket($userId);
+
+            // Notify the requestor their ticket has been completed
+            $this->sendStatusUpdateEmail(
+                (int) $existing['job_ticket_id'],
+                'completed',
+                'Completed',
+                'The technician has completed the work on your ticket. It is now pending verification by the section head.'
+            );
         }
 
         $this->jobTicketResponseModel->update($responseId, $updateData);
@@ -376,13 +405,13 @@ class SectionHeadController extends BaseController
         }
 
         // Only allow transfer of active tickets
-        if (! in_array((int) $response['job_status'], [JobStatus::OPEN->value, JobStatus::IN_PROGRESS->value])) {
+        if (! in_array((int) $response['job_status'], [JobStatusModel::getIdByLabel('Open'), JobStatusModel::getIdByLabel('In Progress')])) {
             return redirect()->to('admin/tickets')->with('error', 'Only active tickets can be transferred.');
         }
 
         // Get eligible employees in the section (excluding current assignee)
         $employees = $this->userModel
-            ->whereIn('role_id', [UserRole::ADMIN->value, UserRole::TECHNICIAN->value, UserRole::STAFF->value])
+            ->whereIn('role_id', [2, 3])
             ->where('section_id', $sectionId)
             ->where('user_id !=', (int) $response['staff_id'])
             ->findAll();
@@ -392,7 +421,7 @@ class SectionHeadController extends BaseController
             $emp['active_tickets'] = $this->jobTicketResponseModel
                 ->join('job_tickets', 'job_tickets.job_ticket_id = job_ticket_responses.job_ticket_id')
                 ->where('job_ticket_responses.staff_id', $emp['user_id'])
-                ->whereIn('job_tickets.job_status', [JobStatus::OPEN->value, JobStatus::IN_PROGRESS->value])
+                ->whereIn('job_tickets.job_status', [JobStatusModel::getIdByLabel('Open'), JobStatusModel::getIdByLabel('In Progress')])
                 ->countAllResults();
         }
 
@@ -456,11 +485,14 @@ class SectionHeadController extends BaseController
      */
     private function promoteNextTicket(int $staffId): void
     {
+        $openId       = JobStatusModel::getIdByLabel('Open');
+        $inProgressId = JobStatusModel::getIdByLabel('In Progress');
+
         // Only promote if the staff has no other IN_PROGRESS tickets
         $inProgressCount = $this->jobTicketResponseModel
             ->join('job_tickets', 'job_tickets.job_ticket_id = job_ticket_responses.job_ticket_id')
             ->where('job_ticket_responses.staff_id', $staffId)
-            ->where('job_tickets.job_status', JobStatus::IN_PROGRESS->value)
+            ->where('job_tickets.job_status', $inProgressId)
             ->countAllResults();
 
         if ($inProgressCount > 0) {
@@ -472,7 +504,7 @@ class SectionHeadController extends BaseController
             ->select('job_ticket_responses.job_ticket_id, job_tickets.job_ticket_id as tid')
             ->join('job_tickets', 'job_tickets.job_ticket_id = job_ticket_responses.job_ticket_id')
             ->where('job_ticket_responses.staff_id', $staffId)
-            ->where('job_tickets.job_status', JobStatus::OPEN->value)
+            ->where('job_tickets.job_status', $openId)
             ->orderBy('job_tickets.created_at', 'ASC')
             ->first();
 
@@ -483,17 +515,82 @@ class SectionHeadController extends BaseController
         $nextTicketId = (int) $nextTicket['job_ticket_id'];
 
         $this->jobTicketModel->update($nextTicketId, [
-            'job_status' => JobStatus::IN_PROGRESS->value,
+            'job_status' => $inProgressId,
         ]);
 
         $this->ticketHistoryModel->log(
             $nextTicketId,
             'in_progress',
-            JobStatus::OPEN->value,
-            JobStatus::IN_PROGRESS->value,
+            $openId,
+            $inProgressId,
             $staffId,
             'Automatically set to In Progress (previous ticket completed)'
         );
+
+        // Notify the requestor their ticket has moved to In Progress
+        $this->sendStatusUpdateEmail(
+            $nextTicketId,
+            'in_progress',
+            'In Progress',
+            'A technician is now actively working on your ticket.'
+        );
+    }
+
+    /**
+     * Send a status update email to the ticket requestor.
+     */
+    private function sendStatusUpdateEmail(int $ticketId, string $status, string $statusLabel, ?string $updateNote = null): void
+    {
+        $ticket = $this->jobTicketModel
+            ->select('job_tickets.job_ticket_id, job_ticket_requests.problem_description, job_ticket_requests.section_id, users.email, users.alt_email, users.name as requestor_name, users.role_id')
+            ->join('job_ticket_requests', 'job_ticket_requests.job_ticket_id = job_tickets.job_ticket_id')
+            ->join('users', 'users.user_id = job_tickets.requestor_id', 'left')
+            ->where('job_tickets.job_ticket_id', $ticketId)
+            ->first();
+
+        if (! $ticket || empty($ticket['email'])) {
+            log_message('warning', "Ticket #{$ticketId}: requestor has no email - skipping status update notification.");
+            return;
+        }
+
+        // Google account recovery tickets must be sent to the alt_email
+        $isRecovery = str_contains($ticket['problem_description'] ?? '', 'Google Account recovery');
+        $toEmail    = ($isRecovery && ! empty($ticket['alt_email'])) ? $ticket['alt_email'] : $ticket['email'];
+
+        $section     = $this->sectionModel->find($ticket['section_id']);
+        $sectionName = $section['name'] ?? 'Unknown Section';
+        $formattedId = 'ICTU-' . date('Y') . '-' . str_pad($ticketId, 5, '0', STR_PAD_LEFT);
+
+        $dashboardPath = match ((int) ($ticket['role_id'] ?? 5)) {
+            2       => 'admin/tickets',
+            3       => 'ictu-staff/my-tickets',
+            4       => 'employee/my-tickets',
+            5       => 'student/my-tickets',
+            default => 'employee/my-tickets',
+        };
+
+        $emailBody = view('emails/ticket_update', [
+            'requestorName' => $ticket['requestor_name'],
+            'ticketId'      => $formattedId,
+            'sectionName'   => $sectionName,
+            'problem'       => $ticket['problem_description'] ?? 'N/A',
+            'status'        => $status,
+            'statusLabel'   => $statusLabel,
+            'updateNote'    => $updateNote,
+            'ticketUrl'     => base_url($dashboardPath),
+        ]);
+
+        try {
+            $email = \Config\Services::email();
+            $email->setTo($toEmail);
+            $email->setSubject('Ticket Update: ' . $statusLabel . ' - ' . $formattedId);
+            $email->setMessage($emailBody);
+            if (! $email->send()) {
+                log_message('error', 'Ticket status update email failed: ' . $email->printDebugger(['headers']));
+            }
+        } catch (\Throwable $e) {
+            log_message('error', 'Ticket status update email exception: ' . $e->getMessage());
+        }
     }
 
     // ═══════════════════════════════════════════════════════

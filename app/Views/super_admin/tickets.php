@@ -24,23 +24,23 @@
       All
       <span class="ml-1.5 bg-white/50 px-2 py-0.5 rounded-full text-xs font-bold"><?= $statusCounts['all'] ?></span>
     </button>
-    <button data-filter="0" class="filter-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-gray-100 text-gray-600 hover:bg-amber-100 hover:text-amber-700">
+    <button data-filter="1" class="filter-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-gray-100 text-gray-600 hover:bg-amber-100 hover:text-amber-700">
       Open
       <span class="ml-1.5 bg-white/50 px-2 py-0.5 rounded-full text-xs font-bold"><?= $statusCounts['open'] ?></span>
     </button>
-    <button data-filter="1" class="filter-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700">
+    <button data-filter="2" class="filter-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700">
       In Progress
       <span class="ml-1.5 bg-white/50 px-2 py-0.5 rounded-full text-xs font-bold"><?= $statusCounts['in_progress'] ?></span>
     </button>
-    <button data-filter="3" class="filter-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-gray-100 text-gray-600 hover:bg-emerald-100 hover:text-emerald-700">
+    <button data-filter="4" class="filter-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-gray-100 text-gray-600 hover:bg-emerald-100 hover:text-emerald-700">
       Completed
       <span class="ml-1.5 bg-white/50 px-2 py-0.5 rounded-full text-xs font-bold"><?= $statusCounts['completed'] ?></span>
     </button>
-    <button data-filter="4" class="filter-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-700">
+    <button data-filter="5" class="filter-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-700">
       Closed
       <span class="ml-1.5 bg-white/50 px-2 py-0.5 rounded-full text-xs font-bold"><?= $statusCounts['closed'] ?></span>
     </button>
-    <button data-filter="5" class="filter-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-700">
+    <button data-filter="6" class="filter-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-700">
       Cancelled
       <span class="ml-1.5 bg-white/50 px-2 py-0.5 rounded-full text-xs font-bold"><?= $statusCounts['cancelled'] ?></span>
     </button>
@@ -88,8 +88,6 @@
 
               $desc = $ticket['problem_description'] ?? 'No description';
               $descShort = mb_strlen($desc) > 50 ? mb_substr($desc, 0, 50) . '…' : $desc;
-
-              $js = \App\Enums\JobStatus::tryFrom((int) $ticket['job_status']);
 
               // Priority – prefer priority_name from the join, fallback to numeric map
               if (!empty($ticket['priority_name'])) {
@@ -139,7 +137,7 @@
                 <span class="text-xs font-bold px-2.5 py-1 rounded-full <?= $pClass ?>"><?= esc($pName) ?></span>
               </td>
               <td class="py-3 pr-4">
-                <?= $js?->badge() ?? '<span class="text-xs font-bold px-2 py-1 rounded-full bg-gray-100 text-gray-600">Unknown</span>' ?>
+                <?= \App\Models\JobStatusModel::badge((int) $ticket['job_status']) ?: '<span class="text-xs font-bold px-2 py-1 rounded-full bg-gray-100 text-gray-600">Unknown</span>' ?>
               </td>
               <td class="py-3 pr-4 mono text-xs text-gray-500 whitespace-nowrap"><?= $createdDate ?></td>
               <td class="py-3">

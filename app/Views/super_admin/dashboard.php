@@ -5,8 +5,8 @@
 <?php
   // Helper: format ticket status badge
   $statusBadge = function(int $status): string {
-      return \App\Enums\JobStatus::tryFrom($status)?->badge()
-          ?? '<span class="text-xs font-bold px-2 py-1 rounded-full bg-gray-100 text-gray-600">Unknown</span>';
+      return \App\Models\JobStatusModel::badge($status)
+          ?: '<span class="text-xs font-bold px-2 py-1 rounded-full bg-gray-100 text-gray-600">Unknown</span>';
   };
 
   // Helper: priority badge
@@ -25,19 +25,19 @@
       return '<span class="px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-full">' . esc($name) . '</span>';
   };
 
-  // Helper: activity icon by status
+  // Helper: activity icon by status (1=Open, 2=In Progress, 4=Completed, 5=Closed, 6=Cancelled)
   $activityIcon = function(int $status): string {
       return match($status) {
-          0 => '<div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0"><svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg></div>',
-          1 => '<div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center shrink-0"><svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></div>',
-          3, 4 => '<div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center shrink-0"><svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>',
-          5 => '<div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center shrink-0"><svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></div>',
+          1 => '<div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0"><svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg></div>',
+          2 => '<div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center shrink-0"><svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></div>',
+          4, 5 => '<div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center shrink-0"><svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>',
+          6 => '<div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center shrink-0"><svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></div>',
           default => '<div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0"><svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>',
       };
   };
 
   $activityLabel = function(int $status): string {
-      return \App\Enums\JobStatus::tryFrom($status)?->activityLabel() ?? 'updated';
+      return \App\Models\JobStatusModel::activityLabel($status) ?? 'updated';
   };
 
   // Greeting
@@ -376,9 +376,9 @@
                     $ticketId = 'ICTU-' . date('Y', strtotime($activity['updated_at'])) . '-' . str_pad($activity['job_ticket_id'], 5, '0', STR_PAD_LEFT);
                     $timeAgo  = $activity['updated_at'] ? date('M j, g:i A', strtotime($activity['updated_at'])) : '';
 
-                    if ($aStatus === 0) {
+                    if ($aStatus === 1) {
                         $aDesc = 'Ticket <span class="mono font-bold">' . $ticketId . '</span> opened by ' . esc($aName);
-                    } elseif ($sName && in_array($aStatus, [3, 4])) {
+                    } elseif ($sName && in_array($aStatus, [4, 5])) {
                         $aDesc = 'Ticket <span class="mono font-bold">' . $ticketId . '</span> ' . $activityLabel($aStatus) . ' by ' . esc($sName);
                     } else {
                         $aDesc = 'Ticket <span class="mono font-bold">' . $ticketId . '</span> ' . $activityLabel($aStatus);

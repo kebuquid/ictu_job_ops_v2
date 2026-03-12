@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ICTU Job Ticketing - Sign In</title>
+    <link rel="icon" href="<?= base_url('ictu.ico') ?>" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
@@ -46,10 +47,11 @@
             <!-- Content -->
             <div class="relative z-10 max-w-lg text-center lg:text-left space-y-6 sm:space-y-8">
                 <!-- Logo / Icon - smaller on mobile -->
-                <div class="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 shadow-lg">
-                    <svg class="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
+                <div class="inline-flex items-center justify-center w-24 h-24 sm:w-16 sm:h-16 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 shadow-lg">
+                    <img src="<?= base_url('ictu_alt_logo.png') ?>" alt="ICTU Logo" class="w-24 h-24 sm:w-8 sm:h-8 object-contain">
+                </div>
+                <div class="inline-flex items-center justify-center w-24 h-24 sm:w-16 sm:h-16 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 shadow-lg">
+                    <img src="<?= base_url('cspc_logo.png') ?>" alt="CSPC Logo" class="w-24 h-24 sm:w-8 sm:h-8 object-contain">
                 </div>
 
                 <div>
@@ -113,8 +115,8 @@
 
                     <!-- Buttons -->
                     <div class="space-y-3 sm:space-y-4">
-                        <!-- I am a Student (Google OAuth) -->
-                        <a href="<?= base_url('auth/google') ?>"
+                        <!-- I am a Student (opens sub-view) -->
+                        <button type="button"
                            id="studentLoginBtn"
                            class="login-btn group relative w-full flex items-center justify-center gap-3 bg-navy-800 hover:bg-navy-900 text-white rounded-2xl px-4 sm:px-6 py-3.5 sm:py-4 font-semibold text-sm sm:text-base transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ring-1 ring-navy-700 active:scale-[0.98]">
                             <span class="absolute left-3 sm:left-5 flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 bg-white/10 rounded-xl">
@@ -122,7 +124,7 @@
                             </span>
                             <span id="studentLoginText">I am a Student</span>
                             <svg class="absolute right-3 sm:right-5 w-5 h-5 opacity-60 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                        </a>
+                        </button>
 
                         <!-- I am an Employee (opens sub-view) -->
                         <button type="button"
@@ -264,21 +266,14 @@
                                 <span class="text-sm text-green-700 font-medium">Employee found. Please confirm your identity.</span>
                             </div>
 
-                            <!-- Surname or Last Name -->
+                            <!-- First Name -->
                             <div>
                                 <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wider">First Name <span class="text-red-500">*</span></label>
                                 <input type="text" id="inputFirstName" name="first_name" required
                                     class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 focus:border-transparent transition-all placeholder:text-gray-400"
                                     placeholder="Juan">
                             </div>
-                            <!-- Surname or Last Name -->
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wider">Middle Name <span class="text-red-500">*</span></label>
-                                <input type="text" id="inputMiddleName" name="middle_name" required
-                                    class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 focus:border-transparent transition-all placeholder:text-gray-400"
-                                    placeholder="Cortez">
-                            </div>
-                            <!-- Surname or Last Name -->
+                            <!-- Last Name -->
                             <div>
                                 <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wider">Last Name <span class="text-red-500">*</span></label>
                                 <input type="text" id="inputLastName" name="last_name" required
@@ -414,6 +409,232 @@
                     </p>
                 </div>
 
+                <!-- ===== VIEW 5: Student Email Options ===== -->
+                <div id="viewStudentOptions" class="panel-view space-y-6 sm:space-y-8 hidden">
+
+                    <button type="button" id="backToRoleSelectFromStudent" class="inline-flex items-center gap-2 text-sm text-navy-600 hover:text-navy-800 font-medium transition-colors group">
+                        <svg class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"/></svg>
+                        Back
+                    </button>
+
+                    <div class="text-center">
+                        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-navy-100 mb-4">
+                            <svg class="w-6 h-6 text-navy-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422A12.083 12.083 0 0121 12.083V17.5a2.5 2.5 0 01-2.5 2.5h-13A2.5 2.5 0 013 17.5v-5.417c0-.963.12-1.897.34-2.787L12 14z"/></svg>
+                        </div>
+                        <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-navy-900 tracking-tight">Student Sign In</h2>
+                        <p class="mt-2 text-sm text-gray-500">Can you use your CSPC student email account?</p>
+                    </div>
+
+                    <div class="space-y-3 sm:space-y-4">
+                        <a href="<?= base_url('auth/google') ?>"
+                           id="studentCspcEmailBtn"
+                           class="login-btn group relative w-full flex items-center justify-center gap-3 bg-navy-800 hover:bg-navy-900 text-white rounded-2xl px-4 sm:px-6 py-3.5 sm:py-4 font-semibold text-sm sm:text-base transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ring-1 ring-navy-700 active:scale-[0.98]">
+                            <span class="absolute left-3 sm:left-5 flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 bg-white/10 rounded-xl">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            </span>
+                            <span id="studentCspcEmailText">Sign in with CSPC Email</span>
+                            <svg class="absolute right-3 sm:right-5 w-5 h-5 opacity-60 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                        </a>
+
+                        <button type="button"
+                           id="studentNoCspcEmailBtn"
+                           class="login-btn group relative w-full flex items-center justify-center gap-3 bg-white hover:bg-navy-50 text-navy-800 rounded-2xl px-4 sm:px-6 py-3.5 sm:py-4 font-semibold text-sm sm:text-base transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ring-1 ring-navy-200 active:scale-[0.98]">
+                            <span class="absolute left-3 sm:left-5 flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 bg-navy-100 rounded-xl">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-navy-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            </span>
+                            <span>I forgot my CSPC Email</span>
+                            <svg class="absolute right-3 sm:right-5 w-5 h-5 opacity-40 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                        </button>
+
+                        <a type="button"
+                           href="https://profile.cspc.edu.ph/ClaimEmail"
+                           class="login-btn group relative w-full flex items-center justify-center gap-3 bg-white hover:bg-navy-50 text-navy-800 rounded-2xl px-4 sm:px-6 py-3.5 sm:py-4 font-semibold text-sm sm:text-base transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ring-1 ring-navy-200 active:scale-[0.98]">
+                           <span class="absolute left-3 sm:left-5 flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 bg-navy-100 rounded-xl">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-navy-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            </span>
+                            <span>I don&rsquo;t have a CSPC Email</span>
+                            <svg class="absolute right-3 sm:right-5 w-5 h-5 opacity-40 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                        </a>
+                    </div>
+
+                    <div class="bg-navy-50 rounded-xl px-4 py-3 border border-navy-100">
+                        <p class="text-xs text-navy-600 leading-relaxed text-center">
+                            <span class="font-semibold">Not sure?</span> If the school provided you with a <span class="font-medium">@my.cspc.edu.ph</span> email, choose the first option. Otherwise, select the second to create one now.
+                        </p>
+                    </div>
+
+                    <p class="text-center text-xs text-gray-400 leading-relaxed px-4">
+                        By signing in, you agree to our
+                        <a href="#" class="text-navy-600 hover:underline">Terms of Service</a> and
+                        <a href="#" class="text-navy-600 hover:underline">Privacy Policy</a>.
+                    </p>
+                </div>
+
+                <!-- ===== VIEW 6: Student Verification Form ===== -->
+                <div id="viewStudentForm" class="panel-view space-y-5 sm:space-y-6 hidden">
+
+                    <button type="button" id="backToStudentOptions" class="inline-flex items-center gap-2 text-sm text-navy-600 hover:text-navy-800 font-medium transition-colors group">
+                        <svg class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"/></svg>
+                        Back
+                    </button>
+
+                    <div class="text-center">
+                        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-navy-100 mb-3">
+                            <svg class="w-6 h-6 text-navy-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        </div>
+                        <h2 class="text-xl sm:text-2xl font-bold text-navy-900 tracking-tight">Student Verification</h2>
+                        <p id="studentVerificationSubtitle" class="mt-1.5 text-sm text-gray-500">Enter your student number to get started</p>
+                    </div>
+
+                    <div class="space-y-4">
+
+                        <!-- STEP 1: Student Number -->
+                        <div id="stepStudentNumber">
+                            <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wider">Student Number <span class="text-red-500">*</span></label>
+                            <input type="text" id="inputStudentNumber" name="student_number" required
+                                class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 focus:border-transparent transition-all placeholder:text-gray-400"
+                                placeholder="e.g. 2021-00123">
+                        </div>
+
+                        <button type="button" id="btnVerifyStudent"
+                            class="w-full flex items-center justify-center gap-2 bg-navy-800 hover:bg-navy-900 text-white rounded-2xl px-6 py-3.5 font-semibold text-sm sm:text-base transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-[0.98]">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <span id="btnVerifyStudentText">Verify Student Number</span>
+                        </button>
+
+                        <!-- STEP 2: Identity Verification -->
+                        <div id="stepStudentIdentityFields" class="space-y-4 hidden">
+                            <div class="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-2.5">
+                                <svg class="w-5 h-5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span class="text-sm text-green-700 font-medium">Student found. Please confirm your identity.</span>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wider">First Name <span class="text-red-500">*</span></label>
+                                <input type="text" id="inputStudentFirstName" name="first_name" required
+                                    class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 focus:border-transparent transition-all placeholder:text-gray-400"
+                                    placeholder="Juan">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wider">Last Name <span class="text-red-500">*</span></label>
+                                <input type="text" id="inputStudentLastName" name="last_name" required
+                                    class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 focus:border-transparent transition-all placeholder:text-gray-400"
+                                    placeholder="Dela Cruz">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wider">Birthdate <span class="text-red-500">*</span></label>
+                                <input type="date" id="inputStudentBirthDate" name="birth_date" required
+                                    class="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 focus:border-transparent transition-all text-gray-700">
+                            </div>
+
+                            <button type="button" id="btnVerifyStudentIdentity"
+                                class="w-full flex items-center justify-center gap-2 bg-navy-800 hover:bg-navy-900 text-white rounded-2xl px-6 py-3.5 font-semibold text-sm sm:text-base transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-[0.98]">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                <span id="btnVerifyStudentIdentityText">Verify Identity</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <p class="text-center text-xs text-gray-400 leading-relaxed px-4">
+                        By signing in, you agree to our
+                        <a href="#" class="text-navy-600 hover:underline">Terms of Service</a> and
+                        <a href="#" class="text-navy-600 hover:underline">Privacy Policy</a>.
+                    </p>
+                </div>
+
+                <!-- ===== VIEW 7: Student Account Builder ===== -->
+                <div id="viewStudentAccountBuilder" class="panel-view space-y-5 sm:space-y-6 hidden">
+
+                    <button type="button" id="backToStudentVerification" class="inline-flex items-center gap-2 text-sm text-navy-600 hover:text-navy-800 font-medium transition-colors group">
+                        <svg class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"/></svg>
+                        Back
+                    </button>
+
+                    <div class="text-center">
+                        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-navy-100 mb-3">
+                            <svg class="w-6 h-6 text-navy-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        </div>
+                        <h2 class="text-xl sm:text-2xl font-bold text-navy-900 tracking-tight">Create Your Student Email</h2>
+                        <p class="mt-1.5 text-sm text-gray-500">Choose an available email or type your own</p>
+                    </div>
+
+                    <div id="studentEmailSuggestionsContainer" class="hidden">
+                        <label class="block text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wider">Suggested Emails</label>
+                        <div id="studentEmailSuggestionsLoading" class="flex items-center justify-center py-3">
+                            <svg class="animate-spin h-5 w-5 text-navy-600" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a10 10 0 00-10 10h2z"></path></svg>
+                            <span class="ml-2 text-sm text-gray-500">Loading suggestions...</span>
+                        </div>
+                        <div id="studentEmailSuggestionsList" class="grid gap-2"></div>
+                    </div>
+
+                    <form id="createStudentEmailForm" class="space-y-4">
+                        <?= csrf_field() ?>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wider">
+                                Email <span class="text-red-500">*</span>
+                            </label>
+                            <div class="flex items-center">
+                                <div class="relative flex-1 min-w-0">
+                                    <input type="text" name="email" id="newStudentEmail" required
+                                        class="w-full rounded-l-xl border border-gray-200 px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 focus:z-10 transition-all placeholder:text-gray-400"
+                                        placeholder="juandelacruz" autocomplete="off">
+                                    <span id="studentEmailStatusIcon" class="absolute right-3 top-1/2 -translate-y-1/2 hidden"></span>
+                                </div>
+                                <span class="inline-flex items-center px-4 rounded-r-xl border border-l-0 border-gray-200 bg-gray-50 text-gray-500 text-sm h-[46px]">
+                                    @my.cspc.edu.ph
+                                </span>
+                            </div>
+                            <p id="studentEmailStatusMessage" class="mt-1.5 text-xs hidden"></p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wider">
+                                Password <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative flex items-center">
+                                <input type="password" id="studentPassword" name="password" required
+                                    class="w-full rounded-xl border border-gray-200 pl-4 pr-12 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 focus:border-transparent transition-all placeholder:text-gray-400"
+                                    placeholder="Enter your password">
+                                <button type="button" onclick="togglePassword('studentPassword', this)"
+                                    class="absolute right-4 text-gray-400 hover:text-navy-400 transition-colors focus:outline-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wider">
+                                Confirm Password <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative flex items-center">
+                                <input type="password" id="studentConfirmPassword" name="confirm_password" required
+                                    class="w-full rounded-xl border border-gray-200 pl-4 pr-12 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 focus:border-transparent transition-all placeholder:text-gray-400"
+                                    placeholder="Re-enter your password">
+                                <button type="button" onclick="togglePassword('studentConfirmPassword', this)"
+                                    class="absolute right-4 text-gray-400 hover:text-navy-400 transition-colors focus:outline-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="btnCreateStudentAccount"
+                            class="w-full flex items-center justify-center gap-2 bg-navy-800 hover:bg-navy-900 text-white rounded-2xl px-6 py-3.5 font-semibold text-sm sm:text-base transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                            <span id="btnCreateStudentAccountText">Create Account</span>
+                        </button>
+                    </form>
+
+                    <p class="text-center text-xs text-gray-400 leading-relaxed px-4">
+                        By signing in, you agree to our
+                        <a href="#" class="text-navy-600 hover:underline">Terms of Service</a> and
+                        <a href="#" class="text-navy-600 hover:underline">Privacy Policy</a>.
+                    </p>
+                </div>
+
             </div>
         </div>
     </div>
@@ -485,6 +706,7 @@
         const btnNoCspc    = document.getElementById('noCspcEmailBtn');
         const btnBackForm  = document.getElementById('backToEmployeeOptions');
         const btnBackVerification = document.getElementById('backToEmployeeVerification');
+        const forgotAccountButton = document.getElementById('forgotAccountBtn');
 
         // View 3 step elements
         const stepEmployeeNumber   = document.getElementById('stepEmployeeNumber');
@@ -494,9 +716,12 @@
         const btnVerifyIdentity    = document.getElementById('btnVerifyIdentity');
         const btnVerifyIdentityText = document.getElementById('btnVerifyIdentityText');
         const inputEmployeeNumber  = document.getElementById('inputEmployeeNumber');
+        const inputFirstName       = document.getElementById('inputFirstName');
         const inputLastName        = document.getElementById('inputLastName');
         const inputBirthDate       = document.getElementById('inputBirthDate');
         const verificationSubtitle = document.getElementById('verificationSubtitle');
+
+        let forgotMode = false;
 
         const BASE_URL = '<?= base_url() ?>';
         const CSRF_NAME = '<?= csrf_token() ?>';
@@ -519,8 +744,10 @@
 
         /** Reset View 3 back to Step 1 */
         function resetVerificationForm() {
+            forgotMode = false;
             inputEmployeeNumber.value = '';
             inputEmployeeNumber.disabled = false;
+            inputFirstName.value = '';
             inputLastName.value = '';
             inputBirthDate.value = '';
             stepIdentityFields.classList.add('hidden');
@@ -613,12 +840,24 @@
                         title: 'Email Already Exists',
                         html: data.message,
                         confirmButtonColor: '#162557',
-                        confirmButtonText: 'Use Google Sign-In'
+                        confirmButtonText: 'Use Google Sign-In',
+                        showDenyButton: true,
+                        denyButtonText: 'I forgot my CSPC Email / Password',
+                        denyButtonColor: '#dc2626',
                     }).then(function(result) {
                         if (result.isConfirmed) {
-                            // Take them back to View 2 where they can choose "I have a CSPC Email"
+                            // Go back to employee options to choose "I have a CSPC Email"
                             resetVerificationForm();
-                            switchView(viewForm, viewEmployeeOptions);
+                            switchView(viewForm, viewEmployee);
+                        } else if (result.isDenied) {
+                            // Enter forgot-account mode: show identity fields directly
+                            forgotMode = true;
+                            inputEmployeeNumber.disabled = true;
+                            btnVerifyEmployee.classList.add('hidden');
+                            verificationSubtitle.textContent = 'Verify your identity to recover your account';
+                            stepIdentityFields.classList.remove('hidden');
+                            stepIdentityFields.style.animation = 'fadeIn 0.35s ease-out both';
+                            inputFirstName.focus();
                         }
                     });
                     setLoading(btnVerifyEmployee, btnVerifyEmployeeText, false, 'Verify Employee Number');
@@ -641,14 +880,15 @@
         });
 
         // ========================
-        //  STEP 2: Verify Identity — last name & birthdate (AJAX)
+        //  STEP 2: Verify Identity — first name, last name & birthdate (AJAX)
         // ========================
         btnVerifyIdentity.addEventListener('click', async function() {
+            const firstName = inputFirstName.value.trim();
             const lastName  = inputLastName.value.trim();
             const birthDate = inputBirthDate.value;
 
-            if (!lastName || !birthDate) {
-                Swal.fire({ icon: 'warning', title: 'Required', text: 'Please enter both your last name and birthdate.', confirmButtonColor: '#162557' });
+            if (!firstName || !lastName || !birthDate) {
+                Swal.fire({ icon: 'warning', title: 'Required', text: 'Please enter your first name, last name, and birthdate.', confirmButtonColor: '#162557' });
                 return;
             }
 
@@ -656,13 +896,16 @@
 
             try {
                 const formData = new FormData();
-                formData.append('first_name', inputFirstName.value.trim());
-                formData.append('middle_name', inputMiddleName.value.trim());
+                formData.append('first_name', firstName);
                 formData.append('last_name', lastName);
                 formData.append('birth_date', birthDate);
                 formData.append(CSRF_NAME, CSRF_HASH);
 
-                const res = await fetch(BASE_URL + '/employee/verify-data', {
+                const endpoint = forgotMode
+                    ? BASE_URL + '/employee/account-recovery'
+                    : BASE_URL + '/employee/verify-data';
+
+                const res = await fetch(endpoint, {
                     method: 'POST',
                     body: formData,
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -670,7 +913,42 @@
 
                 const data = await res.json();
 
-                // Data mismatch or other error
+                if (forgotMode) {
+                    setLoading(btnVerifyIdentity, btnVerifyIdentityText, false, 'Verify Identity');
+
+                    if (!res.ok && data.status === 'error') {
+                        Swal.fire({ icon: 'error', title: 'Verification Failed', html: data.message || 'The information provided does not match our records.', confirmButtonColor: '#162557' });
+                        return;
+                    }
+
+                    if (data.status === 'recovery_ticket_created') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Recovery Ticket Created',
+                            html: data.message,
+                            confirmButtonColor: '#162557',
+                            confirmButtonText: 'OK'
+                        }).then(function() {
+                            resetVerificationForm();
+                            switchView(viewForm, viewRole);
+                        });
+                    } else {
+                        // no_alt_email — advise to visit ICTU office
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'No Alternative Email Found',
+                            html: data.message,
+                            confirmButtonColor: '#162557',
+                            confirmButtonText: 'OK'
+                        }).then(function() {
+                            resetVerificationForm();
+                            switchView(viewForm, viewRole);
+                        });
+                    }
+                    return;
+                }
+
+                // Normal account-creation flow
                 if (!res.ok || data.status !== 'success') {
                     Swal.fire({ icon: 'error', title: 'Verification Failed', text: data.message || 'The information provided does not match our records.', confirmButtonColor: '#162557' });
                     setLoading(btnVerifyIdentity, btnVerifyIdentityText, false, 'Verify Identity');
@@ -922,6 +1200,427 @@
                 btn.classList.add('opacity-80', 'pointer-events-none');
             });
         });
+
+        // ========================
+        //  STUDENT FLOW
+        // ========================
+
+        const viewStudentOptions      = document.getElementById('viewStudentOptions');
+        const viewStudentForm         = document.getElementById('viewStudentForm');
+        const viewStudentAccountBuilder = document.getElementById('viewStudentAccountBuilder');
+
+        const btnStudentLogin             = document.getElementById('studentLoginBtn');
+        const btnBackToRoleFromStudent    = document.getElementById('backToRoleSelectFromStudent');
+        const btnStudentNoCspc            = document.getElementById('studentNoCspcEmailBtn');
+        const btnBackToStudentOptions     = document.getElementById('backToStudentOptions');
+        const btnBackToStudentVerification = document.getElementById('backToStudentVerification');
+
+        const inputStudentNumber          = document.getElementById('inputStudentNumber');
+        const stepStudentIdentityFields   = document.getElementById('stepStudentIdentityFields');
+        const btnVerifyStudent            = document.getElementById('btnVerifyStudent');
+        const btnVerifyStudentText        = document.getElementById('btnVerifyStudentText');
+        const btnVerifyStudentIdentity    = document.getElementById('btnVerifyStudentIdentity');
+        const btnVerifyStudentIdentityText = document.getElementById('btnVerifyStudentIdentityText');
+        const studentVerificationSubtitle = document.getElementById('studentVerificationSubtitle');
+
+        let studentForgotMode = false;
+
+        function resetStudentVerificationForm() {
+            studentForgotMode = false;
+            inputStudentNumber.value = '';
+            inputStudentNumber.disabled = false;
+            document.getElementById('inputStudentFirstName').value = '';
+            document.getElementById('inputStudentLastName').value = '';
+            document.getElementById('inputStudentBirthDate').value = '';
+            stepStudentIdentityFields.classList.add('hidden');
+            btnVerifyStudent.classList.remove('hidden');
+            btnVerifyStudent.disabled = false;
+            btnVerifyStudentText.textContent = 'Verify Student Number';
+            studentVerificationSubtitle.textContent = 'Enter your student number to get started';
+        }
+
+        // View 1 -> View 5 (student options)
+        btnStudentLogin.addEventListener('click', function() {
+            switchView(viewRole, viewStudentOptions);
+        });
+
+        // View 5 -> View 1
+        btnBackToRoleFromStudent.addEventListener('click', function() {
+            switchView(viewStudentOptions, viewRole);
+        });
+
+        // View 5 -> View 6 (student form) — always in forgot mode
+        btnStudentNoCspc.addEventListener('click', function() {
+            resetStudentVerificationForm();
+            studentForgotMode = true;
+            switchView(viewStudentOptions, viewStudentForm);
+        });
+
+        // View 6 -> View 5
+        btnBackToStudentOptions.addEventListener('click', function() {
+            resetStudentVerificationForm();
+            switchView(viewStudentForm, viewStudentOptions);
+        });
+
+        // View 7 -> View 6
+        btnBackToStudentVerification.addEventListener('click', function() {
+            resetStudentVerificationForm();
+            switchView(viewStudentAccountBuilder, viewStudentForm);
+        });
+
+        // STEP 1: Verify Student Number
+        btnVerifyStudent.addEventListener('click', async function() {
+            const stuNumber = inputStudentNumber.value.trim();
+            if (!stuNumber) {
+                Swal.fire({ icon: 'warning', title: 'Required', text: 'Please enter your student number.', confirmButtonColor: '#162557' });
+                return;
+            }
+
+            setLoading(btnVerifyStudent, btnVerifyStudentText, true, 'Verify Student Number');
+
+            try {
+                const formData = new FormData();
+                formData.append('student_number', stuNumber);
+                formData.append(CSRF_NAME, CSRF_HASH);
+
+                const res = await fetch(BASE_URL + '/student/verify', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                const data = await res.json();
+
+                if ((!res.ok || data.status !== 'success') && data.status !== 'has_email') {
+                    Swal.fire({ icon: 'error', title: 'Verification Failed', text: data.message || 'Student not found. Please check your student number.', confirmButtonColor: '#162557' });
+                    setLoading(btnVerifyStudent, btnVerifyStudentText, false, 'Verify Student Number');
+                    return;
+                }
+
+                // Student found (success or has_email = student exists in API)
+                inputStudentNumber.disabled = true;
+                btnVerifyStudent.classList.add('hidden');
+                studentVerificationSubtitle.textContent = studentForgotMode
+                    ? 'Verify your identity to recover your account'
+                    : 'Confirm your identity to continue';
+                stepStudentIdentityFields.classList.remove('hidden');
+                stepStudentIdentityFields.style.animation = 'fadeIn 0.35s ease-out both';
+                document.getElementById('inputStudentFirstName').focus();
+
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'Network Error', text: 'Could not reach the server. Please try again.', confirmButtonColor: '#162557' });
+                setLoading(btnVerifyStudent, btnVerifyStudentText, false, 'Verify Student Number');
+            }
+        });
+
+        // STEP 2: Verify Student Identity
+        btnVerifyStudentIdentity.addEventListener('click', async function() {
+            const firstName  = document.getElementById('inputStudentFirstName').value.trim();
+            const lastName   = document.getElementById('inputStudentLastName').value.trim();
+            const birthDate  = document.getElementById('inputStudentBirthDate').value;
+
+            if (!firstName || !lastName || !birthDate) {
+                Swal.fire({ icon: 'warning', title: 'Required', text: 'Please fill in all identity fields.', confirmButtonColor: '#162557' });
+                return;
+            }
+
+            setLoading(btnVerifyStudentIdentity, btnVerifyStudentIdentityText, true, 'Verify Identity');
+
+            try {
+                const formData = new FormData();
+                formData.append('first_name', firstName);
+                formData.append('last_name', lastName);
+                formData.append('birth_date', birthDate);
+                formData.append(CSRF_NAME, CSRF_HASH);
+
+                const endpoint = studentForgotMode
+                    ? BASE_URL + '/student/account-recovery'
+                    : BASE_URL + '/student/verify-data';
+
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                const data = await res.json();
+
+                if (studentForgotMode) {
+                    setLoading(btnVerifyStudentIdentity, btnVerifyStudentIdentityText, false, 'Verify Identity');
+
+                    if (data.status === 'no_email' && data.redirect) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'No CSPC Email Found',
+                            html: data.message,
+                            confirmButtonColor: '#162557',
+                            confirmButtonText: 'Go to Claim Portal'
+                        }).then(function() {
+                            window.location.href = data.redirect;
+                        });
+                        return;
+                    }
+
+                    if (!res.ok && data.status === 'error') {
+                        Swal.fire({ icon: 'error', title: 'Verification Failed', html: data.message || 'The information provided does not match our records.', confirmButtonColor: '#162557' });
+                        return;
+                    }
+
+                    if (data.status === 'recovery_ticket_created') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Recovery Ticket Created',
+                            html: data.message,
+                            confirmButtonColor: '#162557',
+                            confirmButtonText: 'OK'
+                        }).then(function() {
+                            resetStudentVerificationForm();
+                            switchView(viewStudentForm, viewRole);
+                        });
+                    } else {
+                        // no_alt_email — advise to visit ICTU office
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'No Alternative Email Saved',
+                            html: data.message,
+                            confirmButtonColor: '#162557',
+                            confirmButtonText: 'OK'
+                        }).then(function() {
+                            resetStudentVerificationForm();
+                            switchView(viewStudentForm, viewRole);
+                        });
+                    }
+                    return;
+                }
+
+                // Normal identity → redirect to claim email portal
+                if (!res.ok || data.status !== 'success') {
+                    Swal.fire({ icon: 'error', title: 'Verification Failed', text: data.message || 'The information provided does not match our records.', confirmButtonColor: '#162557' });
+                    setLoading(btnVerifyStudentIdentity, btnVerifyStudentIdentityText, false, 'Verify Identity');
+                    return;
+                }
+
+                if (data.status === 'no_email' && data.redirect) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'No CSPC Email Found',
+                        html: data.message,
+                        confirmButtonColor: '#162557',
+                        confirmButtonText: 'Go to Claim Portal'
+                    }).then(function() {
+                        window.location.href = data.redirect;
+                    });
+                    return;
+                }
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Identity Verified',
+                    text: data.message,
+                    confirmButtonColor: '#162557',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(function() {
+                    window.location.href = 'https://profile.cspc.edu.ph/ClaimEmail';
+                });
+
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'Network Error', text: 'Could not reach the server. Please try again.', confirmButtonColor: '#162557' });
+                setLoading(btnVerifyStudentIdentity, btnVerifyStudentIdentityText, false, 'Verify Identity');
+            }
+        });
+
+        // ========================
+        //  VIEW 7: Student Email suggestions & account creation
+        // ========================
+
+        const newStudentEmailInput          = document.getElementById('newStudentEmail');
+        const studentEmailStatusIcon        = document.getElementById('studentEmailStatusIcon');
+        const studentEmailStatusMessage     = document.getElementById('studentEmailStatusMessage');
+        const studentSuggestionsContainer   = document.getElementById('studentEmailSuggestionsContainer');
+        const studentSuggestionsLoading     = document.getElementById('studentEmailSuggestionsLoading');
+        const studentSuggestionsList        = document.getElementById('studentEmailSuggestionsList');
+        const createStudentEmailForm        = document.getElementById('createStudentEmailForm');
+        const btnCreateStudentAccount       = document.getElementById('btnCreateStudentAccount');
+        const btnCreateStudentAccountText   = document.getElementById('btnCreateStudentAccountText');
+
+        let studentEmailCheckTimeout = null;
+        let studentEmailIsAvailable  = false;
+
+        async function loadStudentEmailSuggestions() {
+            studentSuggestionsContainer.classList.remove('hidden');
+            studentSuggestionsLoading.classList.remove('hidden');
+            studentSuggestionsList.innerHTML = '';
+
+            try {
+                const res = await fetch(BASE_URL + '/student/email-suggestions', {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await res.json();
+
+                studentSuggestionsLoading.classList.add('hidden');
+
+                if (data.suggestions && data.suggestions.length > 0) {
+                    data.suggestions.forEach(function(email) {
+                        const localPart = email.replace('@my.cspc.edu.ph', '');
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'student-email-suggestion-btn flex items-center gap-2 w-full text-left px-3 py-2.5 rounded-xl border border-gray-200 hover:border-navy-400 hover:bg-navy-50 text-sm text-navy-800 transition-all duration-200 group';
+                        btn.innerHTML = '<svg class="w-4 h-4 text-navy-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>'
+                            + '<span class="truncate">' + email + '</span>'
+                            + '<svg class="w-4 h-4 ml-auto text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+
+                        btn.addEventListener('click', function() {
+                            newStudentEmailInput.value = localPart;
+                            setStudentEmailAvailable(true, 'Email is available');
+                            document.querySelectorAll('.student-email-suggestion-btn').forEach(function(b) {
+                                b.classList.remove('ring-2', 'ring-navy-400', 'bg-navy-50');
+                            });
+                            btn.classList.add('ring-2', 'ring-navy-400', 'bg-navy-50');
+                        });
+                        studentSuggestionsList.appendChild(btn);
+                    });
+                } else {
+                    studentSuggestionsList.innerHTML = '<p class="text-xs text-gray-400 text-center py-2">No suggestions available. Please type your preferred email.</p>';
+                }
+            } catch (err) {
+                studentSuggestionsLoading.classList.add('hidden');
+                studentSuggestionsList.innerHTML = '<p class="text-xs text-red-400 text-center py-2">Failed to load suggestions.</p>';
+            }
+        }
+
+        function setStudentEmailAvailable(available, message) {
+            studentEmailIsAvailable = available;
+            studentEmailStatusIcon.classList.remove('hidden');
+            studentEmailStatusMessage.classList.remove('hidden');
+
+            if (available) {
+                studentEmailStatusIcon.innerHTML = '<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+                studentEmailStatusMessage.className = 'mt-1.5 text-xs text-green-600';
+                studentEmailStatusMessage.textContent = 'Email is available';
+                newStudentEmailInput.classList.remove('border-red-400');
+                newStudentEmailInput.classList.add('border-green-400');
+            } else {
+                studentEmailStatusIcon.innerHTML = '<svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+                studentEmailStatusMessage.className = 'mt-1.5 text-xs text-red-600';
+                studentEmailStatusMessage.textContent = 'Email is already taken';
+                newStudentEmailInput.classList.remove('border-green-400');
+                newStudentEmailInput.classList.add('border-red-400');
+            }
+        }
+
+        function clearStudentEmailStatus() {
+            studentEmailIsAvailable = false;
+            studentEmailStatusIcon.classList.add('hidden');
+            studentEmailStatusIcon.innerHTML = '';
+            studentEmailStatusMessage.classList.add('hidden');
+            studentEmailStatusMessage.textContent = '';
+            newStudentEmailInput.classList.remove('border-green-400', 'border-red-400');
+        }
+
+        async function checkStudentEmailAvailability(emailLocal) {
+            if (!emailLocal) { clearStudentEmailStatus(); return; }
+
+            const fullEmail = emailLocal.includes('@') ? emailLocal : emailLocal + '@my.cspc.edu.ph';
+
+            studentEmailStatusIcon.classList.remove('hidden');
+            studentEmailStatusIcon.innerHTML = '<svg class="animate-spin h-5 w-5 text-navy-400" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a10 10 0 00-10 10h2z"></path></svg>';
+            studentEmailStatusMessage.classList.add('hidden');
+
+            try {
+                const res = await fetch(BASE_URL + '/student/check-email/' + encodeURIComponent(fullEmail), {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    setStudentEmailAvailable(true, data.message || 'Email is available');
+                } else {
+                    setStudentEmailAvailable(false, data.message || 'Email is already taken');
+                }
+            } catch (err) {
+                clearStudentEmailStatus();
+            }
+        }
+
+        newStudentEmailInput.addEventListener('input', function() {
+            clearTimeout(studentEmailCheckTimeout);
+            const val = newStudentEmailInput.value.trim();
+            if (!val) { clearStudentEmailStatus(); return; }
+            studentEmailCheckTimeout = setTimeout(function() {
+                checkStudentEmailAvailability(val);
+            }, 600);
+        });
+
+        newStudentEmailInput.addEventListener('blur', function() {
+            clearTimeout(studentEmailCheckTimeout);
+            const val = newStudentEmailInput.value.trim();
+            if (val) { checkStudentEmailAvailability(val); }
+        });
+
+        createStudentEmailForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const email           = newStudentEmailInput.value.trim();
+            const passwordVal     = document.getElementById('studentPassword').value;
+            const confirmPassword = document.getElementById('studentConfirmPassword').value;
+
+            if (!email) {
+                Swal.fire({ icon: 'warning', title: 'Required', text: 'Please enter an email address.', confirmButtonColor: '#162557' });
+                return;
+            }
+            if (!passwordVal || !confirmPassword) {
+                Swal.fire({ icon: 'warning', title: 'Required', text: 'Please enter and confirm your password.', confirmButtonColor: '#162557' });
+                return;
+            }
+            if (passwordVal !== confirmPassword) {
+                Swal.fire({ icon: 'error', title: 'Mismatch', text: 'Password and confirm password do not match.', confirmButtonColor: '#162557' });
+                return;
+            }
+            if (!studentEmailIsAvailable) {
+                Swal.fire({ icon: 'error', title: 'Unavailable', text: 'Please choose an available email before submitting.', confirmButtonColor: '#162557' });
+                return;
+            }
+
+            setLoading(btnCreateStudentAccount, btnCreateStudentAccountText, true, 'Create Account');
+
+            try {
+                const formData = new FormData();
+                formData.append('email', email);
+                formData.append('password', passwordVal);
+                formData.append('confirm_password', confirmPassword);
+                formData.append(CSRF_NAME, CSRF_HASH);
+
+                const res = await fetch(BASE_URL + '/student/create-email', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Account Created!',
+                        text: data.message || 'You can now log in with your new student email and password.',
+                        confirmButtonColor: '#162557'
+                    }).then(function() {
+                        createStudentEmailForm.reset();
+                        clearStudentEmailStatus();
+                        studentSuggestionsList.innerHTML = '';
+                        studentSuggestionsContainer.classList.add('hidden');
+                        switchView(viewStudentAccountBuilder, viewRole);
+                    });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.message || 'Failed to create account. Please try again.', confirmButtonColor: '#162557' });
+                }
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'Network Error', text: 'Could not reach the server. Please try again.', confirmButtonColor: '#162557' });
+            }
+
+            setLoading(btnCreateStudentAccount, btnCreateStudentAccountText, false, 'Create Account');
+        });
+
     })();
     </script>
     <script>

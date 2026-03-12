@@ -37,7 +37,7 @@
               <td class="py-3 pr-4 text-gray-700 max-w-[200px] truncate"><?= esc($ticket['problem_description'] ?? 'N/A') ?></td>
               <td class="py-3 pr-4 text-gray-600"><?= esc($ticket['requestor_name'] ?? 'N/A') ?></td>
               <td class="py-3 pr-4">
-                <?= (\App\Enums\JobStatus::tryFrom((int) $ticket['job_status']))?->badge() ?? '<span class="text-xs font-bold px-2 py-1 rounded-full bg-gray-100 text-gray-600">Unknown</span>' ?>
+                <?= \App\Models\JobStatusModel::badge((int) $ticket['job_status']) ?: '<span class="text-xs font-bold px-2 py-1 rounded-full bg-gray-100 text-gray-600">Unknown</span>' ?>
               </td>
               <td class="py-3 pr-4 mono text-xs text-gray-500"><?= date('M d, Y', strtotime($ticket['ticket_date'])) ?></td>
               <td class="py-3">
@@ -46,7 +46,7 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     View
                   </a>
-                  <?php if(in_array((int)$ticket['job_status'], [0, 1, 2])): ?>
+                  <?php if(in_array((int)$ticket['job_status'], [1, 2, 3])): ?>
                     <a href="<?= base_url($urlPrefix . '/respond/' . $ticket['job_ticket_response_id']) ?>" class="text-xs font-bold text-teal-600 hover:text-teal-800 bg-teal-50 px-3 py-1.5 rounded-lg hover:bg-teal-100 transition-all">Respond</a>
                     <a href="<?= base_url($urlPrefix . '/transfer/' . $ticket['job_ticket_response_id']) ?>" class="text-xs font-bold text-orange-600 hover:text-orange-800 bg-orange-50 px-3 py-1.5 rounded-lg hover:bg-orange-100 transition-all">Transfer</a>
                   <?php endif; ?>

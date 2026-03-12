@@ -26,10 +26,9 @@ use App\Models\JobTicketRequestModel;
 use App\Models\JobTicketResponseModel;
 use App\Models\ResponsePartModel;
 use App\Models\TicketHistoryModel;
+use App\Models\RoleModel;
 
-use App\Enums\SectionEnums;
-use App\Enums\JobStatus;
-use App\Enums\UserRole;
+use App\Models\JobStatusModel;
 
 class SuperAdminController extends BaseController
 {
@@ -97,20 +96,26 @@ class SuperAdminController extends BaseController
             'cancelled'   => 0,
         ];
 
+        $openId       = JobStatusModel::getIdByLabel('Open');
+        $inProgressId = JobStatusModel::getIdByLabel('In Progress');
+        $completedId  = JobStatusModel::getIdByLabel('Completed');
+        $closedId     = JobStatusModel::getIdByLabel('Closed');
+        $cancelledId  = JobStatusModel::getIdByLabel('Cancelled');
+
         foreach ($statusRows as $r) {
             $stats['total'] += (int) $r['cnt'];
             match ((int) $r['job_status']) {
-                JobStatus::OPEN->value              => $stats['open']        += (int) $r['cnt'],
-                JobStatus::IN_PROGRESS->value       => $stats['in_progress'] += (int) $r['cnt'],
-                JobStatus::COMPLETED->value         => $stats['completed']   += (int) $r['cnt'],
-                JobStatus::CLOSED->value            => $stats['closed']      += (int) $r['cnt'],
-                JobStatus::CANCELLED->value         => $stats['cancelled']   += (int) $r['cnt'],
+                $openId       => $stats['open']        += (int) $r['cnt'],
+                $inProgressId => $stats['in_progress'] += (int) $r['cnt'],
+                $completedId  => $stats['completed']   += (int) $r['cnt'],
+                $closedId     => $stats['closed']      += (int) $r['cnt'],
+                $cancelledId  => $stats['cancelled']   += (int) $r['cnt'],
                 default => null,
             };
         }
 
-        // ── 2. Active users (employees with role < 5) ──
-        $activeUsers = $this->userModel->where('role_id <', 5)->countAllResults();
+        // ── 2. Active users (employees with assigned roles 1-5) ──
+        $activeUsers = $this->userModel->where('role_id <', 6)->countAllResults();
 
         // Total registered users
         $totalUsers = $this->userModel->countAllResults();
@@ -148,7 +153,7 @@ class SuperAdminController extends BaseController
             ->select('users.user_id, users.name, users.avatar, COUNT(*) as resolved_count')
             ->join('job_tickets', 'job_tickets.job_ticket_id = job_ticket_responses.job_ticket_id')
             ->join('users', 'users.user_id = job_ticket_responses.staff_id')
-            ->whereIn('job_tickets.job_status', [JobStatus::COMPLETED->value, JobStatus::CLOSED->value])
+            ->whereIn('job_tickets.job_status', [$completedId, $closedId])
             ->groupBy('job_ticket_responses.staff_id')
             ->orderBy('resolved_count', 'DESC')
             ->limit(5)
@@ -202,6 +207,12 @@ class SuperAdminController extends BaseController
      */
     public function tickets()
     {
+        $openId       = JobStatusModel::getIdByLabel('Open');
+        $inProgressId = JobStatusModel::getIdByLabel('In Progress');
+        $completedId  = JobStatusModel::getIdByLabel('Completed');
+        $closedId     = JobStatusModel::getIdByLabel('Closed');
+        $cancelledId  = JobStatusModel::getIdByLabel('Cancelled');
+
         $tickets = $this->jobTicketModel
             ->select('job_tickets.*,
                       job_ticket_requests.problem_description,
@@ -233,11 +244,11 @@ class SuperAdminController extends BaseController
         ];
         foreach ($tickets as $t) {
             match ((int) $t['job_status']) {
-                JobStatus::OPEN->value              => $statusCounts['open']++,
-                JobStatus::IN_PROGRESS->value       => $statusCounts['in_progress']++,
-                JobStatus::COMPLETED->value         => $statusCounts['completed']++,
-                JobStatus::CLOSED->value            => $statusCounts['closed']++,
-                JobStatus::CANCELLED->value         => $statusCounts['cancelled']++,
+                $openId       => $statusCounts['open']++,
+                $inProgressId => $statusCounts['in_progress']++,
+                $completedId  => $statusCounts['completed']++,
+                $closedId     => $statusCounts['closed']++,
+                $cancelledId  => $statusCounts['cancelled']++,
                 default => null,
             };
         }
@@ -294,7 +305,7 @@ class SuperAdminController extends BaseController
     }
 
     /**
-     * AJAX endpoint – search users with role_id = 5 (unassigned users)
+     * AJAX endpoint – search users with role_id = 4 (Employee — unassigned public employees)
      */
     public function searchUsers()
     {
@@ -306,7 +317,7 @@ class SuperAdminController extends BaseController
         }
 
         $users = $this->userModel
-            ->where('role_id', 5)
+            ->where('role_id', 4)
             ->like('name', $q)
             ->orderBy('name', 'ASC')
             ->limit(10)
@@ -325,7 +336,7 @@ class SuperAdminController extends BaseController
         $rules = [
             'user_id'        => 'required|integer',
             'section_id'     => 'required|integer',
-            'role_id'        => 'required|in_list[2,3,4]',
+            'role_id'        => 'required|in_list[2,3]',
             'expertise_ids'  => 'required',
         ];
 
@@ -338,10 +349,10 @@ class SuperAdminController extends BaseController
         $roleId    = (int) $request->getPost('role_id');
         $expertiseIds = $request->getPost('expertise_ids') ?? [];
 
-        // Make sure the user exists and is still a regular user
+        // Make sure the user exists and is still an unassigned employee (role_id = 4)
         $user = $this->userModel->find($userId);
-        if (! $user || (int) $user['role_id'] !== 5) {
-            return redirect()->back()->with('error', 'User not found or is already an employee.');
+        if (! $user || (int) $user['role_id'] !== 4) {
+            return redirect()->back()->with('error', 'User not found or is already an ICTU staff member.');
         }
 
         // Prevent assigning Head of Section if one already exists for the section
@@ -426,15 +437,16 @@ class SuperAdminController extends BaseController
             ->select('users.*, sections.name as section_name, sections.acronym')
             ->join('sections', 'users.section_id = sections.section_id', 'left')
             ->where('users.user_id', $id)
-            ->where('users.role_id <', 5)
+            ->where('users.role_id <=', 3)
             ->first();
 
         if (! $employee) {
             return redirect()->to('super-admin/employees')->with('error', 'Employee not found.');
         }
 
-        $employee['role'] = \App\Enums\UserRole::from($employee['role_id'])->label();
-        $employee['role_color'] = \App\Enums\UserRole::from($employee['role_id'])->role_color();
+        $roleData              = (new RoleModel())->find((int) $employee['role_id']);
+        $employee['role']      = $roleData['label']      ?? 'Unknown';
+        $employee['role_color'] = $roleData['role_color'] ?? 'gray';
         $employee['initials'] = $this->userModel->get_initials($employee['name']);
 
         // Get employee's current expertise with skill names
@@ -463,13 +475,13 @@ class SuperAdminController extends BaseController
     public function updateEmployee(int $id)
     {
         $employee = $this->userModel->find($id);
-        if (! $employee || (int) $employee['role_id'] >= 5) {
+        if (! $employee || (int) $employee['role_id'] > 3) {
             return redirect()->to('super-admin/employees')->with('error', 'Employee not found.');
         }
 
         $rules = [
             'section_id' => 'required|integer',
-            'role_id'    => 'required|in_list[2,3,4]',
+            'role_id'    => 'required|in_list[2,3]',
         ];
 
         if (! $this->validate($rules)) {
@@ -515,7 +527,7 @@ class SuperAdminController extends BaseController
     public function removeEmployeeExpertise(int $userId, int $expertiseId)
     {
         $employee = $this->userModel->find($userId);
-        if (! $employee || (int) $employee['role_id'] >= 5) {
+        if (! $employee || (int) $employee['role_id'] > 3) {
             return $this->response->setStatusCode(404)->setJSON(['error' => 'Employee not found.']);
         }
 
@@ -533,7 +545,7 @@ class SuperAdminController extends BaseController
     public function addEmployeeExpertise(int $userId)
     {
         $employee = $this->userModel->find($userId);
-        if (! $employee || (int) $employee['role_id'] >= 5) {
+        if (! $employee || (int) $employee['role_id'] > 3) {
             return $this->response->setStatusCode(404)->setJSON(['error' => 'Employee not found.']);
         }
 
@@ -662,8 +674,9 @@ class SuperAdminController extends BaseController
             ->orderBy('expertise.skill', 'ASC')
             ->findAll();
 
+        $sectionColorMap = ['MIS' => 'blue', 'NICM' => 'green', 'ICTRAM' => 'yellow'];
         foreach ($expertiseList as &$expertise) {
-            $expertise['section_color'] = SectionEnums::from($expertise['section_id'])->color();
+            $expertise['section_color'] = $sectionColorMap[$expertise['acronym']] ?? 'gray';
         }
 
         return view('super_admin/expertise', [
@@ -1336,8 +1349,8 @@ class SuperAdminController extends BaseController
     {
         $sections = $this->sectionModel->orderBy('acronym', 'ASC')->findAll();
         $roles    = [
-            UserRole::EMPLOYEE->value => UserRole::EMPLOYEE->label(),
-            UserRole::STUDENT->value  => UserRole::STUDENT->label(),
+            4 => 'Employee',
+            5 => 'Student',
         ];
 
         $matrix = $this->sectionRoleAccessModel->getAccessMatrix(array_keys($roles));
@@ -1355,7 +1368,7 @@ class SuperAdminController extends BaseController
     public function updateSectionAccess()
     {
         $sections = $this->sectionModel->findAll();
-        $roleIds  = [UserRole::EMPLOYEE->value, UserRole::STUDENT->value];
+        $roleIds  = [4, 5];
         $posted   = $this->request->getPost('access') ?? [];
 
         foreach ($roleIds as $roleId) {
@@ -1474,6 +1487,96 @@ class SuperAdminController extends BaseController
         return redirect()->to('super-admin/keyword-rules')->with('success', '"' . $item['keyword'] . '" has been deleted.');
     }
 
+    // ─── Sections ─────────────────────────────────────────
+
+    public function sections()
+    {
+        return view('super_admin/sections', [
+            'sections' => $this->sectionModel->orderBy('acronym', 'ASC')->findAll(),
+        ]);
+    }
+
+    public function addSectionPage()
+    {
+        return view('super_admin/add_section');
+    }
+
+    public function addSection()
+    {
+        $rules = [
+            'acronym'     => 'required|max_length[20]|is_unique[sections.acronym]',
+            'name'        => 'required|max_length[255]|is_unique[sections.name]',
+            'description' => 'permit_empty|max_length[1000]',
+        ];
+
+        if (! $this->validate($rules)) {
+            return view('super_admin/add_section', [
+                'validation' => $this->validator,
+            ]);
+        }
+
+        $this->sectionModel->insert([
+            'acronym'     => strtoupper(trim($this->request->getPost('acronym'))),
+            'name'        => trim($this->request->getPost('name')),
+            'description' => trim($this->request->getPost('description') ?? ''),
+        ]);
+
+        return redirect()->to('super-admin/sections')->with('success', 'Section added successfully.');
+    }
+
+    public function editSectionPage(int $id)
+    {
+        $section = $this->sectionModel->find($id);
+        if (! $section) {
+            return redirect()->to('super-admin/sections')->with('error', 'Section not found.');
+        }
+
+        return view('super_admin/edit_section', [
+            'section' => $section,
+        ]);
+    }
+
+    public function updateSection(int $id)
+    {
+        $section = $this->sectionModel->find($id);
+        if (! $section) {
+            return redirect()->to('super-admin/sections')->with('error', 'Section not found.');
+        }
+
+        $rules = [
+            'acronym'     => "required|max_length[20]|is_unique[sections.acronym,section_id,{$id}]",
+            'name'        => "required|max_length[255]|is_unique[sections.name,section_id,{$id}]",
+            'description' => 'permit_empty|max_length[1000]',
+        ];
+
+        if (! $this->validate($rules)) {
+            return view('super_admin/edit_section', [
+                'section'    => $section,
+                'validation' => $this->validator,
+            ]);
+        }
+
+        $this->sectionModel->update($id, [
+            'acronym'     => strtoupper(trim($this->request->getPost('acronym'))),
+            'name'        => trim($this->request->getPost('name')),
+            'description' => trim($this->request->getPost('description') ?? ''),
+        ]);
+
+        return redirect()->to('super-admin/sections/edit/' . $id)->with('success', 'Section updated successfully.');
+    }
+
+    public function deleteSection(int $id)
+    {
+        $section = $this->sectionModel->find($id);
+        if (! $section) {
+            return redirect()->to('super-admin/sections')->with('error', 'Section not found.');
+        }
+
+        $this->sectionModel->delete($id);
+
+        return redirect()->to('super-admin/sections')->with('success', '"' . $section['name'] . '" has been deleted.');
+    }
+
     // ═══════════════════════════════════════════════════════
     //  FORM OPTION ACCESS CONTROL
     // ═══════════════════════════════════════════════════════
@@ -1486,8 +1589,8 @@ class SuperAdminController extends BaseController
     public function formOptionAccess()
     {
         $roles = [
-            UserRole::EMPLOYEE->value => UserRole::EMPLOYEE->label(),
-            UserRole::STUDENT->value  => UserRole::STUDENT->label(),
+            4 => 'Employee',
+            5 => 'Student',
         ];
         $roleIds = array_keys($roles);
 
@@ -1523,7 +1626,7 @@ class SuperAdminController extends BaseController
      */
     public function updateFormOptionAccess()
     {
-        $roleIds = [UserRole::EMPLOYEE->value, UserRole::STUDENT->value];
+        $roleIds = [4, 5];
         $posted  = $this->request->getPost('access') ?? [];
 
         // Map of option_type => [items]

@@ -80,7 +80,7 @@
                 <td class="py-3 pr-4 mono text-xs font-bold text-amber-600">ICTU-<?= date('Y', strtotime($ticket['created_at'])) ?>-<?= str_pad($ticket['job_ticket_id'], 5, '0', STR_PAD_LEFT) ?></td>
                 <td class="py-3 pr-4 text-gray-700 max-w-[200px] truncate"><?= esc($ticket['problem_description'] ?? 'N/A') ?></td>
                 <td class="py-3 pr-4">
-                  <?= (\App\Enums\JobStatus::tryFrom((int) $ticket['job_status']))?->badge() ?? '<span class="text-xs font-bold px-2 py-1 rounded-full bg-gray-100 text-gray-600">Unknown</span>' ?>
+                  <?= \App\Models\JobStatusModel::badge((int) $ticket['job_status']) ?: '<span class="text-xs font-bold px-2 py-1 rounded-full bg-gray-100 text-gray-600">Unknown</span>' ?>
                 </td>
                 <td class="py-3 pr-4 mono text-xs text-gray-500"><?= date('M d', strtotime($ticket['created_at'])) ?></td>
                 <td class="py-3">

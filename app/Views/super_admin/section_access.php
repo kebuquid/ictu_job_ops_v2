@@ -55,10 +55,9 @@
                 <th class="text-center px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
                   <div class="flex flex-col items-center gap-1">
                     <?php
-                      $roleEnum = \App\Enums\UserRole::from($roleId);
                       $badgeColor = match($roleId) {
-                        5 => 'bg-gray-100 text-gray-700',
-                        6 => 'bg-purple-100 text-purple-700',
+                        4 => 'bg-gray-100 text-gray-700',
+                        5 => 'bg-purple-100 text-purple-700',
                         default => 'bg-blue-100 text-blue-700',
                       };
                     ?>

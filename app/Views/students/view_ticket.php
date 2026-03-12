@@ -15,7 +15,7 @@
   <div class="fade-in delay-1 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-purple-200/50 shadow-lg">
     <div class="flex items-center justify-between mb-5">
       <h3 class="font-bold text-gray-900 text-lg">Ticket Information</h3>
-      <?= (\App\Enums\JobStatus::tryFrom((int) $ticket['job_status']))?->badgeMd() ?? '<span class="text-sm font-bold px-3 py-1.5 rounded-full bg-gray-100 text-gray-600">Unknown</span>' ?>
+      <?= \App\Models\JobStatusModel::badgeMd((int) $ticket['job_status']) ?: '<span class="text-sm font-bold px-3 py-1.5 rounded-full bg-gray-100 text-gray-600">Unknown</span>' ?>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div class="space-y-4">

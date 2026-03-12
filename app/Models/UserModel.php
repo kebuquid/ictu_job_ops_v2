@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use CodeIgniter\Model;
-use App\Enums\UserRole;
+use App\Models\RoleModel;
 
 class UserModel extends Model
 {
@@ -13,56 +13,40 @@ class UserModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['name', 'email', 'phone_number', 'avatar', 'expertise', 'section_id', 'role_id'];
+    protected $allowedFields    = ['account_no', 'name', 'email', 'alt_email', 'phone_number', 'avatar', 'expertise', 'section_id', 'role_id', 'is_ictu_employee'];
 
 
     /**
-     * Get user with role enum
+     * Get user with role data from DB
      */
     public function getUserWithRole(int $userId)
     {
         $user = $this->find($userId);
-        
+
         if ($user) {
-            $user['role_enum'] = UserRole::from($user['role_id']);
-            $user['role'] = $user['role_enum']->label();
+            $roleData           = (new RoleModel())->find((int) $user['role_id']);
+            $user['role']       = $roleData['label']      ?? 'Unassigned';
+            $user['role_color'] = $roleData['role_color'] ?? 'gray';
         }
-        
+
         return $user;
-    }
-
-    /**
-     * Cast role to enum after fetching
-     */
-    protected function afterFind(array $data)
-    {
-        if (isset($data['data'])) {
-            foreach ($data['data'] as &$row) {
-                if (isset($row['role'])) {
-                    $row['role_enum'] = UserRole::from($row['role']);
-                }
-            }
-        } elseif (isset($data['role'])) {
-            $data['role_enum'] = UserRole::from($data['role']);
-        }
-
-        return $data;
     }
 
     public function getEmployees()
     {
         $employees =  $this->select('users.*, sections.name as section_name, sections.acronym')
                     ->join('sections', 'users.section_id = sections.section_id', 'left')
-                    ->where('users.role_id <', 5) // Assuming role_id < 5 are employees
+                    ->where('users.role_id <', 4) // ICTU staff: roles 1-3
                     ->findAll();
-        // Cast role_id to enum
+        $roleModel = new RoleModel();
         foreach ($employees as &$employee) {
-            $employee['initials'] = $this->get_initials($employee['name']);
-            $employee['role'] = UserRole::from($employee['role_id'])->label();
-            if($employee['role'] == UserRole::SUPER_ADMIN->label()) {
+            $employee['initials']   = $this->get_initials($employee['name']);
+            $roleData               = $roleModel->find((int) $employee['role_id']);
+            $employee['role']       = $roleData['label']      ?? 'Unknown';
+            $employee['role_color'] = $roleData['role_color'] ?? 'gray';
+            if ((int) $employee['role_id'] === 1) {
                 $employee['acronym'] = 'ICTU';
             }
-            $employee['role_color'] = UserRole::from($employee['role_id'])->role_color();
         }
 
         return $employees;

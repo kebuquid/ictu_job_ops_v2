@@ -14,7 +14,7 @@
       <h2 class="text-xl font-bold text-gray-900">Ticket Details</h2>
       <p class="text-sm text-gray-500 mono">ICTU-<?= date('Y', strtotime($ticket['created_at'] ?? 'now')) ?>-<?= str_pad($ticket['job_ticket_id'] ?? 0, 5, '0', STR_PAD_LEFT) ?></p>
     </div>
-    <?= (\App\Enums\JobStatus::tryFrom((int) $ticket['job_status']))?->badgeMd() ?? '<span class="text-sm font-bold px-3 py-1.5 rounded-full bg-gray-100 text-gray-600">Unknown</span>' ?>
+    <?= \App\Models\JobStatusModel::badgeMd((int) $ticket['job_status']) ?: '<span class="text-sm font-bold px-3 py-1.5 rounded-full bg-gray-100 text-gray-600">Unknown</span>' ?>
   </div>
 
   <!-- Ticket Info -->

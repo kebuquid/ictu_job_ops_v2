@@ -6,6 +6,7 @@ enum JobStatus: int
 {
     case OPEN = 0;
     case IN_PROGRESS = 1;
+    case WAITING_FOR_PARTS = 2; // optional if ticket request needs parts that are not yet availbale
     case COMPLETED = 3;
     case CLOSED = 4;
     case CANCELLED = 5;
@@ -18,6 +19,7 @@ enum JobStatus: int
         return match($this) {
             self::OPEN        => 'Open',
             self::IN_PROGRESS => 'In Progress',
+            self::WAITING_FOR_PARTS => 'Waiting for Parts',
             self::COMPLETED   => 'Completed',
             self::CLOSED      => 'Closed',
             self::CANCELLED   => 'Cancelled',
@@ -32,6 +34,7 @@ enum JobStatus: int
         return match($this) {
             self::OPEN        => 'bg-amber-100 text-amber-700',
             self::IN_PROGRESS => 'bg-blue-100 text-blue-700',
+            self::WAITING_FOR_PARTS => 'bg-yellow-100 text-yellow-700',
             self::COMPLETED   => 'bg-emerald-100 text-emerald-700',
             self::CLOSED      => 'bg-gray-100 text-gray-700',
             self::CANCELLED   => 'bg-red-100 text-red-700',
@@ -46,6 +49,7 @@ enum JobStatus: int
         return match($this) {
             self::OPEN        => 'bg-amber-500',
             self::IN_PROGRESS => 'bg-blue-500',
+            self::WAITING_FOR_PARTS => 'bg-yellow-500',
             self::COMPLETED   => 'bg-emerald-500',
             self::CLOSED      => 'bg-gray-500',
             self::CANCELLED   => 'bg-red-500',
@@ -60,6 +64,7 @@ enum JobStatus: int
         return match($this) {
             self::OPEN        => 'opened',
             self::IN_PROGRESS => 'moved to In Progress',
+            self::WAITING_FOR_PARTS => 'waiting for parts',
             self::COMPLETED   => 'marked Completed',
             self::CLOSED      => 'was Closed',
             self::CANCELLED   => 'was Cancelled',

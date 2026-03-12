@@ -7,10 +7,10 @@ use App\Models\JobTicketModel;
 use App\Models\JobTicketRequestModel;
 use App\Models\JobTicketResponseModel;
 use App\Models\ResponsePartModel;
+use App\Models\SectionModel;
 use App\Models\UserModel;
 use App\Models\TicketHistoryModel;
-use App\Enums\JobStatus;
-use App\Enums\UserRole;
+use App\Models\JobStatusModel;
 
 class TechnicianController extends BaseController
 {
@@ -18,6 +18,7 @@ class TechnicianController extends BaseController
     private JobTicketRequestModel $jobTicketRequestModel;
     private JobTicketResponseModel $jobTicketResponseModel;
     private ResponsePartModel $responsePartModel;
+    private SectionModel $sectionModel;
     private UserModel $userModel;
     private TicketHistoryModel $ticketHistoryModel;
 
@@ -27,6 +28,7 @@ class TechnicianController extends BaseController
         $this->jobTicketRequestModel  = new JobTicketRequestModel();
         $this->jobTicketResponseModel = new JobTicketResponseModel();
         $this->responsePartModel      = new ResponsePartModel();
+        $this->sectionModel           = new SectionModel();
         $this->userModel              = new UserModel();
         $this->ticketHistoryModel     = new TicketHistoryModel();
     }
@@ -41,8 +43,7 @@ class TechnicianController extends BaseController
      */
     private function viewFolder(): string
     {
-        $roleId = (int) (session()->get('user')['role_id'] ?? 3);
-        return $roleId === 4 ? 'staff' : 'technician';
+        return 'ictu-staff';
     }
 
     /**
@@ -50,8 +51,7 @@ class TechnicianController extends BaseController
      */
     private function urlPrefix(): string
     {
-        $roleId = (int) (session()->get('user')['role_id'] ?? 3);
-        return $roleId === 4 ? 'staff' : 'technician';
+        return 'ictu-staff';
     }
 
     /**
@@ -68,17 +68,22 @@ class TechnicianController extends BaseController
             ->where('job_ticket_responses.staff_id', $userId)
             ->findAll();
 
+        $openId       = JobStatusModel::getIdByLabel('Open');
+        $inProgressId = JobStatusModel::getIdByLabel('In Progress');
+        $completedId  = JobStatusModel::getIdByLabel('Completed');
+        $closedId     = JobStatusModel::getIdByLabel('Closed');
+
         $stats = ['total' => count($myResponses), 'active' => 0, 'completed' => 0, 'needs_response' => 0];
         foreach ($myResponses as $r) {
             $status = (int) $r['job_status'];
-            if (in_array($status, [JobStatus::OPEN->value, JobStatus::IN_PROGRESS->value])) {
+            if (in_array($status, [$openId, $inProgressId])) {
                 $stats['active']++;
             }
-            if ($status === JobStatus::COMPLETED->value || $status === JobStatus::CLOSED->value) {
+            if ($status === $completedId || $status === $closedId) {
                 $stats['completed']++;
             }
             // Needs response: active tickets where action_performed is still null
-            if (in_array($status, [JobStatus::OPEN->value, JobStatus::IN_PROGRESS->value]) && empty($r['action_performed'])) {
+            if (in_array($status, [$openId, $inProgressId]) && empty($r['action_performed'])) {
                 $stats['needs_response']++;
             }
         }
@@ -89,7 +94,7 @@ class TechnicianController extends BaseController
             ->join('job_tickets', 'job_tickets.job_ticket_id = job_ticket_responses.job_ticket_id')
             ->join('job_ticket_requests', 'job_ticket_requests.job_ticket_id = job_tickets.job_ticket_id')
             ->where('job_ticket_responses.staff_id', $userId)
-            ->whereIn('job_tickets.job_status', [JobStatus::OPEN->value, JobStatus::IN_PROGRESS->value])
+            ->whereIn('job_tickets.job_status', [$openId, $inProgressId])
             ->orderBy('job_tickets.created_at', 'DESC')
             ->limit(8)
             ->findAll();
@@ -208,22 +213,32 @@ class TechnicianController extends BaseController
         // If marking as completed, update parent ticket
         if ($this->request->getPost('completion_status') === 'completed') {
             $updateData['completion_date'] = $updateData['completion_date'] ?: date('Y-m-d');
+            $completedId  = JobStatusModel::getIdByLabel('Completed');
+            $inProgressId = JobStatusModel::getIdByLabel('In Progress');
             $this->jobTicketModel->update($existing['job_ticket_id'], [
-                'job_status' => JobStatus::COMPLETED->value,
+                'job_status' => $completedId,
             ]);
 
             // Log: status changed to completed
             $this->ticketHistoryModel->log(
                 (int) $existing['job_ticket_id'],
                 'completed',
-                JobStatus::IN_PROGRESS->value,
-                JobStatus::COMPLETED->value,
+                $inProgressId,
+                $completedId,
                 $userId,
                 'Marked as completed'
             );
 
             // Promote the next queued OPEN ticket for this staff to IN_PROGRESS
             $this->promoteNextTicket($userId);
+
+            // Notify the requestor their ticket has been completed
+            $this->sendStatusUpdateEmail(
+                (int) $existing['job_ticket_id'],
+                'completed',
+                'Completed',
+                'The technician has completed the work on your ticket. It is now pending verification by the section head.'
+            );
         }
 
         $this->jobTicketResponseModel->update($responseId, $updateData);
@@ -259,13 +274,13 @@ class TechnicianController extends BaseController
         }
 
         // Only allow transfer of active tickets
-        if (! in_array((int) $response['job_status'], [JobStatus::OPEN->value, JobStatus::IN_PROGRESS->value])) {
+        if (! in_array((int) $response['job_status'], [JobStatusModel::getIdByLabel('Open'), JobStatusModel::getIdByLabel('In Progress')])) {
             return redirect()->to($this->urlPrefix() . '/my-tickets')->with('error', 'Only active tickets can be transferred.');
         }
 
         // Get eligible employees in the same section (excluding self)
         $employees = $this->userModel
-            ->whereIn('role_id', [UserRole::ADMIN->value, UserRole::TECHNICIAN->value, UserRole::STAFF->value])
+            ->whereIn('role_id', [2, 3])
             ->where('section_id', $sectionId)
             ->where('user_id !=', $userId)
             ->findAll();
@@ -274,7 +289,7 @@ class TechnicianController extends BaseController
             $emp['active_tickets'] = $this->jobTicketResponseModel
                 ->join('job_tickets', 'job_tickets.job_ticket_id = job_ticket_responses.job_ticket_id')
                 ->where('job_ticket_responses.staff_id', $emp['user_id'])
-                ->whereIn('job_tickets.job_status', [JobStatus::OPEN->value, JobStatus::IN_PROGRESS->value])
+                ->whereIn('job_tickets.job_status', [JobStatusModel::getIdByLabel('Open'), JobStatusModel::getIdByLabel('In Progress')])
                 ->countAllResults();
         }
 
@@ -333,11 +348,14 @@ class TechnicianController extends BaseController
      */
     private function promoteNextTicket(int $staffId): void
     {
+        $openId       = JobStatusModel::getIdByLabel('Open');
+        $inProgressId = JobStatusModel::getIdByLabel('In Progress');
+
         // Only promote if the staff has no other IN_PROGRESS tickets
         $inProgressCount = $this->jobTicketResponseModel
             ->join('job_tickets', 'job_tickets.job_ticket_id = job_ticket_responses.job_ticket_id')
             ->where('job_ticket_responses.staff_id', $staffId)
-            ->where('job_tickets.job_status', JobStatus::IN_PROGRESS->value)
+            ->where('job_tickets.job_status', $inProgressId)
             ->countAllResults();
 
         if ($inProgressCount > 0) {
@@ -349,7 +367,7 @@ class TechnicianController extends BaseController
             ->select('job_ticket_responses.job_ticket_id, job_tickets.job_ticket_id as tid')
             ->join('job_tickets', 'job_tickets.job_ticket_id = job_ticket_responses.job_ticket_id')
             ->where('job_ticket_responses.staff_id', $staffId)
-            ->where('job_tickets.job_status', JobStatus::OPEN->value)
+            ->where('job_tickets.job_status', $openId)
             ->orderBy('job_tickets.created_at', 'ASC')
             ->first();
 
@@ -360,16 +378,81 @@ class TechnicianController extends BaseController
         $nextTicketId = (int) $nextTicket['job_ticket_id'];
 
         $this->jobTicketModel->update($nextTicketId, [
-            'job_status' => JobStatus::IN_PROGRESS->value,
+            'job_status' => $inProgressId,
         ]);
 
         $this->ticketHistoryModel->log(
             $nextTicketId,
             'in_progress',
-            JobStatus::OPEN->value,
-            JobStatus::IN_PROGRESS->value,
+            $openId,
+            $inProgressId,
             $staffId,
             'Automatically set to In Progress (previous ticket completed)'
         );
+
+        // Notify the requestor their ticket has moved to In Progress
+        $this->sendStatusUpdateEmail(
+            $nextTicketId,
+            'in_progress',
+            'In Progress',
+            'A technician is now actively working on your ticket.'
+        );
+    }
+
+    /**
+     * Send a status update email to the ticket requestor.
+     */
+    private function sendStatusUpdateEmail(int $ticketId, string $status, string $statusLabel, ?string $updateNote = null): void
+    {
+        $ticket = $this->jobTicketModel
+            ->select('job_tickets.job_ticket_id, job_ticket_requests.problem_description, job_ticket_requests.section_id, users.email, users.alt_email, users.name as requestor_name, users.role_id')
+            ->join('job_ticket_requests', 'job_ticket_requests.job_ticket_id = job_tickets.job_ticket_id')
+            ->join('users', 'users.user_id = job_tickets.requestor_id', 'left')
+            ->where('job_tickets.job_ticket_id', $ticketId)
+            ->first();
+
+        if (! $ticket || empty($ticket['email'])) {
+            log_message('warning', "Ticket #{$ticketId}: requestor has no email - skipping status update notification.");
+            return;
+        }
+
+        // Google account recovery tickets must be sent to the alt_email
+        $isRecovery = str_contains($ticket['problem_description'] ?? '', 'Google Account recovery');
+        $toEmail    = ($isRecovery && ! empty($ticket['alt_email'])) ? $ticket['alt_email'] : $ticket['email'];
+
+        $section     = $this->sectionModel->find($ticket['section_id']);
+        $sectionName = $section['name'] ?? 'Unknown Section';
+        $formattedId = 'ICTU-' . date('Y') . '-' . str_pad($ticketId, 5, '0', STR_PAD_LEFT);
+
+        $dashboardPath = match ((int) ($ticket['role_id'] ?? 5)) {
+            2       => 'admin/tickets',
+            3       => 'ictu-staff/my-tickets',
+            4       => 'employee/my-tickets',
+            5       => 'student/my-tickets',
+            default => 'employee/my-tickets',
+        };
+
+        $emailBody = view('emails/ticket_update', [
+            'requestorName' => $ticket['requestor_name'],
+            'ticketId'      => $formattedId,
+            'sectionName'   => $sectionName,
+            'problem'       => $ticket['problem_description'] ?? 'N/A',
+            'status'        => $status,
+            'statusLabel'   => $statusLabel,
+            'updateNote'    => $updateNote,
+            'ticketUrl'     => base_url($dashboardPath),
+        ]);
+
+        try {
+            $email = \Config\Services::email();
+            $email->setTo($toEmail);
+            $email->setSubject('Ticket Update: ' . $statusLabel . ' - ' . $formattedId);
+            $email->setMessage($emailBody);
+            if (! $email->send()) {
+                log_message('error', 'Ticket status update email failed: ' . $email->printDebugger(['headers']));
+            }
+        } catch (\Throwable $e) {
+            log_message('error', 'Ticket status update email exception: ' . $e->getMessage());
+        }
     }
 }

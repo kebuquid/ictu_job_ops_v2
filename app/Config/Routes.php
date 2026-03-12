@@ -13,16 +13,27 @@ $routes->post('employee-verification', 'EmployeeVerificationController::verify')
 
 $routes->post('employee/verify', 'EmployeeAuthenticationController::verify');
 $routes->post('employee/verify-data', 'EmployeeAuthenticationController::verifyUserData');
+$routes->post('employee/account-recovery', 'EmployeeAuthenticationController::accountRecovery');
 $routes->get('employee/email-suggestions', 'EmployeeAuthenticationController::getEmailSuggestion');
 $routes->get('employee/check-email/(:any)', 'EmployeeAuthenticationController::checkEmailIfExists/$1');
 $routes->post('employee/create-email', 'EmployeeAuthenticationController::createEmail');
 
+$routes->post('student/verify', 'StudentAuthenticationController::verify');
+$routes->post('student/verify-data', 'StudentAuthenticationController::verifyUserData');
+$routes->post('student/account-recovery', 'StudentAuthenticationController::accountRecovery');
+$routes->get('student/email-suggestions', 'StudentAuthenticationController::getEmailSuggestion');
+$routes->get('student/check-email/(:any)', 'StudentAuthenticationController::checkEmailIfExists/$1');
+$routes->post('student/create-email', 'StudentAuthenticationController::createEmail');
+
 $routes->get('login', 'Auth::index');
 $routes->get('auth/google', 'Auth::google');
 $routes->get('auth/google/callback', 'Auth::googleCallback');
+$routes->get('auth/alt-email-setup', 'Auth::altEmailSetup');
+$routes->post('auth/send-alt-email-otp', 'Auth::sendAltEmailOtp');
+$routes->post('auth/verify-alt-email-otp', 'Auth::verifyAltEmailOtp');
 $routes->get('logout', 'Auth::logout');
 
-$routes->group('super-admin', static function ($routes) {
+$routes->group('super-admin', ['filter' => 'role:1'], static function ($routes) {
     $routes->get('dashboard', 'SuperAdminController::dashboard');
     $routes->get('tickets', 'SuperAdminController::tickets');
     $routes->get('ticket/(:num)', 'SuperAdminController::viewTicket/$1');
@@ -123,10 +134,18 @@ $routes->group('super-admin', static function ($routes) {
     $routes->get('keyword-rules/edit/(:num)', 'SuperAdminController::editKeywordRulePage/$1');
     $routes->put('keyword-rules/edit/(:num)', 'SuperAdminController::updateKeywordRule/$1');
     $routes->delete('keyword-rules/delete/(:num)', 'SuperAdminController::deleteKeywordRule/$1');
+
+    // Sections CRUD
+    $routes->get('sections', 'SuperAdminController::sections');
+    $routes->get('sections/add', 'SuperAdminController::addSectionPage');
+    $routes->post('sections/add', 'SuperAdminController::addSection');
+    $routes->get('sections/edit/(:num)', 'SuperAdminController::editSectionPage/$1');
+    $routes->put('sections/edit/(:num)', 'SuperAdminController::updateSection/$1');
+    $routes->delete('sections/delete/(:num)', 'SuperAdminController::deleteSection/$1');
 });
 
 // ─── Section Head (Admin) Routes ─────────────────────────
-$routes->group('admin', static function ($routes) {
+$routes->group('admin', ['filter' => 'role:2'], static function ($routes) {
     $routes->get('dashboard', 'SectionHeadController::dashboard');
     $routes->get('tickets', 'SectionHeadController::tickets');
     $routes->get('ticket/(:num)', 'SectionHeadController::viewTicket/$1');
@@ -148,8 +167,8 @@ $routes->group('admin', static function ($routes) {
     $routes->delete('keyword-rules/delete/(:num)', 'SectionHeadController::deleteKeywordRule/$1');
 });
 
-// ─── Technician Routes ───────────────────────────────────
-$routes->group('technician', static function ($routes) {
+// ─── ICTU Staff Routes ───────────────────────────────────
+$routes->group('ictu-staff', ['filter' => 'role:3'], static function ($routes) {
     $routes->get('dashboard', 'TechnicianController::dashboard');
     $routes->get('my-tickets', 'TechnicianController::myTickets');
     $routes->get('ticket/(:num)', 'TechnicianController::viewTicket/$1');
@@ -159,8 +178,19 @@ $routes->group('technician', static function ($routes) {
     $routes->post('transfer/(:num)', 'TechnicianController::transferTicket/$1');
 });
 
-// ─── Staff Routes ────────────────────────────────────────
-$routes->group('staff', static function ($routes) {
+// ─── Technician Routes (legacy – kept for backward compatibility) ─────────
+$routes->group('technician', ['filter' => 'role:3'], static function ($routes) {
+    $routes->get('dashboard', 'TechnicianController::dashboard');
+    $routes->get('my-tickets', 'TechnicianController::myTickets');
+    $routes->get('ticket/(:num)', 'TechnicianController::viewTicket/$1');
+    $routes->get('respond/(:num)', 'TechnicianController::respondForm/$1');
+    $routes->post('respond/(:num)', 'TechnicianController::submitResponse/$1');
+    $routes->get('transfer/(:num)', 'TechnicianController::transferForm/$1');
+    $routes->post('transfer/(:num)', 'TechnicianController::transferTicket/$1');
+});
+
+// ─── Staff Routes (legacy – kept for backward compatibility) ─────────────
+$routes->group('staff', ['filter' => 'role:3'], static function ($routes) {
     $routes->get('dashboard', 'TechnicianController::dashboard');
     $routes->get('my-tickets', 'TechnicianController::myTickets');
     $routes->get('ticket/(:num)', 'TechnicianController::viewTicket/$1');
@@ -171,7 +201,7 @@ $routes->group('staff', static function ($routes) {
 });
 
 // ─── Employee Routes (ICTU Employees) ────────────────────
-$routes->group('employee', static function ($routes) {
+$routes->group('employee', ['filter' => 'role:4'], static function ($routes) {
     $routes->get('dashboard', 'EmployeeDashboardController::dashboard');
     $routes->get('my-tickets', 'EmployeeDashboardController::myTickets');
     $routes->get('ticket/(:num)', 'EmployeeDashboardController::viewTicket/$1');
@@ -184,7 +214,7 @@ $routes->group('employee', static function ($routes) {
 });
 
 // ─── Student Routes ──────────────────────────────────────
-$routes->group('student', static function ($routes) {
+$routes->group('student', ['filter' => 'role:5'], static function ($routes) {
     $routes->get('dashboard', 'StudentDashboardController::dashboard');
     $routes->get('my-tickets', 'StudentDashboardController::myTickets');
     $routes->get('ticket/(:num)', 'StudentDashboardController::viewTicket/$1');

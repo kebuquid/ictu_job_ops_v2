@@ -8,7 +8,7 @@ use App\Models\JobTicketRequestModel;
 use App\Models\JobTicketResponseModel;
 use App\Models\ResponsePartModel;
 use App\Models\TicketHistoryModel;
-use App\Enums\JobStatus;
+use App\Models\JobStatusModel;
 
 class UserDashboardController extends BaseController
 {
@@ -43,12 +43,17 @@ class UserDashboardController extends BaseController
             ->where('requestor_id', $userId)
             ->findAll();
 
+        $openId       = JobStatusModel::getIdByLabel('Open');
+        $inProgressId = JobStatusModel::getIdByLabel('In Progress');
+        $completedId  = JobStatusModel::getIdByLabel('Completed');
+        $closedId     = JobStatusModel::getIdByLabel('Closed');
+
         $stats = ['total' => count($myTickets), 'open' => 0, 'in_progress' => 0, 'resolved' => 0];
         foreach ($myTickets as $t) {
             match ((int) $t['job_status']) {
-                JobStatus::OPEN->value        => $stats['open']++,
-                JobStatus::IN_PROGRESS->value => $stats['in_progress']++,
-                JobStatus::COMPLETED->value, JobStatus::CLOSED->value => $stats['resolved']++,
+                $openId       => $stats['open']++,
+                $inProgressId => $stats['in_progress']++,
+                $completedId, $closedId => $stats['resolved']++,
                 default => null,
             };
         }

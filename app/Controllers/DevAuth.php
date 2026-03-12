@@ -6,7 +6,7 @@ use App\Controllers\BaseController;
 use CodeIgniter\HTTP\ResponseInterface;
 
 use App\Models\UserModel;
-use App\Enums\UserRole;
+use App\Models\RoleModel;
 
 class DevAuth extends BaseController
 {
@@ -41,7 +41,7 @@ class DevAuth extends BaseController
         $user = $this->userModel->getUserWithRole($userData['user_id']);
             session()->set('user', $user);
 
-            $role = UserRole::from($user['role_id']);
-            return redirect()->to($role->url_path() . '/dashboard');
+            $roleData = (new RoleModel())->find((int) $user['role_id']);
+            return redirect()->to(($roleData['url_path'] ?? '/employee') . '/dashboard');
     }
 }

@@ -278,15 +278,16 @@ $(document).ready(function () {
     $('#roleHint').text('Checking available roles…').removeClass('text-amber-600').addClass('text-gray-400');
 
     let roles = [];
-    if (acronym === 'NICM' || acronym === 'ICTRAM') {
+    if (acronym === 'NICM' || acronym === 'ICTRAM' || acronym === 'MIS') {
       roles = [
         { value: 2, label: 'Head of Section' },
-        { value: 3, label: 'Technician' }
+        { value: 3, label: 'ICTU Staff' }
       ];
-    } else if (acronym === 'MIS') {
+    } else {
+      // Default: all sections support Head of Section + ICTU Staff
       roles = [
         { value: 2, label: 'Head of Section' },
-        { value: 4, label: 'Staff' }
+        { value: 3, label: 'ICTU Staff' }
       ];
     }
 

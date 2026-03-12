@@ -23,7 +23,8 @@ use App\Models\SectionRoleAccessModel;
 use App\Models\FormOptionRoleAccessModel;
 use App\Models\KeywordRuleModel;
 use App\Models\TicketHistoryModel;
-use App\Enums\UserRole;
+use App\Models\RoleModel;
+use App\Models\JobStatusModel;
 
 class TicketController extends BaseController
 {
@@ -77,9 +78,10 @@ class TicketController extends BaseController
      */
     private function getRolePrefix(): string
     {
-        $user = session()->get('user');
-        $role = UserRole::from((int) ($user['role_id'] ?? UserRole::STUDENT->value));
-        return ltrim($role->url_path(), '/');
+        $user     = session()->get('user');
+        $roleId   = (int) ($user['role_id'] ?? 5);
+        $roleData = (new RoleModel())->find($roleId);
+        return ltrim($roleData['url_path'] ?? '/employee', '/');
     }
 
     /**
@@ -88,7 +90,7 @@ class TicketController extends BaseController
     public function create()
     {
         $user       = session()->get('user');
-        $roleId     = (int) ($user['role_id'] ?? UserRole::STUDENT->value);
+        $roleId     = (int) ($user['role_id'] ?? 5);
         $rolePrefix = $this->getRolePrefix();
 
         // Fetch only sections this role is allowed to access
@@ -141,9 +143,8 @@ class TicketController extends BaseController
     {
         // Determine current user's role for access filtering
         $user   = session()->get('user');
-        $roleId = (int) ($user['role_id'] ?? UserRole::STUDENT->value);
-
-        $equipment   = $this->equipmentModel->where('section_id', $sectionId)->findAll();
+        $roleId = (int) ($user['role_id'] ?? 5);
+        $equipment    = $this->equipmentModel->where('section_id', $sectionId)->findAll();
         $issueTypes  = $this->issueTypeModel->where('section_id', $sectionId)->findAll();
         $requestTypes = $this->requestTypeModel->where('section_id', $sectionId)->findAll();
         $actions      = $this->requestActionModel->where('section_id', $sectionId)->findAll();
@@ -158,7 +159,7 @@ class TicketController extends BaseController
         }
 
         // ── Filter by form-option role access (Employee / Student) ──
-        if (in_array($roleId, [UserRole::EMPLOYEE->value, UserRole::STUDENT->value], true)) {
+        if (in_array($roleId, [4, 5], true)) {
             $allowedEquipment  = $this->formOptionRoleAccessModel->getEnabledOptionIds('equipment', $roleId);
             $allowedTypes      = $this->formOptionRoleAccessModel->getEnabledOptionIds('request_type', $roleId);
             $allowedPlatforms  = $this->formOptionRoleAccessModel->getEnabledOptionIds('request_platform', $roleId);
@@ -195,9 +196,9 @@ class TicketController extends BaseController
 
         // Filter by form-option role access (Employee / Student)
         $user   = session()->get('user');
-        $roleId = (int) ($user['role_id'] ?? UserRole::STUDENT->value);
+        $roleId = (int) ($user['role_id'] ?? 5);
 
-        if (in_array($roleId, [UserRole::EMPLOYEE->value, UserRole::STUDENT->value], true)) {
+        if (in_array($roleId, [4, 5], true)) {
             $allowedPlatforms = $this->formOptionRoleAccessModel->getEnabledOptionIds('request_platform', $roleId);
             $allowedActions   = $this->formOptionRoleAccessModel->getEnabledOptionIds('request_action', $roleId);
 
@@ -235,7 +236,7 @@ class TicketController extends BaseController
 
         // ── Verify section access for this role ──────────
         $user = session()->get('user');
-        $roleId = (int) ($user['role_id'] ?? UserRole::STUDENT->value);
+        $roleId = (int) ($user['role_id'] ?? 5);
         $sectionId = (int) $this->request->getPost('section_id');
         $allowedIds = $this->sectionRoleAccessModel->getEnabledSectionIds($roleId);
 
@@ -262,9 +263,11 @@ class TicketController extends BaseController
         $user = session()->get('user');
         $requestorId = $user['user_id'] ?? null;
 
+        $openId = JobStatusModel::getIdByLabel('Open');
+
         $ticketId = $this->jobTicketModel->insert([
             'requestor_id'   => $requestorId,
-            'job_status'     => \App\Enums\JobStatus::OPEN->value,
+            'job_status'     => $openId,
         ]);
 
         if (! $ticketId) {
@@ -272,7 +275,7 @@ class TicketController extends BaseController
         }
 
         // Log: ticket created
-        $this->ticketHistoryModel->log($ticketId, 'created', null, \App\Enums\JobStatus::OPEN->value, (int) $requestorId, 'Ticket submitted');
+        $this->ticketHistoryModel->log($ticketId, 'created', null, $openId, (int) $requestorId, 'Ticket submitted');
 
         // â”€â”€ 2) Insert into job_ticket_requests (details) â”€
         $sectionId = (int) $this->request->getPost('section_id');
@@ -312,30 +315,45 @@ class TicketController extends BaseController
             $staffName  = $this->userModel->find($assignment['staff_id'])['name'] ?? 'Unknown';
             $newStatus  = $assignment['status'];
 
+            $inProgressId = JobStatusModel::getIdByLabel('In Progress');
+
             // Log: assigned
             $this->ticketHistoryModel->log(
                 $ticketId,
                 'assigned',
-                \App\Enums\JobStatus::OPEN->value,
+                $openId,
                 $newStatus,
                 null,
                 'Auto-assigned to ' . $staffName
             );
 
             // If the ticket was set to In Progress, also log the status change
-            if ($newStatus === \App\Enums\JobStatus::IN_PROGRESS->value) {
+            if ($newStatus === $inProgressId) {
                 $this->ticketHistoryModel->log(
                     $ticketId,
                     'in_progress',
-                    \App\Enums\JobStatus::OPEN->value,
-                    \App\Enums\JobStatus::IN_PROGRESS->value,
+                    $openId,
+                    $inProgressId,
                     null,
                     'Automatically set to In Progress (staff has no other active ticket)'
                 );
             }
 
             $this->sendAssignmentEmail($assignment['staff_id'], $ticketId, $requestData);
+
+            // Notify the requestor if their ticket is immediately set to In Progress
+            if ($newStatus === $inProgressId) {
+                $this->notifyTicketStatusUpdate(
+                    $ticketId,
+                    'in_progress',
+                    'In Progress',
+                    'Your ticket has been assigned and a technician is already working on it.'
+                );
+            }
         }
+
+        // ── 5) Send confirmation email to the requestor ──
+        $this->notifyTicketCreated($user, $ticketId, $sectionId, $requestData);
 
         $prefix = $this->getRolePrefix();
         return redirect()->to($prefix . '/create-ticket')->with('success', 'Your ticket has been submitted successfully!');
@@ -392,12 +410,11 @@ class TicketController extends BaseController
         // -- 2. Expertise match via signal map --
         $matchedExpertise = $this->signalMapModel->findMatchingExpertise($signals);
 
-        // -- 3. Get all section staff (admin + technician + staff) --
+        // -- 3. Get all section staff (admin + ictu staff) --
         $sectionStaff = $this->userModel
             ->whereIn('role_id', [
-                \App\Enums\UserRole::ADMIN->value,
-                \App\Enums\UserRole::TECHNICIAN->value,
-                \App\Enums\UserRole::STAFF->value,
+                2,
+                3,
             ])
             ->where('section_id', $sectionId)
             ->findAll();
@@ -434,9 +451,11 @@ class TicketController extends BaseController
         }
 
         // -- 6. Count active tickets per candidate --
+        $openId       = JobStatusModel::getIdByLabel('Open');
+        $inProgressId = JobStatusModel::getIdByLabel('In Progress');
         $activeStatuses = [
-            \App\Enums\JobStatus::OPEN->value,
-            \App\Enums\JobStatus::IN_PROGRESS->value,
+            $openId,
+            $inProgressId,
         ];
         $ticketCounts = [];
         foreach ($staffIds as $uid) {
@@ -469,7 +488,7 @@ class TicketController extends BaseController
             // Fallback: assign to section head (ADMIN role)
             $sectionHead = null;
             foreach ($sectionStaff as $staff) {
-                if ((int) $staff['role_id'] === \App\Enums\UserRole::ADMIN->value) {
+                if ((int) $staff['role_id'] === 2) {
                     $sectionHead = $staff;
                     break;
                 }
@@ -489,18 +508,18 @@ class TicketController extends BaseController
         // Otherwise → IN_PROGRESS
         if (! $hasExpertiseMatch) {
             // Escalated to section head – keep as OPEN
-            $newStatus = \App\Enums\JobStatus::OPEN->value;
+            $newStatus = $openId;
         } else {
             // Check if the assigned staff already has a ticket IN_PROGRESS
             $hasInProgress = $this->jobTicketResponseModel
                 ->join('job_tickets', 'job_tickets.job_ticket_id = job_ticket_responses.job_ticket_id')
                 ->where('job_ticket_responses.staff_id', $assignedStaffId)
-                ->where('job_tickets.job_status', \App\Enums\JobStatus::IN_PROGRESS->value)
+                ->where('job_tickets.job_status', $inProgressId)
                 ->countAllResults();
 
             $newStatus = $hasInProgress > 0
-                ? \App\Enums\JobStatus::OPEN->value
-                : \App\Enums\JobStatus::IN_PROGRESS->value;
+                ? $openId
+                : $inProgressId;
         }
 
         // -- 9. Create response row & update status --
@@ -515,6 +534,111 @@ class TicketController extends BaseController
         ]);
 
         return ['staff_id' => $assignedStaffId, 'status' => $newStatus];
+    }
+
+    /**
+     * Send a confirmation email to the requestor after ticket submission.
+     */
+    private function notifyTicketCreated(array $user, int $ticketId, int $sectionId, array $requestData): void
+    {
+        $toEmail = $user['email'] ?? '';
+        if (empty($toEmail)) {
+            return;
+        }
+
+        $section     = $this->sectionModel->find($sectionId);
+        $sectionName = $section['name'] ?? 'Unknown Section';
+        $formattedId = 'ICTU-' . date('Y') . '-' . str_pad($ticketId, 5, '0', STR_PAD_LEFT);
+
+        $dashboardPath = match ((int) ($user['role_id'] ?? 5)) {
+            2       => 'admin/tickets',
+            3       => 'ictu-staff/my-tickets',
+            4       => 'employee/my-tickets',
+            5       => 'student/my-tickets',
+            default => 'employee/my-tickets',
+        };
+
+        $emailBody = view('emails/ticket_submitted', [
+            'requestorName' => $user['name'] ?? 'User',
+            'ticketId'      => $formattedId,
+            'sectionName'   => $sectionName,
+            'problem'       => $requestData['problem_description'] ?? 'N/A',
+            'ticketUrl'     => base_url($dashboardPath),
+        ]);
+
+        try {
+            $email = \Config\Services::email();
+            $email->setTo($toEmail);
+            $email->setSubject('Ticket Submitted - ' . $formattedId);
+            $email->setMessage($emailBody);
+            if (! $email->send()) {
+                log_message('error', 'Ticket confirmation email failed: ' . $email->printDebugger(['headers']));
+            }
+        } catch (\Throwable $e) {
+            log_message('error', 'Ticket confirmation email exception: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Send an update email to the ticket requestor when the ticket status changes.
+     *
+     * @param int    $ticketId   The ID of the ticket.
+     * @param string $status     Machine-readable status slug (e.g. 'in_progress', 'completed', 'closed').
+     * @param string $statusLabel Human-readable status label (e.g. 'In Progress').
+     * @param string|null $updateNote Optional note to include in the email body.
+     */
+    private function notifyTicketStatusUpdate(int $ticketId, string $status, string $statusLabel, ?string $updateNote = null): void
+    {
+        $ticket = $this->jobTicketModel
+            ->select('job_tickets.job_ticket_id, job_tickets.requestor_id, job_ticket_requests.problem_description, job_ticket_requests.section_id, users.email, users.alt_email, users.name as requestor_name, users.role_id')
+            ->join('job_ticket_requests', 'job_ticket_requests.job_ticket_id = job_tickets.job_ticket_id')
+            ->join('users', 'users.user_id = job_tickets.requestor_id', 'left')
+            ->where('job_tickets.job_ticket_id', $ticketId)
+            ->first();
+
+        if (! $ticket || empty($ticket['email'])) {
+            log_message('warning', "Ticket #{$ticketId}: requestor has no email - skipping status update notification.");
+            return;
+        }
+
+        // Google account recovery tickets must be sent to the alt_email
+        $isRecovery = str_contains($ticket['problem_description'] ?? '', 'Google Account recovery');
+        $toEmail    = ($isRecovery && ! empty($ticket['alt_email'])) ? $ticket['alt_email'] : $ticket['email'];
+
+        $section     = $this->sectionModel->find($ticket['section_id']);
+        $sectionName = $section['name'] ?? 'Unknown Section';
+        $formattedId = 'ICTU-' . date('Y') . '-' . str_pad($ticketId, 5, '0', STR_PAD_LEFT);
+
+        $dashboardPath = match ((int) ($ticket['role_id'] ?? 5)) {
+            2       => 'admin/tickets',
+            3       => 'ictu-staff/my-tickets',
+            4       => 'employee/my-tickets',
+            5       => 'student/my-tickets',
+            default => 'employee/my-tickets',
+        };
+
+        $emailBody = view('emails/ticket_update', [
+            'requestorName' => $ticket['requestor_name'],
+            'ticketId'      => $formattedId,
+            'sectionName'   => $sectionName,
+            'problem'       => $ticket['problem_description'] ?? 'N/A',
+            'status'        => $status,
+            'statusLabel'   => $statusLabel,
+            'updateNote'    => $updateNote,
+            'ticketUrl'     => base_url($dashboardPath),
+        ]);
+
+        try {
+            $email = \Config\Services::email();
+            $email->setTo($toEmail);
+            $email->setSubject('Ticket Update: ' . $statusLabel . ' - ' . $formattedId);
+            $email->setMessage($emailBody);
+            if (! $email->send()) {
+                log_message('error', 'Ticket status update email failed: ' . $email->printDebugger(['headers']));
+            }
+        } catch (\Throwable $e) {
+            log_message('error', 'Ticket status update email exception: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -534,14 +658,12 @@ class TicketController extends BaseController
         $sectionName = $section['name'] ?? 'Unknown Section';
 
         // Build ticket URL (for the assigned employee's dashboard)
-        $role = \App\Enums\UserRole::from((int) $staff['role_id']);
-        $dashboardPath = match ($role) {
-            \App\Enums\UserRole::ADMIN       => 'admin/tickets',
-            \App\Enums\UserRole::TECHNICIAN  => 'technician/my-tickets',
-            \App\Enums\UserRole::STAFF       => 'staff/my-tickets',
-            \App\Enums\UserRole::EMPLOYEE    => 'employee/my-tickets',
-            \App\Enums\UserRole::STUDENT     => 'student/my-tickets',
-            default                          => 'employee/my-tickets',
+        $dashboardPath = match ((int) $staff['role_id']) {
+            2       => 'admin/tickets',
+            3       => 'ictu-staff/my-tickets',
+            4       => 'employee/my-tickets',
+            5       => 'student/my-tickets',
+            default => 'employee/my-tickets',
         };
         $ticketUrl = base_url($dashboardPath);
 
