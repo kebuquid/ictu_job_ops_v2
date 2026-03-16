@@ -41,10 +41,11 @@
         <p class="text-gray-700"><?= esc($response['hardware_issues']) ?></p>
       </div>
       <?php endif; ?>
-      <?php if(!empty($response['sofware_issues'])): ?>
+      <?php $softwareIssues = $response['software_issues'] ?? ($response['sofware_issues'] ?? null); ?>
+      <?php if(!empty($softwareIssues)): ?>
       <div>
         <span class="text-gray-400 text-xs uppercase tracking-wider">Software Issues</span>
-        <p class="text-gray-700"><?= esc($response['sofware_issues']) ?></p>
+        <p class="text-gray-700"><?= esc($softwareIssues) ?></p>
       </div>
       <?php endif; ?>
       <?php if(!empty($response['additional_details'])): ?>

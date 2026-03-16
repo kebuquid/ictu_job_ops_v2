@@ -9,6 +9,7 @@ use App\Models\JobTicketResponseModel;
 use App\Models\ResponsePartModel;
 use App\Models\TicketHistoryModel;
 use App\Models\JobStatusModel;
+use App\Libraries\TicketSlaResolver;
 
 class StudentDashboardController extends BaseController
 {
@@ -17,6 +18,7 @@ class StudentDashboardController extends BaseController
     private JobTicketResponseModel $jobTicketResponseModel;
     private ResponsePartModel $responsePartModel;
     private TicketHistoryModel $ticketHistoryModel;
+    private TicketSlaResolver $ticketSlaResolver;
 
     public function __construct()
     {
@@ -25,6 +27,7 @@ class StudentDashboardController extends BaseController
         $this->jobTicketResponseModel = new JobTicketResponseModel();
         $this->responsePartModel      = new ResponsePartModel();
         $this->ticketHistoryModel     = new TicketHistoryModel();
+        $this->ticketSlaResolver      = new TicketSlaResolver();
     }
 
     private function userId(): int
@@ -120,11 +123,14 @@ class StudentDashboardController extends BaseController
             ->where('job_ticket_responses.job_ticket_id', $ticketId)
             ->first();
 
+        $slaSummary = $this->ticketSlaResolver->resolveForTicket($ticket, $response);
+
         return view('students/view_ticket', [
             'ticket'        => $ticket,
             'response'      => $response,
             'responseParts' => $response ? $this->responsePartModel->getByResponseId((int) $response['job_ticket_response_id']) : [],
             'history'       => $this->ticketHistoryModel->getByTicketId($ticketId),
+            'slaSummary'    => $slaSummary,
         ]);
     }
 }

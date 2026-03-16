@@ -25,6 +25,7 @@ use App\Models\KeywordRuleModel;
 use App\Models\TicketHistoryModel;
 use App\Models\RoleModel;
 use App\Models\JobStatusModel;
+use App\Models\AssetModel;
 
 class TicketController extends BaseController
 {
@@ -48,6 +49,7 @@ class TicketController extends BaseController
     private FormOptionRoleAccessModel $formOptionRoleAccessModel;
     private KeywordRuleModel $keywordRuleModel;
     private TicketHistoryModel $ticketHistoryModel;
+    private AssetModel $assetModel;
 
     public function __construct()
     {
@@ -71,6 +73,7 @@ class TicketController extends BaseController
         $this->formOptionRoleAccessModel = new FormOptionRoleAccessModel();
         $this->keywordRuleModel        = new KeywordRuleModel();
         $this->ticketHistoryModel      = new TicketHistoryModel();
+        $this->assetModel              = new AssetModel();
     }
 
     /**
@@ -144,6 +147,15 @@ class TicketController extends BaseController
         // Determine current user's role for access filtering
         $user   = session()->get('user');
         $roleId = (int) ($user['role_id'] ?? 5);
+
+        // Enforce section-level access for this role
+        $allowedIds = $this->sectionRoleAccessModel->getEnabledSectionIds($roleId);
+        if (!in_array($sectionId, $allowedIds, true)) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'error' => 'You do not have access to this section.',
+            ]);
+        }
+
         $equipment    = $this->equipmentModel->where('section_id', $sectionId)->findAll();
         $issueTypes  = $this->issueTypeModel->where('section_id', $sectionId)->findAll();
         $requestTypes = $this->requestTypeModel->where('section_id', $sectionId)->findAll();
@@ -191,13 +203,27 @@ class TicketController extends BaseController
      */
     public function getRequestTypeData(int $requestTypeId)
     {
+        $requestType = $this->requestTypeModel->find($requestTypeId);
+        if (!$requestType) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'error' => 'Request type not found.',
+            ]);
+        }
+
+        // Enforce section-level access for this role
+        $user   = session()->get('user');
+        $roleId = (int) ($user['role_id'] ?? 5);
+        $allowedIds = $this->sectionRoleAccessModel->getEnabledSectionIds($roleId);
+        if (!in_array((int) $requestType['section_id'], $allowedIds, true)) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'error' => 'You do not have access to this request type.',
+            ]);
+        }
+
         $platforms = $this->requestPlatformModel->where('request_type_id', $requestTypeId)->findAll();
         $actions   = $this->requestActionModel->where('request_type_id', $requestTypeId)->findAll();
 
         // Filter by form-option role access (Employee / Student)
-        $user   = session()->get('user');
-        $roleId = (int) ($user['role_id'] ?? 5);
-
         if (in_array($roleId, [4, 5], true)) {
             $allowedPlatforms = $this->formOptionRoleAccessModel->getEnabledOptionIds('request_platform', $roleId);
             $allowedActions   = $this->formOptionRoleAccessModel->getEnabledOptionIds('request_action', $roleId);
@@ -213,21 +239,85 @@ class TicketController extends BaseController
     }
 
     /**
+     * AJAX - return assets assigned to a requestor email for a given section.
+     */
+    public function getRequestorAssets()
+    {
+        $user      = session()->get('user');
+        $roleId    = (int) ($user['role_id'] ?? 5);
+        $sectionId = (int) $this->request->getGet('section_id');
+        $email     = strtolower(trim((string) $this->request->getGet('email')));
+
+        if ($sectionId <= 0) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'error' => 'Section is required.',
+            ]);
+        }
+
+        $allowedIds = $this->sectionRoleAccessModel->getEnabledSectionIds($roleId);
+        if (!in_array($sectionId, $allowedIds, true)) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'error' => 'You do not have access to this section.',
+            ]);
+        }
+
+        if ($email === '') {
+            $email = strtolower((string) ($user['email'] ?? ''));
+        }
+
+        if ($email === '') {
+            return $this->response->setJSON([
+                'requestor' => null,
+                'assets'    => [],
+            ]);
+        }
+
+        $requestor = $this->userModel->where('email', $email)->first();
+        if (!$requestor) {
+            return $this->response->setJSON([
+                'requestor' => null,
+                'assets'    => [],
+            ]);
+        }
+
+        $assets = $this->assetModel
+            ->select('asset_id, asset_tag, brand_model, serial_number, category, section_id')
+            ->where('assigned_to', (int) $requestor['user_id'])
+            ->where('section_id', $sectionId)
+            ->orderBy('asset_tag', 'ASC')
+            ->findAll();
+
+        return $this->response->setJSON([
+            'requestor' => [
+                'user_id' => (int) $requestor['user_id'],
+                'name'    => $requestor['name'] ?? '',
+                'email'   => $requestor['email'] ?? '',
+            ],
+            'assets' => $assets,
+        ]);
+    }
+
+    /**
      * Handle ticket submission
      */
     public function store()
     {
-        // â”€â”€ Validate common required fields â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // Validate common required fields
         $rules = [
-            'office_id'           => 'required',
             'section_id'          => 'required|integer',
             'problem_description' => 'required',
         ];
 
         // Validate file if provided
         $file = $this->request->getFile('equipment_photo');
-        if ($file && $file->isValid()) {
+        if ($file && $file->getError() !== UPLOAD_ERR_NO_FILE) {
             $rules['equipment_photo'] = 'uploaded[equipment_photo]|max_size[equipment_photo,10240]|is_image[equipment_photo]|mime_in[equipment_photo,image/jpg,image/jpeg,image/png,image/gif,image/webp]';
+        }
+
+        // Validate pre-repair form if provided (PDF/Image)
+        $preRepairFile = $this->request->getFile('pre_repair_form');
+        if ($preRepairFile && $preRepairFile->getError() !== UPLOAD_ERR_NO_FILE) {
+            $rules['pre_repair_form'] = 'uploaded[pre_repair_form]|max_size[pre_repair_form,10240]|mime_in[pre_repair_form,application/pdf,image/jpg,image/jpeg,image/png,image/gif,image/webp]';
         }
 
         if (! $this->validate($rules)) {
@@ -244,6 +334,26 @@ class TicketController extends BaseController
             return redirect()->back()->withInput()->with('error', 'You do not have access to submit tickets for this section.');
         }
 
+        $section = $this->sectionModel->find($sectionId);
+        $sectionAcronym = strtoupper((string) ($section['acronym'] ?? ''));
+
+        // ICTRAM workflow: asset is required and can be requested on behalf of another requestor
+        if ($sectionAcronym === 'ICTRAM') {
+            $extraRules = [
+                'asset_id' => 'required|integer',
+            ];
+
+            $isOnBehalf = (int) ($this->request->getPost('is_on_behalf') ?? 0) === 1;
+            if ($isOnBehalf) {
+                $extraRules['on_behalf_email'] = 'required|valid_email';
+                $extraRules['pre_repair_form'] = 'uploaded[pre_repair_form]|max_size[pre_repair_form,10240]|mime_in[pre_repair_form,application/pdf,image/jpg,image/jpeg,image/png,image/gif,image/webp]';
+            }
+
+            if (! $this->validate($extraRules)) {
+                return redirect()->back()->withInput()->with('error', implode('<br>', $this->validator->getErrors()));
+            }
+        }
+
         // ── Handle file upload ───────────────────────────
         $filePath = null;
         if ($file && $file->isValid() && ! $file->hasMoved()) {
@@ -257,6 +367,19 @@ class TicketController extends BaseController
             $newName  = $file->getRandomName();
             $file->move($uploadDir, $newName);
             $filePath = 'uploads/tickets/' . $newName;
+        }
+
+        $preRepairFilePath = null;
+        if ($preRepairFile && $preRepairFile->isValid() && ! $preRepairFile->hasMoved()) {
+            $uploadDir = FCPATH . 'uploads' . DIRECTORY_SEPARATOR . 'tickets' . DIRECTORY_SEPARATOR . 'pre-repair';
+
+            if (! is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            $newName = $preRepairFile->getRandomName();
+            $preRepairFile->move($uploadDir, $newName);
+            $preRepairFilePath = 'uploads/tickets/pre-repair/' . $newName;
         }
 
         // â”€â”€ 1) Insert into job_tickets (parent) â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -284,22 +407,57 @@ class TicketController extends BaseController
         $hwIssues = $this->request->getPost('hardware_issues');
         $swIssues = $this->request->getPost('software_issues');
 
+        $isOnBehalf = (int) ($this->request->getPost('is_on_behalf') ?? 0) === 1;
+        $onBehalfEmail = strtolower(trim((string) $this->request->getPost('on_behalf_email')));
+
+        $targetRequestor = $user;
+        if ($isOnBehalf) {
+            $targetRequestor = $this->userModel->where('email', $onBehalfEmail)->first();
+            if (! $targetRequestor) {
+                return redirect()->back()->withInput()->with('error', 'The requestor email for on-behalf submission was not found.');
+            }
+        }
+
+        $assetId = (int) ($this->request->getPost('asset_id') ?? 0);
+        if ($assetId > 0) {
+            $asset = $this->assetModel->find($assetId);
+            if (! $asset) {
+                return redirect()->back()->withInput()->with('error', 'Selected asset was not found.');
+            }
+
+            if ((int) ($asset['section_id'] ?? 0) !== $sectionId) {
+                return redirect()->back()->withInput()->with('error', 'Selected asset does not belong to the routed section.');
+            }
+
+            if ((int) ($asset['assigned_to'] ?? 0) !== (int) ($targetRequestor['user_id'] ?? 0)) {
+                return redirect()->back()->withInput()->with('error', 'Selected asset is not assigned to the specified requestor.');
+            }
+        }
+
+        $additionalDetails = trim((string) $this->request->getPost('additional_details'));
+        if ($isOnBehalf && $onBehalfEmail !== '') {
+            $additionalDetails = trim($additionalDetails . "\nOn behalf of: " . $onBehalfEmail);
+        }
+
+        $requestorNumber = trim((string) $this->request->getPost('requestor_number'));
+        if ($requestorNumber !== '') {
+            $additionalDetails = trim($additionalDetails . "\nRequestor Number: " . $requestorNumber);
+        }
+
         $requestData = [
             'job_ticket_id'          => $ticketId,
             'section_id'             => $sectionId,
             'problem_description'    => $this->request->getPost('problem_description'),
-            'requestor_no'           => $this->request->getPost('requestor_number'),
-            'requestor_office'       => $this->request->getPost('office_id'),
+            'asset_id'               => $assetId > 0 ? $assetId : null,
+            'pre_repair_form'        => $preRepairFilePath,
             'request_type'           => $this->request->getPost('request_type') ?? $this->request->getPost('request_type_id'),
             'request_platform'       => $this->request->getPost('request_platform_id'),
             'request_equipment'      => $this->request->getPost('equipment'),
             'request_action'         => $this->request->getPost('action') ?? $this->request->getPost('request_action_id'),
-            'equipment_location'     => $this->request->getPost('building_id'),
             'priority_level'         => $this->request->getPost('priority_level_id'),
             'hardware_issues'        => $hwIssues ? implode(',', $hwIssues) : null,
-            'sofware_issues'         => $swIssues ? implode(',', $swIssues) : null,
-            'brand_model'            => trim(($this->request->getPost('brand') ?? '') . ' ' . ($this->request->getPost('model') ?? '')) ?: null,
-            'additional_details'     => $this->request->getPost('additional_details'),
+            'software_issues'        => $swIssues ? implode(',', $swIssues) : null,
+            'additional_details'     => $additionalDetails !== '' ? $additionalDetails : null,
             'additional_request_file' => $filePath,
         ];
 
@@ -401,8 +559,8 @@ class TicketController extends BaseController
                 $signals['issue_type'][] = (int) trim($id);
             }
         }
-        if (! empty($requestData['sofware_issues'])) {
-            foreach (explode(',', $requestData['sofware_issues']) as $id) {
+        if (! empty($requestData['software_issues'])) {
+            foreach (explode(',', $requestData['software_issues']) as $id) {
                 $signals['issue_type'][] = (int) trim($id);
             }
         }
@@ -526,7 +684,7 @@ class TicketController extends BaseController
         $this->jobTicketResponseModel->insert([
             'job_ticket_id' => $ticketId,
             'staff_id'      => $assignedStaffId,
-            'start_date'    => date('Y-m-d'),
+            'start_date'    => $newStatus === $inProgressId ? date('Y-m-d') : null,
         ]);
 
         $this->jobTicketModel->update($ticketId, [

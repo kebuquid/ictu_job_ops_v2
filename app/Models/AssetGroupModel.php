@@ -6,41 +6,32 @@ use CodeIgniter\Model;
 
 class AssetGroupModel extends Model
 {
-    protected $table            = 'assetgroups';
-    protected $primaryKey       = 'id';
+    protected $table            = 'asset_groups';
+    protected $primaryKey       = 'group_id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = [];
 
-    protected bool $allowEmptyInserts = false;
-    protected bool $updateOnlyChanged = true;
+    protected $allowedFields = [
+        'group_name',
+        'group_code',
+        'category',
+        'description',
+        'quantity',
+        'tag_prefix',
+        'section_id',
+        'assigned_unit_id',
+        'assigned_to',
+        'date_acquired',
+        'acquisition_cost',
+        'depreciation_cost',
+        'warranty_end',
+        'lifecycle',
+        'status',
+    ];
 
-    protected array $casts = [];
-    protected array $castHandlers = [];
-
-    // Dates
-    protected $useTimestamps = false;
-    protected $dateFormat    = 'datetime';
+    protected $useTimestamps = true;
     protected $createdField  = 'created_at';
     protected $updatedField  = 'updated_at';
-    protected $deletedField  = 'deleted_at';
-
-    // Validation
-    protected $validationRules      = [];
-    protected $validationMessages   = [];
-    protected $skipValidation       = false;
-    protected $cleanValidationRules = true;
-
-    // Callbacks
-    protected $allowCallbacks = true;
-    protected $beforeInsert   = [];
-    protected $afterInsert    = [];
-    protected $beforeUpdate   = [];
-    protected $afterUpdate    = [];
-    protected $beforeFind     = [];
-    protected $afterFind      = [];
-    protected $beforeDelete   = [];
-    protected $afterDelete    = [];
 }

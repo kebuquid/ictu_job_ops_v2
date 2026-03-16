@@ -54,6 +54,35 @@
 
   /* Required asterisk */
   .field-required::after { content: ' *'; color: #ef4444; font-weight: 600; }
+
+  /* ICTRAM on-behalf toggle switch */
+  .toggle-input { position: absolute; opacity: 0; pointer-events: none; }
+  .toggle-track {
+    width: 44px;
+    height: 24px;
+    border-radius: 9999px;
+    background: #d1d5db;
+    position: relative;
+    transition: background 0.2s ease;
+    flex-shrink: 0;
+  }
+  .toggle-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 9999px;
+    background: #ffffff;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+  .toggle-input:checked + .toggle-track {
+    background: #d97706;
+  }
+  .toggle-input:checked + .toggle-track .toggle-thumb {
+    transform: translateX(20px);
+  }
 </style>
 
 <div class="p-8 space-y-6 max-w-3xl mx-auto">
@@ -133,7 +162,7 @@
         <span class="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs flex items-center justify-center font-bold">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
         </span>
-        Describe Your Problem
+        Describe Your Request or Problem
       </h3>
 
       <div class="relative">
@@ -252,41 +281,44 @@
           ICTRAM — Hardware & Equipment Details
         </h3>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <!-- Building / Location (required) -->
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5 field-required">Location (Building)</label>
-            <select name="building_id" id="ictramBuilding" required
-                    class="smart-select w-full px-4 py-2.5 rounded-xl border border-blue-200 bg-blue-50/30 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white transition-all appearance-none cursor-pointer pr-10">
-              <option value="" disabled selected>Select building…</option>
-              <?php foreach ($buildings as $b): ?>
-                <option value="<?= esc($b['building_id']) ?>"><?= esc($b['name']) ?></option>
-              <?php endforeach; ?>
-            </select>
+        <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 space-y-3">
+          <label class="flex items-center gap-3 cursor-pointer">
+            <span class="relative inline-flex items-center">
+              <input type="checkbox" id="isOnBehalfToggle" name="is_on_behalf" value="1" class="toggle-input">
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </span>
+            <span class="text-sm font-semibold text-amber-900">I am submitting this ICTRAM request on behalf of someone else</span>
+          </label>
+
+          <div id="onBehalfEmailWrap" class="hidden grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
+            <input type="email" name="on_behalf_email" id="onBehalfEmail" placeholder="Enter requestor email"
+                   class="w-full px-4 py-2.5 rounded-xl border border-amber-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all">
+            <button type="button" id="loadOnBehalfAssets"
+                    class="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold transition-all">
+              Load Assets
+            </button>
           </div>
-          <!-- Equipment (required) -->
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5 field-required">Equipment</label>
-            <select name="equipment" id="ictramEquipment" required
-                    class="smart-select w-full px-4 py-2.5 rounded-xl border border-blue-200 bg-blue-50/30 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white transition-all appearance-none cursor-pointer pr-10">
-              <option value="" disabled selected>Loading…</option>
-            </select>
-          </div>
+
+          <p id="assetLookupHint" class="text-xs text-amber-800/80">Select the asset involved in this request. Only assigned assets are shown.</p>
         </div>
 
-        <!-- Brand / Model -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Brand</label>
-            <input type="text" name="brand" placeholder="e.g. HP, Dell, Epson…"
-                   class="w-full px-4 py-2.5 rounded-xl border border-blue-200 bg-blue-50/30 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white transition-all">
-          </div>
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Model</label>
-            <input type="text" name="model" placeholder="e.g. LaserJet Pro M404…"
-                   class="w-full px-4 py-2.5 rounded-xl border border-blue-200 bg-blue-50/30 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white transition-all">
-          </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5 field-required">Assigned Asset</label>
+          <select name="asset_id" id="ictramAsset" required
+                  class="smart-select w-full px-4 py-2.5 rounded-xl border border-blue-200 bg-blue-50/30 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white transition-all appearance-none cursor-pointer pr-10">
+            <option value="" disabled selected>Select asset…</option>
+          </select>
+          <p id="assetLookupStatus" class="text-xs text-gray-500 mt-1.5"></p>
         </div>
+
+        <div id="preRepairWrap" class="hidden">
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Pre-Repair Form (PDF/Image)</label>
+          <input type="file" name="pre_repair_form" id="preRepairForm" accept=".pdf,image/*"
+                 class="w-full px-3 py-2.5 rounded-xl border border-blue-200 bg-blue-50/30 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white transition-all">
+          <p class="text-xs text-gray-500 mt-1">Required for on-behalf ICTRAM requests. Max file size: 10MB.</p>
+        </div>
+
+        <div id="ictramRegularDetails" class="space-y-5">
 
         <!-- Priority Level (required) -->
         <div>
@@ -333,6 +365,7 @@
                   class="smart-select w-full px-4 py-2.5 rounded-xl border border-blue-200 bg-blue-50/30 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white transition-all appearance-none cursor-pointer pr-10">
             <option value="" disabled selected>Loading…</option>
           </select>
+        </div>
         </div>
       </div>
 
@@ -463,6 +496,21 @@
   </form>
 </div>
 
+<?php
+$jsSectionMap = [];
+foreach (($sections ?? []) as $s) {
+  $sid = (string) ($s['section_id'] ?? '');
+  if ($sid === '') {
+    continue;
+  }
+  $jsSectionMap[$sid] = [
+    'id' => (int) $s['section_id'],
+    'acronym' => (string) ($s['acronym'] ?? ''),
+    'name' => (string) ($s['name'] ?? ''),
+  ];
+}
+?>
+
 <script>
 $(document).ready(function () {
 
@@ -474,11 +522,7 @@ $(document).ready(function () {
   // ════════════════════════════════════════════════════════
   // KEYWORD → SECTION MAPPING
   // ════════════════════════════════════════════════════════
-  const sectionMap = {
-    <?php foreach ($sections as $s): ?>
-    '<?= esc($s['section_id']) ?>': { id: <?= (int) $s['section_id'] ?>, acronym: '<?= esc($s['acronym']) ?>', name: '<?= esc($s['name']) ?>' },
-    <?php endforeach; ?>
-  };
+  const sectionMap = <?= json_encode($jsSectionMap) ?>;
 
   // Map section acronym to section_id from DB for safe lookup
   const acronymToId = {};
@@ -490,11 +534,15 @@ $(document).ready(function () {
   const dbKeywordRules = <?= json_encode($keywordRulesData ?? []) ?>;
 
   // Build keywordRules array from database data
+  function escapeKeywordForRegex(kw) {
+    return kw.replace(/[.*+?^()|[\]\\$]/g, '\\$&').replace(/\s+/g, '\\s*');
+  }
+
   const keywordRules = dbKeywordRules
     .filter(rule => allowedAcronyms.includes(rule.sectionAcronym))
     .map(rule => {
       // Build regex from keywords array (escape special regex chars, handle multi-word with \s*)
-      const escaped = rule.keywords.map(kw => kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s*'));
+      const escaped = rule.keywords.map(kw => escapeKeywordForRegex(kw));
       const pattern = escaped.length > 0 ? new RegExp('\\b(' + escaped.join('|') + ')\\b', 'i') : null;
       return {
         pattern: pattern,
@@ -508,6 +556,9 @@ $(document).ready(function () {
   let matchedRule = null;
   let sectionDataCache = {};  // cache AJAX responses
   let currentStep = 1;
+  let currentSectionId = null;
+  const currentUserEmail = <?= json_encode(strtolower($user['email'] ?? '')) ?>;
+  const requestorAssetsEndpoint = '<?= base_url(($rolePrefix ?? 'employee') . "/create-ticket/requestor-assets") ?>';
 
   // ════════════════════════════════════════════════════════
   // ACTIVATE SECTION — disable hidden sections so their
@@ -695,6 +746,7 @@ $(document).ready(function () {
 
     // Set hidden section_id
     $('#sectionId').val(sectionId);
+    currentSectionId = Number(sectionId);
 
     // Update routed banner
     const sectionInfo = sectionMap[String(sectionId)];
@@ -723,6 +775,7 @@ $(document).ready(function () {
 
     // Set hidden section_id
     $('#sectionId').val(sectionId);
+    currentSectionId = Number(sectionId);
 
     // Update routed banner
     $('#routedSectionName').text(name + ' (' + acronym + ')');
@@ -743,6 +796,8 @@ $(document).ready(function () {
   // LOAD SECTION DATA VIA AJAX
   // ════════════════════════════════════════════════════════
   function loadSectionData(sectionId, acronym) {
+    currentSectionId = Number(sectionId);
+
     if (sectionDataCache[sectionId]) {
       populateSectionFields(sectionDataCache[sectionId], acronym);
       return;
@@ -763,10 +818,10 @@ $(document).ready(function () {
     }
 
     if (acronym === 'ICTRAM') {
-      populateSelect('#ictramEquipment', data.equipment, 'equipment_id', 'name', 'Select equipment…');
       populateSelect('#ictramRequestType', data.request_types, 'request_type_id', 'request_type_name', 'Select request type…');
       populateCheckboxes('#ictramHardwareIssues', data.hardware_issues, 'issue_type_id', 'issue_type_name', 'hardware_issues[]');
       populateCheckboxes('#ictramSoftwareIssues', data.software_issues, 'issue_type_id', 'issue_type_name', 'software_issues[]');
+      setIctramMode($('#isOnBehalfToggle').is(':checked'));
     }
 
     if (acronym === 'MIS') {
@@ -821,6 +876,89 @@ $(document).ready(function () {
       `);
     });
   }
+
+  function setIctramMode(isOnBehalf) {
+    $('#onBehalfEmailWrap').toggleClass('hidden', !isOnBehalf);
+    $('#onBehalfEmail').prop('required', isOnBehalf).prop('disabled', !isOnBehalf);
+    $('#preRepairWrap').toggleClass('hidden', !isOnBehalf);
+    $('#preRepairForm').prop('required', isOnBehalf).prop('disabled', !isOnBehalf);
+
+    // In on-behalf mode, hide regular ICTRAM fields and disable their inputs.
+    $('#ictramRegularDetails').toggleClass('hidden', isOnBehalf);
+    $('#ictramRegularDetails').find('input, select, textarea').prop('disabled', isOnBehalf);
+    $('#ictramPriority, #ictramRequestType').prop('required', !isOnBehalf);
+
+    if (!isOnBehalf) {
+      $('#onBehalfEmail').val('');
+      loadAssetsForEmail(currentUserEmail);
+      return;
+    }
+
+    resetAssetSelect('Enter an email and click "Load Assets" to fetch assigned assets.');
+  }
+
+  function resetAssetSelect(statusText) {
+    const el = $('#ictramAsset');
+    el.empty();
+    el.append('<option value="" disabled selected>Select asset…</option>');
+    $('#assetLookupStatus').text(statusText || '');
+  }
+
+  function loadAssetsForEmail(email) {
+    const trimmedEmail = (email || '').trim();
+    if (!trimmedEmail) {
+      resetAssetSelect('No email provided for asset lookup.');
+      return;
+    }
+    if (!currentSectionId) {
+      resetAssetSelect('Please select a section first.');
+      return;
+    }
+
+    resetAssetSelect('Loading assets...');
+
+    $.getJSON(requestorAssetsEndpoint, {
+      email: trimmedEmail,
+      section_id: currentSectionId,
+    }, function (data) {
+      const assets = data.assets || [];
+      if (assets.length === 0) {
+        resetAssetSelect('No assigned assets found for this requestor in ICTRAM.');
+        return;
+      }
+
+      const el = $('#ictramAsset');
+      el.empty();
+      el.append('<option value="" disabled selected>Select asset…</option>');
+      assets.forEach(function (asset) {
+        const parts = [asset.asset_tag || ('Asset #' + asset.asset_id)];
+        if (asset.brand_model) parts.push(asset.brand_model);
+        if (asset.serial_number) parts.push('SN: ' + asset.serial_number);
+        if (asset.category) parts.push(asset.category);
+        el.append(`<option value="${escHtml(String(asset.asset_id))}">${escHtml(parts.join(' - '))}</option>`);
+      });
+
+      const targetName = (data.requestor && data.requestor.name) ? data.requestor.name : trimmedEmail;
+      $('#assetLookupStatus').text('Loaded ' + assets.length + ' asset(s) for ' + targetName + '.');
+    }).fail(function () {
+      resetAssetSelect('Unable to load assets right now. Please try again.');
+    });
+  }
+
+  $(document).on('change', '#isOnBehalfToggle', function () {
+    setIctramMode($(this).is(':checked'));
+  });
+
+  $(document).on('click', '#loadOnBehalfAssets', function () {
+    loadAssetsForEmail($('#onBehalfEmail').val());
+  });
+
+  $(document).on('keydown', '#onBehalfEmail', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      loadAssetsForEmail($(this).val());
+    }
+  });
 
   // ════════════════════════════════════════════════════════
   // MIS: DEPENDENT DROPDOWNS (request type → platform/action)
@@ -893,11 +1031,19 @@ $(document).ready(function () {
     if (acronym === 'NICM') {
       valid = validateField('#nicmEquipment') && validateField('#nicmAction');
     } else if (acronym === 'ICTRAM') {
-      const v1 = validateField('#ictramBuilding');
-      const v2 = validateField('#ictramEquipment');
-      const v3 = validateField('#ictramPriority');
-      const v4 = validateField('#ictramRequestType');
-      valid = v1 && v2 && v3 && v4;
+      const v1 = validateField('#ictramAsset');
+      let v2 = true;
+      let v3 = true;
+      let v4 = true;
+      let v5 = true;
+      if ($('#isOnBehalfToggle').is(':checked')) {
+        v4 = validateField('#onBehalfEmail');
+        v5 = validateField('#preRepairForm');
+      } else {
+        v2 = validateField('#ictramPriority');
+        v3 = validateField('#ictramRequestType');
+      }
+      valid = v1 && v2 && v3 && v4 && v5;
     } else if (acronym === 'MIS') {
       const v1 = validateField('#misRequestorNumber');
       const v2 = $('input[name="request_type_id"]:checked').length > 0;
@@ -938,7 +1084,6 @@ $(document).ready(function () {
     // Common details
     const userName = <?= json_encode($user['name'] ?? 'Unknown') ?>;
     rows.push({ label: 'Requestor', value: escHtml(userName) });
-    rows.push({ label: 'Office', value: escHtml($('#officeSelect option:selected').text()) });
     rows.push({ label: 'Problem', value: escHtml($('#problemDescription').val()) });
 
     // Routed section
@@ -951,27 +1096,28 @@ $(document).ready(function () {
     }
 
     if (acronym === 'ICTRAM') {
-      rows.push({ label: 'Building', value: escHtml($('#ictramBuilding option:selected').text()) });
-      rows.push({ label: 'Equipment', value: escHtml($('#ictramEquipment option:selected').text()) });
-      const brand = $('input[name="brand"]').val();
-      const model = $('input[name="model"]').val();
-      if (brand) rows.push({ label: 'Brand', value: escHtml(brand) });
-      if (model) rows.push({ label: 'Model', value: escHtml(model) });
-      rows.push({ label: 'Priority', value: escHtml($('#ictramPriority option:selected').text()) });
+      rows.push({ label: 'Asset', value: escHtml($('#ictramAsset option:selected').text()) });
+      if ($('#isOnBehalfToggle').is(':checked')) {
+        rows.push({ label: 'On Behalf Of', value: escHtml($('#onBehalfEmail').val()) });
+        const preRepair = document.getElementById('preRepairForm').files[0];
+        if (preRepair) rows.push({ label: 'Pre-Repair Form', value: escHtml(preRepair.name) });
+      } else {
+        rows.push({ label: 'Priority', value: escHtml($('#ictramPriority option:selected').text()) });
 
-      const hw = [];
-      $('#ictramHardwareIssues input[type="checkbox"]:checked').each(function () {
-        hw.push(escHtml($(this).closest('label').find('span').text()));
-      });
-      if (hw.length) rows.push({ label: 'Hardware Issues', value: hw.join(', ') });
+        const hw = [];
+        $('#ictramHardwareIssues input[type="checkbox"]:checked').each(function () {
+          hw.push(escHtml($(this).closest('label').find('span').text()));
+        });
+        if (hw.length) rows.push({ label: 'Hardware Issues', value: hw.join(', ') });
 
-      const sw = [];
-      $('#ictramSoftwareIssues input[type="checkbox"]:checked').each(function () {
-        sw.push(escHtml($(this).closest('label').find('span').text()));
-      });
-      if (sw.length) rows.push({ label: 'Software Issues', value: sw.join(', ') });
+        const sw = [];
+        $('#ictramSoftwareIssues input[type="checkbox"]:checked').each(function () {
+          sw.push(escHtml($(this).closest('label').find('span').text()));
+        });
+        if (sw.length) rows.push({ label: 'Software Issues', value: sw.join(', ') });
 
-      rows.push({ label: 'Request Type', value: escHtml($('#ictramRequestType option:selected').text()) });
+        rows.push({ label: 'Request Type', value: escHtml($('#ictramRequestType option:selected').text()) });
+      }
     }
 
     if (acronym === 'MIS') {
@@ -995,9 +1141,9 @@ $(document).ready(function () {
     let html = '<div class="divide-y divide-gray-100 rounded-xl border border-gray-200 overflow-hidden">';
     rows.forEach(function (r) {
       const hl = r.highlight ? ' bg-blue-50' : '';
-      html += `<div class="flex items-start gap-4 px-4 py-3${hl}">`;
-      html += `<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide w-28 shrink-0 pt-0.5">${r.label}</span>`;
-      html += `<span class="text-sm text-gray-900 flex-1">${r.value || '<span class="text-gray-300 italic">—</span>'}</span>`;
+      html += '<div class="flex items-start gap-4 px-4 py-3' + hl + '">';
+      html += '<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide w-28 shrink-0 pt-0.5">' + r.label + '</span>';
+      html += '<span class="text-sm text-gray-900 flex-1">' + (r.value || '<span class="text-gray-300 italic">—</span>') + '</span>';
       html += '</div>';
     });
     html += '</div>';

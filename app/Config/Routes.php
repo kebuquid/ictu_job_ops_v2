@@ -135,6 +135,11 @@ $routes->group('super-admin', ['filter' => 'role:1'], static function ($routes) 
     $routes->put('keyword-rules/edit/(:num)', 'SuperAdminController::updateKeywordRule/$1');
     $routes->delete('keyword-rules/delete/(:num)', 'SuperAdminController::deleteKeywordRule/$1');
 
+    // SLA Rules (timeframe settings)
+    $routes->get('ticket-sla-rules', 'SuperAdminController::ticketSlaRules');
+    $routes->post('ticket-sla-rules/add', 'SuperAdminController::addTicketSlaRule');
+    $routes->delete('ticket-sla-rules/delete/(:num)', 'SuperAdminController::deleteTicketSlaRule/$1');
+
     // Sections CRUD
     $routes->get('sections', 'SuperAdminController::sections');
     $routes->get('sections/add', 'SuperAdminController::addSectionPage');
@@ -142,6 +147,57 @@ $routes->group('super-admin', ['filter' => 'role:1'], static function ($routes) 
     $routes->get('sections/edit/(:num)', 'SuperAdminController::editSectionPage/$1');
     $routes->put('sections/edit/(:num)', 'SuperAdminController::updateSection/$1');
     $routes->delete('sections/delete/(:num)', 'SuperAdminController::deleteSection/$1');
+
+    // Asset Management
+    $routes->get('assets',                'Assets::index');
+    $routes->get('assets/create',         'Assets::create');
+    $routes->post('assets/store',         'Assets::store');
+    $routes->get('assets/show/(:num)',    'Assets::show/$1');
+    $routes->get('assets/edit/(:num)',    'Assets::edit/$1');
+    $routes->post('assets/update/(:num)', 'Assets::update/$1');
+    $routes->get('assets/delete/(:num)', 'Assets::delete/$1');
+
+    // Asset Groups
+    $routes->get('asset-groups',                       'AssetGroups::index');
+    $routes->get('asset-groups/create',                'AssetGroups::create');
+    $routes->post('asset-groups/store',                'AssetGroups::store');
+    $routes->get('asset-groups/show/(:num)',           'AssetGroups::show/$1');
+    $routes->get('asset-groups/edit/(:num)',           'AssetGroups::edit/$1');
+    $routes->post('asset-groups/update/(:num)',        'AssetGroups::update/$1');
+    $routes->post('asset-groups/assign/(:num)',         'AssetGroups::assignAsset/$1');
+    $routes->post('asset-groups/transfer/(:num)/(:num)', 'AssetGroups::transferAsset/$1/$2');
+    $routes->get('asset-groups/remove/(:num)/(:num)',  'AssetGroups::removeAsset/$1/$2');
+    $routes->get('asset-groups/delete/(:num)',         'AssetGroups::delete/$1');
+
+    // Maintenance
+    $routes->get('maintenance',                'Maintenance::index');
+    $routes->get('maintenance/create',         'Maintenance::create');
+    $routes->get('maintenance/create/(:num)',  'Maintenance::create/$1');
+    $routes->post('maintenance/store',         'Maintenance::store');
+    $routes->get('maintenance/show/(:num)',    'Maintenance::show/$1');
+    $routes->get('maintenance/print/(:num)',     'Maintenance::print/$1');
+    $routes->get('maintenance/checklist/(:num)', 'Maintenance::printChecklist/$1');
+    $routes->get('maintenance/edit/(:num)',    'Maintenance::edit/$1');
+    $routes->post('maintenance/update/(:num)', 'Maintenance::update/$1');
+    $routes->get('maintenance/delete/(:num)', 'Maintenance::delete/$1');
+
+    // Preventive Maintenance Plans
+    $routes->get('pm-plans',                'PreventiveMaintenancePlan::index');
+    $routes->get('pm-plans/create',         'PreventiveMaintenancePlan::create');
+    $routes->post('pm-plans/store',         'PreventiveMaintenancePlan::store');
+    $routes->get('pm-plans/show/(:num)',    'PreventiveMaintenancePlan::show/$1');
+    $routes->get('pm-plans/edit/(:num)',    'PreventiveMaintenancePlan::edit/$1');
+    $routes->post('pm-plans/update/(:num)', 'PreventiveMaintenancePlan::update/$1');
+    $routes->get('pm-plans/delete/(:num)', 'PreventiveMaintenancePlan::delete/$1');
+
+    // Disposals
+    $routes->get('disposals',                'Disposals::index');
+    $routes->get('disposals/create',         'Disposals::create');
+    $routes->post('disposals/store',         'Disposals::store');
+    $routes->get('disposals/show/(:num)',    'Disposals::show/$1');
+    $routes->get('disposals/edit/(:num)',    'Disposals::edit/$1');
+    $routes->post('disposals/update/(:num)', 'Disposals::update/$1');
+    $routes->get('disposals/delete/(:num)', 'Disposals::delete/$1');
 });
 
 // ─── Section Head (Admin) Routes ─────────────────────────
@@ -165,6 +221,53 @@ $routes->group('admin', ['filter' => 'role:2'], static function ($routes) {
     $routes->get('keyword-rules/edit/(:num)', 'SectionHeadController::editKeywordRulePage/$1');
     $routes->put('keyword-rules/edit/(:num)', 'SectionHeadController::updateKeywordRule/$1');
     $routes->delete('keyword-rules/delete/(:num)', 'SectionHeadController::deleteKeywordRule/$1');
+
+    // SLA Rules (section-scoped timeframe settings)
+    $routes->get('ticket-sla-rules', 'SectionHeadController::ticketSlaRules');
+    $routes->post('ticket-sla-rules/add', 'SectionHeadController::addTicketSlaRule');
+    $routes->delete('ticket-sla-rules/delete/(:num)', 'SectionHeadController::deleteTicketSlaRule/$1');
+
+    // Asset Management
+    $routes->get('assets',                'Assets::index');
+    $routes->get('assets/create',         'Assets::create');
+    $routes->post('assets/store',         'Assets::store');
+    $routes->get('assets/show/(:num)',    'Assets::show/$1');
+    $routes->get('assets/edit/(:num)',    'Assets::edit/$1');
+    $routes->post('assets/update/(:num)', 'Assets::update/$1');
+    $routes->get('assets/delete/(:num)', 'Assets::delete/$1');
+
+    // Asset Groups
+    $routes->get('asset-groups',                       'AssetGroups::index');
+    $routes->get('asset-groups/create',                'AssetGroups::create');
+    $routes->post('asset-groups/store',                'AssetGroups::store');
+    $routes->get('asset-groups/show/(:num)',           'AssetGroups::show/$1');
+    $routes->get('asset-groups/edit/(:num)',           'AssetGroups::edit/$1');
+    $routes->post('asset-groups/update/(:num)',        'AssetGroups::update/$1');
+    $routes->post('asset-groups/assign/(:num)',         'AssetGroups::assignAsset/$1');
+    $routes->post('asset-groups/transfer/(:num)/(:num)', 'AssetGroups::transferAsset/$1/$2');
+    $routes->get('asset-groups/remove/(:num)/(:num)',  'AssetGroups::removeAsset/$1/$2');
+    $routes->get('asset-groups/delete/(:num)',         'AssetGroups::delete/$1');
+
+    // Maintenance
+    $routes->get('maintenance',                'Maintenance::index');
+    $routes->get('maintenance/create',         'Maintenance::create');
+    $routes->get('maintenance/create/(:num)',  'Maintenance::create/$1');
+    $routes->post('maintenance/store',         'Maintenance::store');
+    $routes->get('maintenance/show/(:num)',    'Maintenance::show/$1');
+    $routes->get('maintenance/print/(:num)',     'Maintenance::print/$1');
+    $routes->get('maintenance/checklist/(:num)', 'Maintenance::printChecklist/$1');
+    $routes->get('maintenance/edit/(:num)',    'Maintenance::edit/$1');
+    $routes->post('maintenance/update/(:num)', 'Maintenance::update/$1');
+    $routes->get('maintenance/delete/(:num)', 'Maintenance::delete/$1');
+
+    // Disposals
+    $routes->get('disposals',                'Disposals::index');
+    $routes->get('disposals/create',         'Disposals::create');
+    $routes->post('disposals/store',         'Disposals::store');
+    $routes->get('disposals/show/(:num)',    'Disposals::show/$1');
+    $routes->get('disposals/edit/(:num)',    'Disposals::edit/$1');
+    $routes->post('disposals/update/(:num)', 'Disposals::update/$1');
+    $routes->get('disposals/delete/(:num)', 'Disposals::delete/$1');
 });
 
 // ─── ICTU Staff Routes ───────────────────────────────────
@@ -211,6 +314,7 @@ $routes->group('employee', ['filter' => 'role:4'], static function ($routes) {
     $routes->post('create-ticket', 'TicketController::store');
     $routes->get('create-ticket/section-data/(:num)', 'TicketController::getSectionData/$1');
     $routes->get('create-ticket/request-type-data/(:num)', 'TicketController::getRequestTypeData/$1');
+    $routes->get('create-ticket/requestor-assets', 'TicketController::getRequestorAssets');
 });
 
 // ─── Student Routes ──────────────────────────────────────
@@ -224,4 +328,5 @@ $routes->group('student', ['filter' => 'role:5'], static function ($routes) {
     $routes->post('create-ticket', 'TicketController::store');
     $routes->get('create-ticket/section-data/(:num)', 'TicketController::getSectionData/$1');
     $routes->get('create-ticket/request-type-data/(:num)', 'TicketController::getRequestTypeData/$1');
+    $routes->get('create-ticket/requestor-assets', 'TicketController::getRequestorAssets');
 });

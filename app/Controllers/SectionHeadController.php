@@ -13,6 +13,12 @@ use App\Models\ResponsePartModel;
 use App\Models\TicketHistoryModel;
 use App\Models\JobStatusModel;
 use App\Models\RoleModel;
+use App\Models\RequestTypeModel;
+use App\Models\RequestPlatformModel;
+use App\Models\RequestActionModel;
+use App\Models\TicketEquipmentModel;
+use App\Models\TicketSlaRuleModel;
+use App\Libraries\TicketSlaResolver;
 
 class SectionHeadController extends BaseController
 {
@@ -24,6 +30,12 @@ class SectionHeadController extends BaseController
     private KeywordRuleModel $keywordRuleModel;
     private ResponsePartModel $responsePartModel;
     private TicketHistoryModel $ticketHistoryModel;
+    private RequestTypeModel $requestTypeModel;
+    private RequestPlatformModel $requestPlatformModel;
+    private RequestActionModel $requestActionModel;
+    private TicketEquipmentModel $ticketEquipmentModel;
+    private TicketSlaRuleModel $ticketSlaRuleModel;
+    private TicketSlaResolver $ticketSlaResolver;
 
     public function __construct()
     {
@@ -35,6 +47,12 @@ class SectionHeadController extends BaseController
         $this->keywordRuleModel       = new KeywordRuleModel();
         $this->responsePartModel      = new ResponsePartModel();
         $this->ticketHistoryModel     = new TicketHistoryModel();
+        $this->requestTypeModel       = new RequestTypeModel();
+        $this->requestPlatformModel   = new RequestPlatformModel();
+        $this->requestActionModel     = new RequestActionModel();
+        $this->ticketEquipmentModel   = new TicketEquipmentModel();
+        $this->ticketSlaRuleModel     = new TicketSlaRuleModel();
+        $this->ticketSlaResolver      = new TicketSlaResolver();
     }
 
     /**
@@ -285,11 +303,14 @@ class SectionHeadController extends BaseController
             ->where('job_ticket_responses.job_ticket_id', $ticketId)
             ->first();
 
+        $slaSummary = $this->ticketSlaResolver->resolveForTicket($ticket, $response);
+
         return view('section_heads/view_ticket', [
             'ticket'        => $ticket,
             'response'      => $response,
             'responseParts' => $response ? $this->responsePartModel->getByResponseId((int) $response['job_ticket_response_id']) : [],
             'history'       => $this->ticketHistoryModel->getByTicketId($ticketId),
+            'slaSummary'    => $slaSummary,
         ]);
     }
 
@@ -344,6 +365,20 @@ class SectionHeadController extends BaseController
         // If marking as completed, update parent ticket
         if ($this->request->getPost('completion_status') === 'completed') {
             $updateData['completion_date'] = $updateData['completion_date'] ?: date('Y-m-d');
+
+            $ticketForSla = $this->jobTicketModel
+                ->select('job_tickets.job_status, job_ticket_requests.section_id, job_ticket_requests.request_type, job_ticket_requests.request_platform, job_ticket_requests.request_action, job_ticket_requests.request_equipment')
+                ->join('job_ticket_requests', 'job_ticket_requests.job_ticket_id = job_tickets.job_ticket_id')
+                ->where('job_tickets.job_ticket_id', (int) $existing['job_ticket_id'])
+                ->first();
+
+            $slaSummary = $ticketForSla ? $this->ticketSlaResolver->resolveForTicket($ticketForSla, $existing) : null;
+            if ($slaSummary && ! empty($slaSummary['due_at'])) {
+                $completionTs = strtotime($updateData['completion_date'] . ' 23:59:59');
+                $dueTs        = strtotime((string) $slaSummary['due_at']);
+                $updateData['is_completed_in_timeline'] = ($completionTs <= $dueTs) ? 1 : 0;
+            }
+
             $completedId  = JobStatusModel::getIdByLabel('Completed');
             $inProgressId = JobStatusModel::getIdByLabel('In Progress');
             $this->jobTicketModel->update($existing['job_ticket_id'], [
@@ -518,6 +553,12 @@ class SectionHeadController extends BaseController
             'job_status' => $inProgressId,
         ]);
 
+        $this->jobTicketResponseModel
+            ->where('job_ticket_id', $nextTicketId)
+            ->where('staff_id', $staffId)
+            ->set(['start_date' => date('Y-m-d')])
+            ->update();
+
         $this->ticketHistoryModel->log(
             $nextTicketId,
             'in_progress',
@@ -606,6 +647,73 @@ class SectionHeadController extends BaseController
             'keywordRules' => $list,
             'sectionId'    => $sectionId,
         ]);
+    }
+
+    public function ticketSlaRules()
+    {
+        $sectionId = $this->sectionId();
+
+        $rules = $this->ticketSlaRuleModel
+            ->select('ticket_sla_rules.*, request_types.request_type_name, request_platforms.platform_name, request_actions.action_name, ticket_equipments.name as equipment_name')
+            ->join('request_types', 'request_types.request_type_id = ticket_sla_rules.request_type_id', 'left')
+            ->join('request_platforms', 'request_platforms.platform_id = ticket_sla_rules.platform_id', 'left')
+            ->join('request_actions', 'request_actions.action_id = ticket_sla_rules.action_id', 'left')
+            ->join('ticket_equipments', 'ticket_equipments.equipment_id = ticket_sla_rules.equipment_id', 'left')
+            ->where('ticket_sla_rules.section_id', $sectionId)
+            ->orderBy('ticket_sla_rules.target_hours', 'ASC')
+            ->findAll();
+
+        return view('section_heads/ticket_sla_rules', [
+            'rules'        => $rules,
+            'requestTypes' => $this->requestTypeModel->where('section_id', $sectionId)->orderBy('request_type_name', 'ASC')->findAll(),
+            'platforms'    => $this->requestPlatformModel->orderBy('platform_name', 'ASC')->findAll(),
+            'actions'      => $this->requestActionModel->where('section_id', $sectionId)->orderBy('action_name', 'ASC')->findAll(),
+            'equipments'   => $this->ticketEquipmentModel->where('section_id', $sectionId)->orderBy('name', 'ASC')->findAll(),
+        ]);
+    }
+
+    public function addTicketSlaRule()
+    {
+        $sectionId = $this->sectionId();
+
+        $rules = [
+            'request_type_id' => 'permit_empty|integer',
+            'platform_id'   => 'permit_empty|integer',
+            'action_id'     => 'permit_empty|integer',
+            'equipment_id'  => 'permit_empty|integer',
+            'target_hours'  => 'required|integer|greater_than[0]',
+            'notes'         => 'permit_empty|max_length[255]',
+        ];
+
+        if (! $this->validate($rules)) {
+            return redirect()->to('admin/ticket-sla-rules')->withInput()->with('error', implode('<br>', $this->validator->getErrors()));
+        }
+
+        $this->ticketSlaRuleModel->insert([
+            'section_id'      => $sectionId,
+            'request_type_id' => $this->request->getPost('request_type_id') ?: null,
+            'platform_id'     => $this->request->getPost('platform_id') ?: null,
+            'action_id'       => $this->request->getPost('action_id') ?: null,
+            'equipment_id'    => $this->request->getPost('equipment_id') ?: null,
+            'target_hours'    => (int) $this->request->getPost('target_hours'),
+            'is_active'       => 1,
+            'notes'           => trim((string) $this->request->getPost('notes')) ?: null,
+        ]);
+
+        return redirect()->to('admin/ticket-sla-rules')->with('success', 'Ticket timeframe rule added successfully.');
+    }
+
+    public function deleteTicketSlaRule(int $id)
+    {
+        $sectionId = $this->sectionId();
+        $item = $this->ticketSlaRuleModel->find($id);
+
+        if (! $item || (int) $item['section_id'] !== $sectionId) {
+            return redirect()->to('admin/ticket-sla-rules')->with('error', 'Timeframe rule not found.');
+        }
+
+        $this->ticketSlaRuleModel->delete($id);
+        return redirect()->to('admin/ticket-sla-rules')->with('success', 'Ticket timeframe rule deleted.');
     }
 
     public function addKeywordRulePage()

@@ -7,40 +7,46 @@ use CodeIgniter\Model;
 class AssetModel extends Model
 {
     protected $table            = 'assets';
-    protected $primaryKey       = 'id';
+    protected $primaryKey       = 'asset_id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = [];
 
-    protected bool $allowEmptyInserts = false;
-    protected bool $updateOnlyChanged = true;
+    protected $allowedFields = [
+        'asset_tag',
+        'property_no',
+        'brand_model',
+        'serial_number',
+        'category',
+        'operating_system',
+        'os_license_key',
+        'os_license_type',
+        'os_license_expiry',
+        'os_last_updated',
+        'os_is_updated',
+        'software_installed',
+        'software_license',
+        'software_list',
+        'section_id',
+        'assigned_to',
+        'assigned_unit_id',
+        'group_id',
+        'date_acquired',
+        'acquisition_cost',
+        'depreciation_cost',
+        'warranty_end',
+        'lifecycle',
+        'supplier',
+        'po_number',
+        'invoice_number',
+        'procurement_mode',
+        'fund_source',
+        'status',
+        'asset_image',
+    ];
 
-    protected array $casts = [];
-    protected array $castHandlers = [];
-
-    // Dates
-    protected $useTimestamps = false;
-    protected $dateFormat    = 'datetime';
+    protected $useTimestamps = true;
     protected $createdField  = 'created_at';
     protected $updatedField  = 'updated_at';
-    protected $deletedField  = 'deleted_at';
-
-    // Validation
-    protected $validationRules      = [];
-    protected $validationMessages   = [];
-    protected $skipValidation       = false;
-    protected $cleanValidationRules = true;
-
-    // Callbacks
-    protected $allowCallbacks = true;
-    protected $beforeInsert   = [];
-    protected $afterInsert    = [];
-    protected $beforeUpdate   = [];
-    protected $afterUpdate    = [];
-    protected $beforeFind     = [];
-    protected $afterFind      = [];
-    protected $beforeDelete   = [];
-    protected $afterDelete    = [];
 }

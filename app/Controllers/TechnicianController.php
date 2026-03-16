@@ -11,6 +11,7 @@ use App\Models\SectionModel;
 use App\Models\UserModel;
 use App\Models\TicketHistoryModel;
 use App\Models\JobStatusModel;
+use App\Libraries\TicketSlaResolver;
 
 class TechnicianController extends BaseController
 {
@@ -21,6 +22,7 @@ class TechnicianController extends BaseController
     private SectionModel $sectionModel;
     private UserModel $userModel;
     private TicketHistoryModel $ticketHistoryModel;
+    private TicketSlaResolver $ticketSlaResolver;
 
     public function __construct()
     {
@@ -31,6 +33,7 @@ class TechnicianController extends BaseController
         $this->sectionModel           = new SectionModel();
         $this->userModel              = new UserModel();
         $this->ticketHistoryModel     = new TicketHistoryModel();
+        $this->ticketSlaResolver      = new TicketSlaResolver();
     }
 
     private function userId(): int
@@ -152,12 +155,15 @@ class TechnicianController extends BaseController
             ->where('job_ticket_responses.job_ticket_id', $ticketId)
             ->first();
 
+        $slaSummary = $this->ticketSlaResolver->resolveForTicket($ticket, $response);
+
         return view($this->viewFolder() . '/view_ticket', [
             'ticket'        => $ticket,
             'response'      => $response,
             'responseParts' => $response ? $this->responsePartModel->getByResponseId((int) $response['job_ticket_response_id']) : [],
             'history'       => $this->ticketHistoryModel->getByTicketId($ticketId),
             'urlPrefix'     => $this->urlPrefix(),
+            'slaSummary'    => $slaSummary,
         ]);
     }
 
@@ -213,6 +219,20 @@ class TechnicianController extends BaseController
         // If marking as completed, update parent ticket
         if ($this->request->getPost('completion_status') === 'completed') {
             $updateData['completion_date'] = $updateData['completion_date'] ?: date('Y-m-d');
+
+            $ticketForSla = $this->jobTicketModel
+                ->select('job_tickets.job_status, job_ticket_requests.section_id, job_ticket_requests.request_type, job_ticket_requests.request_platform, job_ticket_requests.request_action, job_ticket_requests.request_equipment')
+                ->join('job_ticket_requests', 'job_ticket_requests.job_ticket_id = job_tickets.job_ticket_id')
+                ->where('job_tickets.job_ticket_id', (int) $existing['job_ticket_id'])
+                ->first();
+
+            $slaSummary = $ticketForSla ? $this->ticketSlaResolver->resolveForTicket($ticketForSla, $existing) : null;
+            if ($slaSummary && ! empty($slaSummary['due_at'])) {
+                $completionTs = strtotime($updateData['completion_date'] . ' 23:59:59');
+                $dueTs        = strtotime((string) $slaSummary['due_at']);
+                $updateData['is_completed_in_timeline'] = ($completionTs <= $dueTs) ? 1 : 0;
+            }
+
             $completedId  = JobStatusModel::getIdByLabel('Completed');
             $inProgressId = JobStatusModel::getIdByLabel('In Progress');
             $this->jobTicketModel->update($existing['job_ticket_id'], [
@@ -380,6 +400,12 @@ class TechnicianController extends BaseController
         $this->jobTicketModel->update($nextTicketId, [
             'job_status' => $inProgressId,
         ]);
+
+        $this->jobTicketResponseModel
+            ->where('job_ticket_id', $nextTicketId)
+            ->where('staff_id', $staffId)
+            ->set(['start_date' => date('Y-m-d')])
+            ->update();
 
         $this->ticketHistoryModel->log(
             $nextTicketId,

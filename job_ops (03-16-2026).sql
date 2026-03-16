@@ -2,10 +2,10 @@
 -- version 5.2.3
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost:3306
--- Generation Time: Mar 12, 2026 at 07:13 AM
--- Server version: 8.4.3
--- PHP Version: 8.3.30
+-- Host: 127.0.0.1:3306
+-- Generation Time: Mar 16, 2026 at 01:38 AM
+-- Server version: 8.4.7
+-- PHP Version: 8.4.15
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -29,22 +29,23 @@ USE `job_ops`;
 -- Table structure for table `assets`
 --
 
-CREATE TABLE `assets` (
-  `asset_id` bigint UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `assets`;
+CREATE TABLE IF NOT EXISTS `assets` (
+  `asset_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `group_id` int UNSIGNED DEFAULT NULL,
-  `asset_tag` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `property_no` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `brand_model` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `serial_number` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `category` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `operating_system` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `os_license_key` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `os_license_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `asset_tag` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `property_no` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `brand_model` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `serial_number` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `category` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `operating_system` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `os_license_key` varchar(200) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `os_license_type` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `os_license_expiry` date DEFAULT NULL,
   `os_last_updated` date DEFAULT NULL,
   `os_is_updated` tinyint(1) NOT NULL DEFAULT '0',
-  `software_installed` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
-  `software_license` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `software_installed` text COLLATE utf8mb4_general_ci,
+  `software_license` text COLLATE utf8mb4_general_ci,
   `software_list` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
   `section_id` int DEFAULT NULL,
   `assigned_to` int DEFAULT NULL,
@@ -53,25 +54,44 @@ CREATE TABLE `assets` (
   `acquisition_cost` decimal(15,2) DEFAULT NULL,
   `depreciation_cost` decimal(15,2) DEFAULT NULL,
   `warranty_end` date DEFAULT NULL,
-  `status` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'Active',
-  `lifecycle` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `supplier` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `po_number` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `invoice_number` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `procurement_mode` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `fund_source` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `asset_image` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `status` varchar(50) COLLATE utf8mb4_general_ci DEFAULT 'Active',
+  `lifecycle` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `supplier` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `po_number` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `invoice_number` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `procurement_mode` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `fund_source` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `asset_image` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`asset_id`),
+  KEY `idx_asset_serial` (`serial_number`),
+  KEY `idx_asset_property_no` (`property_no`)
+) ;
 
 --
 -- Dumping data for table `assets`
 --
 
 INSERT INTO `assets` (`asset_id`, `group_id`, `asset_tag`, `property_no`, `brand_model`, `serial_number`, `category`, `operating_system`, `os_license_key`, `os_license_type`, `os_license_expiry`, `os_last_updated`, `os_is_updated`, `software_installed`, `software_license`, `software_list`, `section_id`, `assigned_to`, `assigned_unit_id`, `date_acquired`, `acquisition_cost`, `depreciation_cost`, `warranty_end`, `status`, `lifecycle`, `supplier`, `po_number`, `invoice_number`, `procurement_mode`, `fund_source`, `asset_image`, `created_at`, `updated_at`) VALUES
-(168, 62, 'ASSET-009', 'PN-2024-001', 'Dell Latitude 5520', 'DOBJ3SP001251001CA3000', 'Computer', 'Windows 11 Home', '1234-5678-9101', 'Freeware', '2026-02-27', '2026-02-28', 1, NULL, NULL, '[{\"name\":\"Microsoft Word\",\"license_type\":\"Subscription\",\"license_expiry\":\"2026-03-07\",\"last_updated\":\"2026-02-27\",\"is_updated\":\"0\",\"notes\":\"nice\"}]', 2, 3, 1, '2026-02-27', 50000.00, 5000.00, '2026-03-07', 'Active', '2 yrs', NULL, NULL, NULL, NULL, NULL, NULL, '2026-02-26 22:13:48', '2026-02-27 01:02:15'),
-(170, 63, 'ASSET-005', 'PN-2024-001', 'All-in-One 23.6 - Acer', 'DOBJ3SP001251001CA3000', 'Printer', 'Windows 11 Home', '1234-5678-9101', 'Subscription', '2026-03-02', '2026-03-03', 1, NULL, NULL, '[{\"name\":\"Adobe Premiere Pro\",\"license_type\":\"\",\"license_expiry\":\"\",\"last_updated\":\"\",\"is_updated\":\"0\",\"notes\":\"2 yrs \"}]', 3, 3, 5, '2026-03-02', 50000.00, 2500.00, '2026-03-03', 'Active', '2 yrs', NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-01 22:29:35', '2026-03-01 22:33:41');
+(168, 63, 'ASSET-009', 'PN-2024-001', 'Dell Latitude 5520', 'DOBJ3SP001251001CA3000', 'Computer', 'Windows 11 Home', '1234-5678-9101', 'Freeware', '2026-02-27', '2026-02-28', 1, NULL, NULL, '[{\"name\":\"Microsoft Word\",\"license_type\":\"Subscription\",\"license_expiry\":\"2026-03-07\",\"last_updated\":\"2026-02-27\",\"is_updated\":\"0\",\"notes\":\"nice\"}]', 2, 3, 1, '2026-02-27', 50000.00, 5000.00, '2026-03-07', 'Active', '2 yrs', NULL, NULL, NULL, NULL, NULL, NULL, '2026-02-26 22:13:48', '2026-03-04 17:11:18'),
+(170, 63, 'ASSET-005', 'PN-2024-001', 'All-in-One 23.6 - Acer', 'DOBJ3SP001251001CA3000', 'Printer', 'Windows 11 Home', '1234-5678-9101', 'Subscription', '2026-03-02', '2026-03-03', 1, NULL, NULL, '[{\"name\":\"Adobe Premiere Pro\",\"license_type\":\"\",\"license_expiry\":\"\",\"last_updated\":\"\",\"is_updated\":\"0\",\"notes\":\"2 yrs \"}]', 3, 3, 5, '2026-03-02', 50000.00, 2500.00, '2026-03-03', 'Active', '2 yrs', NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-01 22:29:35', '2026-03-01 22:33:41'),
+(171, 63, 'ASSET-200', 'PN-2024-001', 'All-in-One 23.6 - Acer', 'DOBJ3SP001251001CA3000', 'Computer', 'Windows 11 Home', '1234-5678-9101', 'Subscription', '2026-03-02', '2026-03-03', 0, NULL, NULL, '[{\"name\":\"Microsoft Project\",\"license_type\":\"Perpetual\",\"license_expiry\":\"\",\"is_updated\":\"0\",\"last_updated\":\"\",\"notes\":\"\"}]', 3, 8, NULL, '2026-03-02', 50000.00, 5220.00, '2026-03-03', 'Under Repair', '5 years', 'Abc trading co', '20548120', '1231243423', 'Direct Contracting', 'Trust Fund', NULL, '2026-03-05 17:59:09', '2026-03-05 17:59:09'),
+(172, 64, 'ICTU-SRV-001', NULL, 'Dell PowerEdge R740', 'SN-DELL-R740-001', 'Server', 'Windows Server 2022', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, NULL, 'Active', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-09 17:48:58', '2026-03-09 17:48:58'),
+(173, 64, 'ICTU-SRV-002', NULL, 'HP ProLiant DL380 Gen10', 'SN-HP-DL380-002', 'Server', 'Windows Server 2022', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, NULL, 'Active', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-09 17:48:58', '2026-03-09 17:48:58'),
+(174, 64, 'ICTU-SRV-003', NULL, 'IBM System x3550 M5', 'SN-IBM-X3550-003', 'Server', 'Linux Ubuntu 22.04', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, NULL, 'Active', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-09 17:48:58', '2026-03-09 17:48:58'),
+(175, 65, 'ADMIN-PC-001', NULL, 'Lenovo ThinkCentre M720', 'SN-LNV-M720-001', 'Desktop Computer', 'Windows 11 Pro', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 'Active', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-09 17:48:58', '2026-03-09 17:48:58'),
+(176, 65, 'ADMIN-PC-002', NULL, 'Dell OptiPlex 7090', 'SN-DELL-7090-002', 'Desktop Computer', 'Windows 11 Pro', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 'Active', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-09 17:48:58', '2026-03-09 17:48:58'),
+(177, 65, 'ADMIN-PC-003', NULL, 'HP EliteDesk 800 G8', 'SN-HP-ED800-003', 'Desktop Computer', 'Windows 10 Pro', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, 2, NULL, NULL, NULL, NULL, 'Active', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-09 17:48:58', '2026-03-09 17:48:58'),
+(178, 66, 'SRRO-WS-001', NULL, 'Acer Veriton X4680G', 'SN-ACR-X4680-001', 'Desktop Computer', 'Windows 11 Pro', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, 3, NULL, NULL, NULL, NULL, 'Active', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-09 17:48:58', '2026-03-09 17:48:58'),
+(179, 66, 'SRRO-WS-002', NULL, 'HP ProDesk 400 G7', 'SN-HP-PD400-002', 'Desktop Computer', 'Windows 10 Pro', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, 3, NULL, NULL, NULL, NULL, 'Active', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-09 17:48:58', '2026-03-09 17:48:58'),
+(180, 66, 'SRRO-WS-003', NULL, 'Lenovo IdeaCentre 5', 'SN-LNV-IC5-003', 'Desktop Computer', 'Windows 11 Home', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, 3, NULL, NULL, NULL, NULL, 'Active', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-09 17:48:58', '2026-03-09 17:48:58'),
+(181, 67, 'CEA-PC-001', NULL, 'Dell OptiPlex 5090', 'SN-DELL-5090-001', 'Desktop Computer', 'Windows 11 Pro', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, 4, NULL, NULL, NULL, NULL, 'Active', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-09 17:48:58', '2026-03-09 17:48:58'),
+(182, 67, 'CEA-PC-002', NULL, 'Acer Aspire TC-1660', 'SN-ACR-TC1660-002', 'Desktop Computer', 'Windows 11 Home', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, 4, NULL, NULL, NULL, NULL, 'Active', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-09 17:48:58', '2026-03-09 17:48:58'),
+(183, 67, 'CEA-PC-003', NULL, 'HP ProDesk 600 G6', 'SN-HP-PD600-003', 'Desktop Computer', 'Windows 10 Pro', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, 4, NULL, NULL, NULL, NULL, 'Active', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-09 17:48:58', '2026-03-09 17:48:58'),
+(184, 68, 'CCS-LT-001', NULL, 'HP EliteBook 840 G8', 'SN-HP-EB840-001', 'Laptop', 'Windows 11 Pro', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, 5, NULL, NULL, NULL, NULL, 'Active', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-09 17:48:58', '2026-03-09 17:48:58'),
+(185, 68, 'CCS-LT-002', NULL, 'Lenovo ThinkPad T14 Gen 2', 'SN-LNV-T14-002', 'Laptop', 'Windows 11 Pro', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, 5, NULL, NULL, NULL, NULL, 'Active', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-09 17:48:58', '2026-03-09 17:48:58'),
+(186, 68, 'CCS-LT-003', NULL, 'Dell Latitude 5420', 'SN-DELL-L5420-003', 'Laptop', 'Windows 11 Pro', NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, 5, NULL, NULL, NULL, NULL, 'Active', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-09 17:48:58', '2026-03-09 17:48:58');
 
 -- --------------------------------------------------------
 
@@ -79,17 +99,19 @@ INSERT INTO `assets` (`asset_id`, `group_id`, `asset_tag`, `property_no`, `brand
 -- Table structure for table `asset_disposals`
 --
 
-CREATE TABLE `asset_disposals` (
-  `disposal_id` bigint UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `asset_disposals`;
+CREATE TABLE IF NOT EXISTS `asset_disposals` (
+  `disposal_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `asset_id` bigint UNSIGNED NOT NULL,
-  `disposal_reason` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `disposal_reason` text COLLATE utf8mb4_general_ci,
   `disposal_date` date DEFAULT NULL,
   `approved_by` int DEFAULT NULL,
-  `condition_status` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `disposal_image` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `condition_status` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `disposal_image` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`disposal_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -97,34 +119,100 @@ CREATE TABLE `asset_disposals` (
 -- Table structure for table `asset_groups`
 --
 
-CREATE TABLE `asset_groups` (
-  `group_id` int UNSIGNED NOT NULL,
-  `group_name` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `group_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `category` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+DROP TABLE IF EXISTS `asset_groups`;
+CREATE TABLE IF NOT EXISTS `asset_groups` (
+  `group_id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `group_name` varchar(150) COLLATE utf8mb4_general_ci NOT NULL,
+  `group_code` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `category` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `description` text COLLATE utf8mb4_general_ci,
   `quantity` int NOT NULL DEFAULT '1',
-  `tag_prefix` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'e.g. IT-PC → generates IT-PC-001, IT-PC-002 ...',
+  `tag_prefix` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'e.g. IT-PC → generates IT-PC-001, IT-PC-002 ...',
   `section_id` int UNSIGNED DEFAULT NULL,
   `assigned_unit_id` int UNSIGNED DEFAULT NULL,
-  `assigned_to` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `assigned_to` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `date_acquired` date DEFAULT NULL,
   `acquisition_cost` decimal(15,2) DEFAULT NULL,
   `depreciation_cost` decimal(15,2) DEFAULT NULL,
   `warranty_end` date DEFAULT NULL,
-  `status` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'Active',
-  `lifecycle` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `status` varchar(50) COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'Active',
+  `lifecycle` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `created_at` datetime DEFAULT NULL,
-  `updated_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`group_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=69 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `asset_groups`
 --
 
 INSERT INTO `asset_groups` (`group_id`, `group_name`, `group_code`, `category`, `description`, `quantity`, `tag_prefix`, `section_id`, `assigned_unit_id`, `assigned_to`, `date_acquired`, `acquisition_cost`, `depreciation_cost`, `warranty_end`, `status`, `lifecycle`, `created_at`, `updated_at`) VALUES
-(62, 'IT Desktop Computers Batch 2026', 'GRP-IT-2026-01', 'IT Equipment', 'nice', 2, 'IT-PC', NULL, 5, '8', NULL, 50000.00, 3750.00, NULL, 'Active', '3 years', '2026-02-27 09:02:15', '2026-03-02 06:29:35'),
-(63, 'CS Desktop Computers Batch 2026', 'GRP-IT-2026-02', 'IT Equipment', 'checking', 1, 'CS-PC', NULL, 5, '8', NULL, 50000.00, 2500.00, NULL, 'Active', '4', '2026-03-02 06:33:41', '2026-03-02 06:33:41');
+(63, 'CS Desktop Computers Batch 2026', 'GRP-IT-2026-02', 'IT Equipment', 'checking', 3, 'CS-PC', NULL, 5, '8', NULL, 50000.00, 4240.00, NULL, 'Active', '4', '2026-03-02 06:33:41', '2026-03-06 01:59:09'),
+(64, 'ICTU Server Equipment', 'ICTU-SRV', 'Server', 'Servers and storage units managed by the ICTU department.', 3, 'ICTU-SRV', NULL, 1, 'Sean Matthew C. Capistrano', '2021-01-15', 450000.00, NULL, NULL, 'Active', NULL, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(65, 'Administrative Desktop Computers', 'ADMIN-PC', 'Desktop Computer', 'Desktop workstations used by the Records and Administrative Office.', 3, 'ADMIN-PC', NULL, 2, 'Maria Santos', '2022-06-10', 120000.00, NULL, NULL, 'Active', NULL, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(66, 'SRRO Workstations', 'SRRO-WS', 'Desktop Computer', 'Workstations assigned to the Student Records and Registrar Office.', 3, 'SRRO-WS', NULL, 3, 'Jose Reyes', '2022-03-20', 95000.00, NULL, NULL, 'Active', NULL, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(67, 'CEA Computer Laboratory', 'CEA-LAB', 'Desktop Computer', 'Computer laboratory units for the College of Engineering and Architecture.', 3, 'CEA-PC', NULL, 4, 'Eng. Ricardo Luna', '2023-01-05', 210000.00, NULL, NULL, 'Active', NULL, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(68, 'CCS Laptop Pool', 'CCS-LT', 'Laptop', 'Laptops used by faculty and students of the College of Computer Studies.', 3, 'CCS-LT', NULL, 5, 'Prof. Ana Cruz', '2023-08-01', 180000.00, NULL, NULL, 'Active', NULL, '2026-03-10 01:48:58', '2026-03-10 01:48:58');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `asset_maintenance`
+--
+
+DROP TABLE IF EXISTS `asset_maintenance`;
+CREATE TABLE IF NOT EXISTS `asset_maintenance` (
+  `maintenance_id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `asset_id` int UNSIGNED DEFAULT NULL,
+  `group_id` int UNSIGNED DEFAULT NULL,
+  `job_ticket_id` int UNSIGNED DEFAULT NULL,
+  `equipment_type` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `frequency` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `activities` text COLLATE utf8mb4_general_ci,
+  `conducted_by` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `conducted_date` date DEFAULT NULL,
+  `verified_by` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `verified_date` date DEFAULT NULL,
+  `remarks` text COLLATE utf8mb4_general_ci,
+  `issue_description` text COLLATE utf8mb4_general_ci,
+  `action_taken` text COLLATE utf8mb4_general_ci,
+  `parts_replaced` text COLLATE utf8mb4_general_ci,
+  `maintenance_date` date DEFAULT NULL,
+  `technician_id` int DEFAULT NULL,
+  `cost` decimal(15,2) DEFAULT '0.00',
+  `corrective_action` text COLLATE utf8mb4_general_ci,
+  `corrective_date` date DEFAULT NULL,
+  `responsible_person` varchar(150) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `responsible_date` date DEFAULT NULL,
+  `responsible_remarks` text COLLATE utf8mb4_general_ci,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`maintenance_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `asset_maintenance`
+--
+
+INSERT INTO `asset_maintenance` (`maintenance_id`, `asset_id`, `group_id`, `job_ticket_id`, `equipment_type`, `frequency`, `activities`, `conducted_by`, `conducted_date`, `verified_by`, `verified_date`, `remarks`, `issue_description`, `action_taken`, `parts_replaced`, `maintenance_date`, `technician_id`, `cost`, `corrective_action`, `corrective_date`, `responsible_person`, `responsible_date`, `responsible_remarks`, `created_at`, `updated_at`) VALUES
+(3, 168, 63, NULL, NULL, 'Monthly', 'Repair, Installation', 'Sean', '2026-03-10', 'Sir jonie', '2026-03-11', 'goods', NULL, NULL, NULL, '2026-03-09', NULL, 0.00, 'Goods', '2026-03-09', 'matthew', '2026-03-11', 'Nicely done', '2026-03-09 03:08:57', '2026-03-09 03:08:57'),
+(4, 170, 63, NULL, NULL, 'Monthly', 'Repair, Installation', 'Sean', '2026-03-10', 'Sir jonie', '2026-03-11', 'goods', NULL, NULL, NULL, '2026-03-09', NULL, 0.00, 'Goods', '2026-03-09', 'matthew', '2026-03-11', 'Nicely done', '2026-03-09 03:08:57', '2026-03-09 03:08:57'),
+(5, 171, 63, NULL, NULL, 'Monthly', 'Repair, Installation', 'Sean', '2026-03-10', 'Sir jonie', '2026-03-11', 'goods', NULL, NULL, NULL, '2026-03-09', NULL, 0.00, 'Goods', '2026-03-09', 'matthew', '2026-03-11', 'Nicely done', '2026-03-09 03:08:57', '2026-03-09 03:08:57'),
+(6, 172, 64, NULL, 'Server', 'Quarterly', '• Dust cleaning\\n• Check hardware components\\n• OS updates\\n• Backup verification', 'Sean Matthew C. Capistrano', '2025-01-10', 'Rey T. Cortez', '2025-01-10', 'All systems functioning normally. RAID array healthy.', 'Minor dust accumulation on intake fans.', 'Cleaned intake fans and internal components. Verified RAID status.', NULL, '2025-01-10', NULL, 0.00, 'No corrective action required.', '2025-01-10', 'Sean Matthew C. Capistrano', '2025-01-10', 'Routine PM completed.', '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(7, 173, 64, NULL, 'Server', 'Quarterly', '• Dust cleaning\\n• Firmware update\\n• Memory check\\n• Network connectivity test', 'Sean Matthew C. Capistrano', '2025-01-10', 'Rey T. Cortez', '2025-01-11', 'Firmware updated to latest version. All memory modules passed POST.', 'Firmware was 2 versions behind.', 'Updated firmware to v2.72. Restarted server during off-hours.', NULL, '2025-01-10', NULL, 0.00, 'Applied firmware update.', '2025-01-11', 'Sean Matthew C. Capistrano', '2025-01-11', 'Firmware update completed successfully.', '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(8, 175, 65, NULL, 'Desktop Computer', 'Quarterly', '• Dust cleaning\\n• Antivirus update\\n• OS patches\\n• Disk defragmentation', 'Sean Matthew C. Capistrano', '2025-04-08', 'Rey T. Cortez', '2025-04-08', 'Unit in good working condition. Disk fragmentation at 12%.', 'Antivirus definitions were outdated by 7 days.', 'Updated antivirus definitions. Applied 14 pending Windows updates.', NULL, '2025-04-08', NULL, 0.00, 'Enabled automatic antivirus update schedule.', '2025-04-08', 'Sean Matthew C. Capistrano', '2025-04-08', 'Auto-update re-enabled. User informed.', '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(9, 176, 65, NULL, 'Desktop Computer', 'Quarterly', '• Dust cleaning\\n• Antivirus update\\n• OS patches\\n• RAM inspection', 'Sean Matthew C. Capistrano', '2025-04-08', 'Rey T. Cortez', '2025-04-09', 'RAM slot 2 showing intermittent errors. Reseated module.', 'System occasionally crashes during heavy workloads.', 'Reseated RAM modules. Ran MemTest86 — passed after reseating.', NULL, '2025-04-08', NULL, 0.00, 'Reseated RAM. Advised user to report recurrence.', '2025-04-09', 'Sean Matthew C. Capistrano', '2025-04-09', 'Monitoring unit for further issues.', '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(10, 178, 66, NULL, 'Desktop Computer', 'Semi-Annual', '• Dust cleaning\\n• Antivirus update\\n• OS patches\\n• Keyboard and mouse cleaning', 'Sean Matthew C. Capistrano', '2025-07-05', 'Rey T. Cortez', '2025-07-05', 'Unit cleaned. All peripherals functioning.', 'Keyboard keys sticking due to debris.', 'Cleaned keyboard with compressed air and isopropyl alcohol.', NULL, '2025-07-05', NULL, 0.00, 'Keyboard cleaned. Replacement keyboard on standby.', '2025-07-05', 'Sean Matthew C. Capistrano', '2025-07-05', 'Unit operational.', '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(11, 172, 64, NULL, 'Server', 'Quarterly', '• Dust cleaning\\n• Check hardware components\\n• OS updates\\n• Backup verification\\n• UPS battery test', 'Sean Matthew C. Capistrano', '2025-07-12', 'Rey T. Cortez', '2025-07-12', 'UPS battery at 82% capacity. Backup restore test successful.', 'UPS battery capacity has degraded to 82%.', 'Noted battery degradation. Recommended replacement within 6 months.', NULL, '2025-07-12', NULL, 0.00, 'UPS battery replacement scheduled for Q4 2025.', '2025-07-15', 'Rey T. Cortez', '2025-07-15', 'Purchase request for replacement battery filed.', '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(12, 181, 67, NULL, 'Desktop Computer', 'Quarterly', '• Dust cleaning\\n• Antivirus update\\n• OS patches\\n• Software license check', 'Sean Matthew C. Capistrano', '2025-07-18', 'Eng. Ricardo Luna', '2025-07-18', 'AutoCAD license expiring in 30 days. Renewal initiated.', 'AutoCAD 2024 license expires August 18, 2025.', 'Coordinated with admin for license renewal. Applied OS patches.', NULL, '2025-07-18', NULL, 0.00, 'License renewal request submitted to admin office.', '2025-07-20', 'Eng. Ricardo Luna', '2025-07-20', 'License renewal in process.', '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(13, 172, 64, NULL, 'Server', 'Quarterly', '• Dust cleaning\\n• UPS battery replacement\\n• OS updates\\n• Backup verification', 'Sean Matthew C. Capistrano', '2025-10-10', 'Rey T. Cortez', '2025-10-10', 'UPS battery replaced. New battery at 100% capacity.', 'UPS battery capacity was 82%, per Q3 recommendation.', 'Replaced UPS battery with APC RBC7 compatible unit.', 'APC UPS Battery RBC7 (1 unit)', '2025-10-10', NULL, 0.00, 'Battery replaced. UPS runtime restored to full capacity.', '2025-10-10', 'Sean Matthew C. Capistrano', '2025-10-10', 'UPS fully operational. Next battery check Q3 2027.', '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(15, 177, 65, NULL, 'Desktop Computer', 'Quarterly', '• Dust cleaning\\n• Antivirus update\\n• OS patches\\n• Disk health check', 'Sean Matthew C. Capistrano', '2026-01-08', 'Rey T. Cortez', '2026-01-08', 'HDD showing early signs of failure (SMART warning). SSD upgrade recommended.', 'SMART diagnostic shows reallocated sector count increasing.', 'Backed up all user data. Flagged for SSD replacement.', NULL, '2026-01-08', NULL, 0.00, 'Data backed up. SSD replacement scheduled.', '2026-01-10', 'Sean Matthew C. Capistrano', '2026-01-10', 'Purchase request for SSD submitted.', '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(16, 173, 64, NULL, NULL, 'Quarterly', '• Dust cleaning\\n• Firmware check\\n• Network performance test\\n• Log review', 'Sean Matthew C. Capistrano', '2026-01-15', 'Rey T. Cortez', '2026-01-15', 'Server logs reviewed. No critical errors. Network throughput normal.', 'None identified during this PM cycle.', 'Routine PM completed. Logs archived.', NULL, '2026-03-12', NULL, 0.00, 'No corrective action required.', '2026-01-15', 'Sean Matthew C. Capistrano', '2026-01-15', 'Unit in excellent condition.', '2026-03-10 01:48:58', '2026-03-12 07:34:21'),
+(18, 182, 67, NULL, 'Desktop Computer', 'Quarterly', '• Dust cleaning\\n• Antivirus update\\n• OS patches\\n• Software installation', 'Sean Matthew C. Capistrano', '2026-02-05', 'Eng. Ricardo Luna', '2026-02-05', 'MATLAB R2025a installed per faculty request.', 'Faculty requested MATLAB installation for new curriculum.', 'Installed MATLAB R2025a with educational license.', NULL, '2026-02-05', NULL, 0.00, 'MATLAB installed and verified.', '2026-02-05', 'Eng. Ricardo Luna', '2026-02-05', 'Software installation confirmed by faculty.', '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(20, 174, 64, NULL, NULL, 'Semi-Annual', '• Dust cleaning\\n• Linux kernel update\\n• Security patches\\n• Service health check, Virus', 'Sean Matthew C. Capistrano', '2026-03-12', 'Rey T. Cortez', '2026-01-21', 'Kernel updated to 6.8.x. All services running normally after reboot.', 'Pending security patches (CVE-2024-1234, CVE-2024-5678).', 'Applied all pending security patches. Rebooted server.', NULL, '2026-03-12', NULL, 0.00, 'Critical security patches applied.', '2026-03-12', 'Sean Matthew C. Capistrano', '2026-01-21', 'Server secured and fully operational.', '2026-03-10 01:48:58', '2026-03-12 07:33:55'),
+(21, 175, 65, NULL, NULL, 'Monthly', 'Repair', 'Sean', '2026-03-11', 'Sir jonie', '2026-03-11', 'asdas', NULL, NULL, NULL, '2026-03-11', NULL, 0.00, 'asda', '2026-03-11', 'asd', '2026-03-11', 'asd', '2026-03-11 06:03:43', '2026-03-11 06:03:43'),
+(22, 176, 65, NULL, NULL, 'Monthly', 'Repair', 'Sean', '2026-03-11', 'Sir jonie', '2026-03-11', 'asdas', NULL, NULL, NULL, '2026-03-11', NULL, 0.00, 'asda', '2026-03-11', 'asd', '2026-03-11', 'asd', '2026-03-11 06:03:43', '2026-03-11 06:03:43'),
+(23, 177, 65, NULL, NULL, 'Monthly', 'Repair', 'Sean', '2026-03-11', 'Sir jonie', '2026-03-11', 'asdas', NULL, NULL, NULL, '2026-03-11', NULL, 0.00, 'asda', '2026-03-11', 'asd', '2026-03-11', 'asd', '2026-03-11 06:03:43', '2026-03-11 06:03:43');
 
 -- --------------------------------------------------------
 
@@ -132,12 +220,14 @@ INSERT INTO `asset_groups` (`group_id`, `group_name`, `group_code`, `category`, 
 -- Table structure for table `buildings`
 --
 
-CREATE TABLE `buildings` (
-  `building_id` bigint UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `buildings`;
+CREATE TABLE IF NOT EXISTS `buildings` (
+  `building_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`building_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `buildings`
@@ -157,14 +247,18 @@ INSERT INTO `buildings` (`building_id`, `name`, `created_at`, `updated_at`) VALU
 -- Table structure for table `expertise`
 --
 
-CREATE TABLE `expertise` (
-  `expertise_id` bigint UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `expertise`;
+CREATE TABLE IF NOT EXISTS `expertise` (
+  `expertise_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `skill` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `section_id` bigint UNSIGNED NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`expertise_id`),
+  KEY `skill` (`skill`(250)),
+  KEY `section_id` (`section_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `expertise`
@@ -203,13 +297,17 @@ INSERT INTO `expertise` (`expertise_id`, `skill`, `description`, `section_id`, `
 -- Table structure for table `expertise_signal_map`
 --
 
-CREATE TABLE `expertise_signal_map` (
-  `id` bigint UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `expertise_signal_map`;
+CREATE TABLE IF NOT EXISTS `expertise_signal_map` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `expertise_id` bigint UNSIGNED NOT NULL,
   `signal_type` enum('equipment','request_type','platform','action','issue_type') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `signal_value` bigint UNSIGNED NOT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_expertise_id` (`expertise_id`),
+  KEY `idx_signal` (`signal_type`,`signal_value`)
+) ENGINE=InnoDB AUTO_INCREMENT=144 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `expertise_signal_map`
@@ -366,14 +464,17 @@ INSERT INTO `expertise_signal_map` (`id`, `expertise_id`, `signal_type`, `signal
 -- Table structure for table `form_option_role_access`
 --
 
-CREATE TABLE `form_option_role_access` (
-  `id` int UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `form_option_role_access`;
+CREATE TABLE IF NOT EXISTS `form_option_role_access` (
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
   `option_type` enum('request_type','request_platform','request_action','equipment') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'Which form-option table this row governs',
   `option_id` bigint UNSIGNED NOT NULL COMMENT 'PK of the governed row in its source table',
   `role_id` tinyint UNSIGNED NOT NULL COMMENT 'References UserRole enum value (5=Employee, 6=Student)',
   `is_enabled` tinyint UNSIGNED NOT NULL DEFAULT '1',
-  `updated_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `option_type_option_id_role_id` (`option_type`,`option_id`,`role_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=81 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `form_option_role_access`
@@ -467,15 +568,22 @@ INSERT INTO `form_option_role_access` (`id`, `option_type`, `option_id`, `role_i
 -- Table structure for table `issue_types`
 --
 
-CREATE TABLE `issue_types` (
-  `issue_type_id` bigint UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `issue_types`;
+CREATE TABLE IF NOT EXISTS `issue_types` (
+  `issue_type_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `issue_type_name` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `issue_type_domain` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `section_id` bigint UNSIGNED NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`issue_type_id`),
+  KEY `issue_types_section_id_index` (`section_id`),
+  KEY `issue_types_issue_type_name_index` (`issue_type_name`),
+  KEY `issue_types_issue_type_domain_index` (`issue_type_domain`),
+  KEY `issue_types_created_at_index` (`created_at`),
+  KEY `section_id` (`section_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `issue_types`
@@ -512,15 +620,18 @@ INSERT INTO `issue_types` (`issue_type_id`, `issue_type_name`, `issue_type_domai
 -- Table structure for table `job_status`
 --
 
-CREATE TABLE `job_status` (
-  `status_id` int NOT NULL,
-  `label` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `color` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `dot_color` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `activity_label` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+DROP TABLE IF EXISTS `job_status`;
+CREATE TABLE IF NOT EXISTS `job_status` (
+  `status_id` int NOT NULL AUTO_INCREMENT,
+  `label` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `dot_color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `activity_label` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`status_id`),
+  KEY `idx_status_color` (`label`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `job_status`
@@ -540,14 +651,19 @@ INSERT INTO `job_status` (`status_id`, `label`, `color`, `dot_color`, `activity_
 -- Table structure for table `job_tickets`
 --
 
-CREATE TABLE `job_tickets` (
-  `job_ticket_id` bigint UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `job_tickets`;
+CREATE TABLE IF NOT EXISTS `job_tickets` (
+  `job_ticket_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `requestor_id` bigint UNSIGNED DEFAULT NULL,
   `requestor_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `job_status` tinyint UNSIGNED NOT NULL DEFAULT '1',
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`job_ticket_id`),
+  KEY `job_tickets_requestor_id_index` (`requestor_id`),
+  KEY `job_tickets_job_status_index` (`job_status`),
+  KEY `job_tickets_created_at_index` (`created_at`)
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `job_tickets`
@@ -558,7 +674,9 @@ INSERT INTO `job_tickets` (`job_ticket_id`, `requestor_id`, `requestor_name`, `j
 (24, 1, NULL, 4, '2026-03-10 19:13:55', '2026-03-11 18:52:24'),
 (26, 1, NULL, 4, '2026-03-11 21:31:02', '2026-03-11 22:08:12'),
 (27, 18, NULL, 2, '2026-03-11 22:37:18', '2026-03-11 22:37:18'),
-(28, 1, NULL, 1, '2026-03-11 22:53:30', '2026-03-11 22:53:30');
+(28, 1, NULL, 1, '2026-03-11 22:53:30', '2026-03-11 22:53:30'),
+(29, 12, NULL, 1, '2026-03-15 07:31:32', '2026-03-15 07:31:32'),
+(30, 12, NULL, 1, '2026-03-15 15:45:53', '2026-03-15 15:45:53');
 
 -- --------------------------------------------------------
 
@@ -566,8 +684,9 @@ INSERT INTO `job_tickets` (`job_ticket_id`, `requestor_id`, `requestor_name`, `j
 -- Table structure for table `job_ticket_requests`
 --
 
-CREATE TABLE `job_ticket_requests` (
-  `job_ticket_request_id` bigint UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `job_ticket_requests`;
+CREATE TABLE IF NOT EXISTS `job_ticket_requests` (
+  `job_ticket_request_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `job_ticket_id` bigint UNSIGNED NOT NULL,
   `section_id` bigint UNSIGNED NOT NULL,
   `problem_description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -586,8 +705,22 @@ CREATE TABLE `job_ticket_requests` (
   `verifier_id` bigint UNSIGNED DEFAULT NULL,
   `verification_date` date DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`job_ticket_request_id`),
+  KEY `job_ticket_requests_job_ticket_id_index` (`job_ticket_id`),
+  KEY `job_ticket_requests_verifier_id_index` (`verifier_id`),
+  KEY `job_ticket_requests_request_type_index` (`request_type`(250)),
+  KEY `job_ticket_requests_request_platform_index` (`request_platform`(250)),
+  KEY `job_ticket_requests_priority_level_index` (`priority_level`),
+  KEY `job_ticket_requests_created_at_index` (`created_at`),
+  KEY `job_ticket_id` (`job_ticket_id`),
+  KEY `request_type` (`request_type`(250)),
+  KEY `request_platform` (`request_platform`(250)),
+  KEY `priority_level` (`priority_level`),
+  KEY `request_equipment` (`request_equipment`(250)),
+  KEY `section_id` (`section_id`),
+  KEY `idx_asset_id_request` (`asset_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `job_ticket_requests`
@@ -598,7 +731,9 @@ INSERT INTO `job_ticket_requests` (`job_ticket_request_id`, `job_ticket_id`, `se
 (20, 24, 1, 'Google Account recovery request for student no. ? with email: kebuquid@my.cspc.edu.ph and alt email: kennethleonardbuquid@gmail.com', NULL, NULL, '1', '2', NULL, '2', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-10 19:13:55', '2026-03-10 19:13:55'),
 (22, 26, 1, 'Google Account recovery request for student no. ? with email: kebuquid@my.cspc.edu.ph and alt email: kennethleonardbuquid@gmail.com', NULL, NULL, '1', '2', NULL, '2', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-11 21:31:02', '2026-03-11 21:31:02'),
 (23, 27, 1, 'Google Account recovery request for student no. 221001410 with email: cioscoro@my.cspc.edu.ph and alt email: kebuquid@gmail.com', NULL, NULL, '1', '2', NULL, '2', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-11 22:37:18', '2026-03-11 22:37:18'),
-(24, 28, 1, 'Google Account recovery request for student no. 221001251 with email: kebuquid@my.cspc.edu.ph and alt email: kennethleonardbuquid@gmail.com', NULL, NULL, '1', '2', NULL, '2', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-11 22:53:30', '2026-03-11 22:53:30');
+(24, 28, 1, 'Google Account recovery request for student no. 221001251 with email: kebuquid@my.cspc.edu.ph and alt email: kennethleonardbuquid@gmail.com', NULL, NULL, '1', '2', NULL, '2', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-11 22:53:30', '2026-03-11 22:53:30'),
+(25, 29, 3, 'computer', 170, 'uploads/tickets/pre-repair/1773588692_0b72b609d3fa10d6d017.jpeg', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'On behalf of: jonieberina@cspc.edu.ph', NULL, NULL, NULL, '2026-03-15 07:31:32', '2026-03-15 07:31:32'),
+(26, 30, 3, 'printer', 170, 'uploads/tickets/pre-repair/1773589553_28fbc6acb8924794d29a.jpeg', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'On behalf of: jonieberina@cspc.edu.ph', NULL, NULL, NULL, '2026-03-15 15:45:53', '2026-03-15 15:45:53');
 
 -- --------------------------------------------------------
 
@@ -606,8 +741,9 @@ INSERT INTO `job_ticket_requests` (`job_ticket_request_id`, `job_ticket_id`, `se
 -- Table structure for table `job_ticket_responses`
 --
 
-CREATE TABLE `job_ticket_responses` (
-  `job_ticket_response_id` bigint UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `job_ticket_responses`;
+CREATE TABLE IF NOT EXISTS `job_ticket_responses` (
+  `job_ticket_response_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `job_ticket_id` bigint UNSIGNED NOT NULL,
   `control_no` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `action_performed` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
@@ -629,8 +765,18 @@ CREATE TABLE `job_ticket_responses` (
   `verifier_id` bigint UNSIGNED DEFAULT NULL,
   `verified_date` date DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`job_ticket_response_id`),
+  KEY `job_ticket_responses_job_ticket_id_index` (`job_ticket_id`),
+  KEY `job_ticket_responses_staff_id_index` (`staff_id`),
+  KEY `job_ticket_responses_verifier_id_index` (`verifier_id`),
+  KEY `job_ticket_responses_completion_status_index` (`completion_status`(250)),
+  KEY `job_ticket_responses_is_completed_in_timeline_index` (`is_completed_in_timeline`),
+  KEY `job_ticket_responses_created_at_index` (`created_at`),
+  KEY `job_ticket_id` (`job_ticket_id`),
+  KEY `staff_id` (`staff_id`),
+  KEY `verifier_id` (`verifier_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `job_ticket_responses`
@@ -641,7 +787,9 @@ INSERT INTO `job_ticket_responses` (`job_ticket_response_id`, `job_ticket_id`, `
 (17, 24, NULL, 'Emailed the alternative email the new credential for the google account', NULL, 10, NULL, NULL, '2026-03-11', '2026-03-12', 'completed', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-10 19:13:55', '2026-03-11 18:52:24'),
 (19, 26, NULL, 'Emailed the alternative email of the student the new password of the google account. The student was also advised to change the password after logging in.', NULL, 10, NULL, NULL, '2026-03-12', '2026-03-12', 'completed', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-11 21:31:02', '2026-03-11 22:08:16'),
 (20, 27, NULL, NULL, NULL, 10, NULL, NULL, '2026-03-12', NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-11 22:37:18', '2026-03-11 22:37:18'),
-(21, 28, NULL, NULL, NULL, 10, NULL, NULL, '2026-03-12', NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-11 22:53:30', '2026-03-11 22:53:30');
+(21, 28, NULL, NULL, NULL, 10, NULL, NULL, '2026-03-12', NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-11 22:53:30', '2026-03-11 22:53:30'),
+(22, 29, NULL, NULL, NULL, 5, NULL, NULL, '2026-03-15', NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-15 07:31:32', '2026-03-15 07:31:32'),
+(23, 30, NULL, NULL, NULL, 5, NULL, NULL, '2026-03-15', NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-15 15:45:53', '2026-03-15 15:45:53');
 
 -- --------------------------------------------------------
 
@@ -649,8 +797,9 @@ INSERT INTO `job_ticket_responses` (`job_ticket_response_id`, `job_ticket_id`, `
 -- Table structure for table `keyword_rules`
 --
 
-CREATE TABLE `keyword_rules` (
-  `id` int UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `keyword_rules`;
+CREATE TABLE IF NOT EXISTS `keyword_rules` (
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
   `section_id` bigint UNSIGNED NOT NULL,
   `keyword` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `tip_title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -658,8 +807,10 @@ CREATE TABLE `keyword_rules` (
   `is_default` tinyint UNSIGNED NOT NULL DEFAULT '0',
   `is_active` tinyint UNSIGNED NOT NULL DEFAULT '1',
   `created_at` datetime DEFAULT NULL,
-  `updated_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `section_id` (`section_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=83 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `keyword_rules`
@@ -755,14 +906,16 @@ INSERT INTO `keyword_rules` (`id`, `section_id`, `keyword`, `tip_title`, `tip_bo
 -- Table structure for table `migrations`
 --
 
-CREATE TABLE `migrations` (
-  `id` bigint UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `migrations`;
+CREATE TABLE IF NOT EXISTS `migrations` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `version` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `class` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `group` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `namespace` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `time` int NOT NULL,
-  `batch` int UNSIGNED NOT NULL
+  `batch` int UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -771,14 +924,18 @@ CREATE TABLE `migrations` (
 -- Table structure for table `organizational_units`
 --
 
-CREATE TABLE `organizational_units` (
-  `unit_id` bigint UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `organizational_units`;
+CREATE TABLE IF NOT EXISTS `organizational_units` (
+  `unit_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `building_id` bigint UNSIGNED NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`unit_id`),
+  KEY `idx_unit_building` (`building_id`),
+  KEY `building_id` (`building_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `organizational_units`
@@ -794,17 +951,126 @@ INSERT INTO `organizational_units` (`unit_id`, `name`, `description`, `building_
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `pm_plans`
+--
+
+DROP TABLE IF EXISTS `pm_plans`;
+CREATE TABLE IF NOT EXISTS `pm_plans` (
+  `plan_id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `plan_year` smallint UNSIGNED NOT NULL,
+  `title` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'ICTU Equipment',
+  `department` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `document_code` varchar(100) COLLATE utf8mb4_general_ci DEFAULT 'CSPC-F-ICTU-13',
+  `prepared_by` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `prepared_title` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `reviewed_by` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `reviewed_title` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `approved_by` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `approved_title` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`plan_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `pm_plans`
+--
+
+INSERT INTO `pm_plans` (`plan_id`, `plan_year`, `title`, `department`, `document_code`, `prepared_by`, `prepared_title`, `reviewed_by`, `reviewed_title`, `approved_by`, `approved_title`, `created_at`, `updated_at`) VALUES
+(2, 2026, 'ICTU Equipment', 'Management Information System', 'CSPC-F-ICTU-13', 'Sean Matthew C. Capistrano', 'Information Systems Analyst II', 'Rey T. Cortez', 'Head, ICTU', 'Mrs. Nancy S. Penetrante', 'Vice President Admin & Finance', '2026-03-10 01:15:19', '2026-03-12 07:24:58'),
+(3, 2025, 'ICTU Equipment', 'Management Information System', 'CSPC-F-ICTU-13', 'Sean Matthew C. Capistrano', 'Information Systems Analyst II', 'Rey T. Cortez', 'Head, ICTU', 'Mrs. Nancy S. Penetrante', 'Vice President Admin & Finance', '2024-12-01 08:00:00', '2024-12-01 08:00:00'),
+(4, 2026, 'ICTU Equipment', 'Management Information System', 'CSPC-F-ICTU-13', 'Sean Matthew C. Capistrano', 'Information Systems Analyst II', 'Rey T. Cortez', 'Head, ICTU', 'Mrs. Nancy S. Penetrante', 'Vice President Admin & Finance', '2026-03-10 01:48:58', '2026-03-10 01:48:58');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `pm_plan_activities`
+--
+
+DROP TABLE IF EXISTS `pm_plan_activities`;
+CREATE TABLE IF NOT EXISTS `pm_plan_activities` (
+  `activity_id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `plan_id` int UNSIGNED NOT NULL,
+  `activity_name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `sort_order` tinyint NOT NULL DEFAULT '0',
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`activity_id`),
+  KEY `pm_plan_activities_plan_id_foreign` (`plan_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `pm_plan_items`
+--
+
+DROP TABLE IF EXISTS `pm_plan_items`;
+CREATE TABLE IF NOT EXISTS `pm_plan_items` (
+  `item_id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `plan_id` int UNSIGNED NOT NULL,
+  `asset_id` int UNSIGNED DEFAULT NULL,
+  `description` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `frequency` enum('quarterly','semi_annually','annually','monthly','as_needed') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'quarterly',
+  `schedule_months` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `sort_order` tinyint NOT NULL DEFAULT '0',
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`item_id`),
+  KEY `pm_plan_items_plan_id_foreign` (`plan_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `pm_plan_items`
+--
+
+INSERT INTO `pm_plan_items` (`item_id`, `plan_id`, `asset_id`, `description`, `frequency`, `schedule_months`, `sort_order`, `created_at`, `updated_at`) VALUES
+(5, 3, 172, 'Dell PowerEdge R740', 'quarterly', '[1,4,7,10]', 1, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(6, 3, 173, 'HP ProLiant DL380 Gen10', 'quarterly', '[1,4,7,10]', 2, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(7, 3, 174, 'IBM System x3550 M5', 'semi_annually', '[1,7]', 3, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(8, 3, 175, 'Lenovo ThinkCentre M720', 'quarterly', '[1,4,7,10]', 4, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(9, 3, 176, 'Dell OptiPlex 7090', 'quarterly', '[1,4,7,10]', 5, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(10, 3, 178, 'Acer Veriton X4680G', 'semi_annually', '[1,7]', 6, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(11, 3, 184, 'HP EliteBook 840 G8', 'annually', '[1]', 7, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(12, 3, 185, 'Lenovo ThinkPad T14 Gen 2', 'annually', '[1]', 8, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(13, 4, 172, 'Dell PowerEdge R740', 'quarterly', '[1,4,7,10]', 1, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(14, 4, 173, 'HP ProLiant DL380 Gen10', 'quarterly', '[1,4,7,10]', 2, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(15, 4, 174, 'IBM System x3550 M5', 'semi_annually', '[1,7]', 3, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(16, 4, 175, 'Lenovo ThinkCentre M720', 'quarterly', '[1,4,7,10]', 4, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(17, 4, 176, 'Dell OptiPlex 7090', 'quarterly', '[1,4,7,10]', 5, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(18, 4, 177, 'HP EliteDesk 800 G8', 'quarterly', '[1,4,7,10]', 6, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(19, 4, 178, 'Acer Veriton X4680G', 'semi_annually', '[1,7]', 7, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(20, 4, 179, 'HP ProDesk 400 G7', 'semi_annually', '[1,7]', 8, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(21, 4, 181, 'Dell OptiPlex 5090', 'quarterly', '[1,4,7,10]', 9, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(22, 4, 182, 'Acer Aspire TC-1660', 'quarterly', '[1,4,7,10]', 10, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(23, 4, 184, 'HP EliteBook 840 G8', 'annually', '[1]', 11, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(24, 4, 185, 'Lenovo ThinkPad T14 Gen 2', 'annually', '[1]', 12, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(25, 4, 186, 'Dell Latitude 5420', 'annually', '[1]', 13, '2026-03-10 01:48:58', '2026-03-10 01:48:58'),
+(26, 2, 170, 'All-in-One 23.6 - Acer', 'monthly', '[1,2,3,4,5,6,7,8,9,10,11,12]', 0, '2026-03-12 07:24:58', '2026-03-12 07:24:58'),
+(27, 2, 171, 'All-in-One 23.6 - Acer', 'monthly', '[1,2,3,4,5,6,7,8,9,10,11,12]', 1, '2026-03-12 07:24:58', '2026-03-12 07:24:58'),
+(28, 2, 168, 'Dell Latitude 5520', 'monthly', '[1,2,3,4,5,6,7,8,9,10,11,12]', 2, '2026-03-12 07:24:58', '2026-03-12 07:24:58'),
+(29, 2, 179, 'HP ProDesk 400 G7', 'monthly', '[1,2,3,4,5,6,7,8,9,10,11,12]', 3, '2026-03-12 07:24:58', '2026-03-12 07:24:58'),
+(30, 2, 172, 'Dell PowerEdge R740', 'monthly', '[1,2,3,4,5,6,7,8,9,10,11,12]', 4, '2026-03-12 07:24:58', '2026-03-12 07:24:58');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `priority_levels`
 --
 
-CREATE TABLE `priority_levels` (
-  `priority_level_id` bigint UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `priority_levels`;
+CREATE TABLE IF NOT EXISTS `priority_levels` (
+  `priority_level_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `priority_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `operation_status` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`priority_level_id`),
+  KEY `priority_levels_priority_name_index` (`priority_name`),
+  KEY `priority_levels_operation_status_index` (`operation_status`),
+  KEY `priority_levels_created_at_index` (`created_at`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `priority_levels`
@@ -822,14 +1088,22 @@ INSERT INTO `priority_levels` (`priority_level_id`, `priority_name`, `operation_
 -- Table structure for table `request_actions`
 --
 
-CREATE TABLE `request_actions` (
-  `action_id` bigint UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `request_actions`;
+CREATE TABLE IF NOT EXISTS `request_actions` (
+  `action_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `action_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `request_type_id` bigint UNSIGNED DEFAULT NULL,
   `section_id` bigint UNSIGNED DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`action_id`),
+  KEY `request_actions_request_type_id_index` (`request_type_id`),
+  KEY `request_actions_section_id_index` (`section_id`),
+  KEY `request_actions_action_name_index` (`action_name`),
+  KEY `request_actions_created_at_index` (`created_at`),
+  KEY `request_type_id` (`request_type_id`),
+  KEY `section_id` (`section_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `request_actions`
@@ -851,14 +1125,20 @@ INSERT INTO `request_actions` (`action_id`, `action_name`, `request_type_id`, `s
 -- Table structure for table `request_platforms`
 --
 
-CREATE TABLE `request_platforms` (
-  `platform_id` bigint UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `request_platforms`;
+CREATE TABLE IF NOT EXISTS `request_platforms` (
+  `platform_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `platform_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `platform_description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `request_type_id` bigint UNSIGNED NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`platform_id`),
+  KEY `request_platforms_request_type_id_index` (`request_type_id`),
+  KEY `request_platforms_platform_name_index` (`platform_name`),
+  KEY `request_platforms_created_at_index` (`created_at`),
+  KEY `request_type_id` (`request_type_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `request_platforms`
@@ -887,13 +1167,19 @@ INSERT INTO `request_platforms` (`platform_id`, `platform_name`, `platform_descr
 -- Table structure for table `request_types`
 --
 
-CREATE TABLE `request_types` (
-  `request_type_id` bigint UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `request_types`;
+CREATE TABLE IF NOT EXISTS `request_types` (
+  `request_type_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `request_type_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `section_id` bigint UNSIGNED NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`request_type_id`),
+  KEY `request_types_section_id_index` (`section_id`),
+  KEY `request_types_request_type_name_index` (`request_type_name`),
+  KEY `request_types_created_at_index` (`created_at`),
+  KEY `section_id` (`section_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `request_types`
@@ -915,16 +1201,19 @@ INSERT INTO `request_types` (`request_type_id`, `request_type_name`, `section_id
 -- Table structure for table `response_parts`
 --
 
-CREATE TABLE `response_parts` (
-  `id` bigint UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `response_parts`;
+CREATE TABLE IF NOT EXISTS `response_parts` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `job_ticket_response_id` bigint UNSIGNED NOT NULL,
   `part_type` enum('replaced','used') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'used',
   `part_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `quantity` int UNSIGNED NOT NULL DEFAULT '1',
   `unit_cost` decimal(15,2) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_response_id` (`job_ticket_response_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -932,13 +1221,16 @@ CREATE TABLE `response_parts` (
 -- Table structure for table `roles`
 --
 
-CREATE TABLE `roles` (
-  `role_id` int NOT NULL,
-  `access` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `label` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `url_path` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `role_color` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+DROP TABLE IF EXISTS `roles`;
+CREATE TABLE IF NOT EXISTS `roles` (
+  `role_id` int NOT NULL AUTO_INCREMENT,
+  `access` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `label` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `url_path` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `role_color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`role_id`),
+  KEY `idx_role_label` (`label`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `roles`
@@ -957,15 +1249,18 @@ INSERT INTO `roles` (`role_id`, `access`, `label`, `url_path`, `role_color`) VAL
 -- Table structure for table `sections`
 --
 
-CREATE TABLE `sections` (
-  `section_id` bigint UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `sections`;
+CREATE TABLE IF NOT EXISTS `sections` (
+  `section_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `acronym` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `color` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `color` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`section_id`),
+  KEY `idx_section_acronym` (`acronym`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `sections`
@@ -982,25 +1277,32 @@ INSERT INTO `sections` (`section_id`, `acronym`, `name`, `color`, `description`,
 -- Table structure for table `section_role_access`
 --
 
-CREATE TABLE `section_role_access` (
-  `id` int UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `section_role_access`;
+CREATE TABLE IF NOT EXISTS `section_role_access` (
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
   `role_id` tinyint UNSIGNED NOT NULL,
   `section_id` int UNSIGNED NOT NULL,
   `is_enabled` tinyint UNSIGNED NOT NULL DEFAULT '1',
-  `updated_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `role_section_unique` (`role_id`,`section_id`),
+  KEY `sra_section_fk` (`section_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `section_role_access`
 --
 
 INSERT INTO `section_role_access` (`id`, `role_id`, `section_id`, `is_enabled`, `updated_at`) VALUES
-(1, 5, 1, 1, '2026-03-02 06:52:44'),
-(2, 5, 2, 1, '2026-03-02 06:52:44'),
-(3, 5, 3, 1, '2026-03-02 06:52:44'),
+(1, 5, 1, 1, '2026-03-16 08:48:41'),
+(2, 5, 2, 1, '2026-03-16 08:48:41'),
+(3, 5, 3, 1, '2026-03-16 08:48:41'),
 (4, 6, 1, 1, '2026-03-02 06:52:44'),
 (5, 6, 2, 1, '2026-03-02 06:52:44'),
-(6, 6, 3, 1, '2026-03-02 06:52:44');
+(6, 6, 3, 1, '2026-03-02 06:52:44'),
+(7, 4, 1, 1, '2026-03-16 08:48:41'),
+(8, 4, 2, 1, '2026-03-16 08:48:41'),
+(9, 4, 3, 1, '2026-03-16 08:48:41');
 
 -- --------------------------------------------------------
 
@@ -1008,14 +1310,18 @@ INSERT INTO `section_role_access` (`id`, `role_id`, `section_id`, `is_enabled`, 
 -- Table structure for table `ticket_equipments`
 --
 
-CREATE TABLE `ticket_equipments` (
-  `equipment_id` bigint UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `ticket_equipments`;
+CREATE TABLE IF NOT EXISTS `ticket_equipments` (
+  `equipment_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `section_id` bigint UNSIGNED NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`equipment_id`),
+  KEY `idx_equipment_section` (`section_id`),
+  KEY `section_id` (`section_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `ticket_equipments`
@@ -1038,16 +1344,20 @@ INSERT INTO `ticket_equipments` (`equipment_id`, `name`, `description`, `section
 -- Table structure for table `ticket_history`
 --
 
-CREATE TABLE `ticket_history` (
-  `history_id` bigint UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `ticket_history`;
+CREATE TABLE IF NOT EXISTS `ticket_history` (
+  `history_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `job_ticket_id` bigint UNSIGNED NOT NULL,
   `action` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `old_status` tinyint UNSIGNED DEFAULT NULL,
   `new_status` tinyint UNSIGNED DEFAULT NULL,
   `performed_by` bigint UNSIGNED DEFAULT NULL,
   `remarks` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`history_id`),
+  KEY `idx_ticket_history_ticket` (`job_ticket_id`),
+  KEY `idx_ticket_history_action` (`action`)
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `ticket_history`
@@ -1072,7 +1382,46 @@ INSERT INTO `ticket_history` (`history_id`, `job_ticket_id`, `action`, `old_stat
 (16, 23, 'completed', 2, 4, 10, 'Marked as completed', '2026-03-11 18:51:34'),
 (17, 24, 'in_progress', 1, 2, 10, 'Automatically set to In Progress (previous ticket completed)', '2026-03-11 18:51:34'),
 (18, 24, 'completed', 2, 4, 10, 'Marked as completed', '2026-03-11 18:52:24'),
-(19, 26, 'completed', 2, 4, 10, 'Marked as completed', '2026-03-11 22:08:12');
+(19, 26, 'completed', 2, 4, 10, 'Marked as completed', '2026-03-11 22:08:12'),
+(20, 29, 'created', NULL, 1, 12, 'Ticket submitted', '2026-03-15 07:31:32'),
+(21, 29, 'assigned', 1, 1, NULL, 'Auto-assigned to Sir Jam', '2026-03-15 07:31:32'),
+(22, 30, 'created', NULL, 1, 12, 'Ticket submitted', '2026-03-15 15:45:53'),
+(23, 30, 'assigned', 1, 1, NULL, 'Auto-assigned to Sir Jam', '2026-03-15 15:45:53');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ticket_sla_rules`
+--
+
+DROP TABLE IF EXISTS `ticket_sla_rules`;
+CREATE TABLE IF NOT EXISTS `ticket_sla_rules` (
+  `sla_rule_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `section_id` bigint UNSIGNED NOT NULL,
+  `request_type_id` bigint UNSIGNED DEFAULT NULL,
+  `platform_id` bigint UNSIGNED DEFAULT NULL,
+  `action_id` bigint UNSIGNED DEFAULT NULL,
+  `equipment_id` bigint UNSIGNED DEFAULT NULL,
+  `target_hours` int UNSIGNED NOT NULL DEFAULT '24',
+  `is_active` tinyint UNSIGNED NOT NULL DEFAULT '1',
+  `notes` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`sla_rule_id`),
+  KEY `idx_sla_section` (`section_id`),
+  KEY `idx_sla_section_active` (`section_id`,`is_active`),
+  KEY `fk_sla_request_type` (`request_type_id`),
+  KEY `fk_sla_platform` (`platform_id`),
+  KEY `fk_sla_action` (`action_id`),
+  KEY `fk_sla_equipment` (`equipment_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `ticket_sla_rules`
+--
+
+INSERT INTO `ticket_sla_rules` (`sla_rule_id`, `section_id`, `request_type_id`, `platform_id`, `action_id`, `equipment_id`, `target_hours`, `is_active`, `notes`, `created_at`, `updated_at`) VALUES
+(1, 1, 1, 2, 1, NULL, 24, 1, NULL, '2026-03-16 00:41:19', '2026-03-16 00:41:19');
 
 -- --------------------------------------------------------
 
@@ -1080,12 +1429,13 @@ INSERT INTO `ticket_history` (`history_id`, `job_ticket_id`, `action`, `old_stat
 -- Table structure for table `users`
 --
 
-CREATE TABLE `users` (
-  `user_id` bigint UNSIGNED NOT NULL,
-  `account_no` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+DROP TABLE IF EXISTS `users`;
+CREATE TABLE IF NOT EXISTS `users` (
+  `user_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `account_no` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `alt_email` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `alt_email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `phone_number` int DEFAULT NULL,
   `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `org_unit_id` bigint DEFAULT NULL,
@@ -1094,8 +1444,15 @@ CREATE TABLE `users` (
   `role_id` int NOT NULL DEFAULT '6',
   `is_ictu_employee` tinyint NOT NULL DEFAULT '0',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`),
+  KEY `idx_email` (`email`(250)),
+  KEY `idx_user_expertise` (`expertise`(250)),
+  KEY `section_id` (`section_id`),
+  KEY `idx_account_no` (`account_no`),
+  KEY `idx_alt_email` (`alt_email`),
+  KEY `idx_org_id` (`org_unit_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `users`
@@ -1124,12 +1481,16 @@ INSERT INTO `users` (`user_id`, `account_no`, `name`, `email`, `alt_email`, `pho
 -- Table structure for table `user_expertise`
 --
 
-CREATE TABLE `user_expertise` (
-  `id` bigint UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `user_expertise`;
+CREATE TABLE IF NOT EXISTS `user_expertise` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` bigint UNSIGNED NOT NULL,
   `expertise_id` bigint UNSIGNED NOT NULL,
-  `created_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `created_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_id_expertise_id` (`user_id`,`expertise_id`),
+  KEY `user_expertise_expertise_id_foreign` (`expertise_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `user_expertise`
@@ -1161,413 +1522,6 @@ INSERT INTO `user_expertise` (`id`, `user_id`, `expertise_id`, `created_at`) VAL
 (41, 11, 7, NULL),
 (42, 11, 22, NULL),
 (43, 11, 9, NULL);
-
---
--- Indexes for dumped tables
---
-
---
--- Indexes for table `assets`
---
-ALTER TABLE `assets`
-  ADD PRIMARY KEY (`asset_id`),
-  ADD KEY `idx_asset_serial` (`serial_number`),
-  ADD KEY `idx_asset_property_no` (`property_no`);
-
---
--- Indexes for table `asset_disposals`
---
-ALTER TABLE `asset_disposals`
-  ADD PRIMARY KEY (`disposal_id`);
-
---
--- Indexes for table `asset_groups`
---
-ALTER TABLE `asset_groups`
-  ADD PRIMARY KEY (`group_id`);
-
---
--- Indexes for table `buildings`
---
-ALTER TABLE `buildings`
-  ADD PRIMARY KEY (`building_id`);
-
---
--- Indexes for table `expertise`
---
-ALTER TABLE `expertise`
-  ADD PRIMARY KEY (`expertise_id`),
-  ADD KEY `skill` (`skill`(250)),
-  ADD KEY `section_id` (`section_id`);
-
---
--- Indexes for table `expertise_signal_map`
---
-ALTER TABLE `expertise_signal_map`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_expertise_id` (`expertise_id`),
-  ADD KEY `idx_signal` (`signal_type`,`signal_value`);
-
---
--- Indexes for table `form_option_role_access`
---
-ALTER TABLE `form_option_role_access`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `option_type_option_id_role_id` (`option_type`,`option_id`,`role_id`);
-
---
--- Indexes for table `issue_types`
---
-ALTER TABLE `issue_types`
-  ADD PRIMARY KEY (`issue_type_id`),
-  ADD KEY `issue_types_section_id_index` (`section_id`),
-  ADD KEY `issue_types_issue_type_name_index` (`issue_type_name`),
-  ADD KEY `issue_types_issue_type_domain_index` (`issue_type_domain`),
-  ADD KEY `issue_types_created_at_index` (`created_at`),
-  ADD KEY `section_id` (`section_id`);
-
---
--- Indexes for table `job_status`
---
-ALTER TABLE `job_status`
-  ADD PRIMARY KEY (`status_id`),
-  ADD KEY `idx_status_color` (`label`);
-
---
--- Indexes for table `job_tickets`
---
-ALTER TABLE `job_tickets`
-  ADD PRIMARY KEY (`job_ticket_id`),
-  ADD KEY `job_tickets_requestor_id_index` (`requestor_id`),
-  ADD KEY `job_tickets_job_status_index` (`job_status`),
-  ADD KEY `job_tickets_created_at_index` (`created_at`);
-
---
--- Indexes for table `job_ticket_requests`
---
-ALTER TABLE `job_ticket_requests`
-  ADD PRIMARY KEY (`job_ticket_request_id`),
-  ADD KEY `job_ticket_requests_job_ticket_id_index` (`job_ticket_id`),
-  ADD KEY `job_ticket_requests_verifier_id_index` (`verifier_id`),
-  ADD KEY `job_ticket_requests_request_type_index` (`request_type`(250)),
-  ADD KEY `job_ticket_requests_request_platform_index` (`request_platform`(250)),
-  ADD KEY `job_ticket_requests_priority_level_index` (`priority_level`),
-  ADD KEY `job_ticket_requests_created_at_index` (`created_at`),
-  ADD KEY `job_ticket_id` (`job_ticket_id`),
-  ADD KEY `request_type` (`request_type`(250)),
-  ADD KEY `request_platform` (`request_platform`(250)),
-  ADD KEY `priority_level` (`priority_level`),
-  ADD KEY `request_equipment` (`request_equipment`(250)),
-  ADD KEY `section_id` (`section_id`),
-  ADD KEY `idx_asset_id_request` (`asset_id`);
-
---
--- Indexes for table `job_ticket_responses`
---
-ALTER TABLE `job_ticket_responses`
-  ADD PRIMARY KEY (`job_ticket_response_id`),
-  ADD KEY `job_ticket_responses_job_ticket_id_index` (`job_ticket_id`),
-  ADD KEY `job_ticket_responses_staff_id_index` (`staff_id`),
-  ADD KEY `job_ticket_responses_verifier_id_index` (`verifier_id`),
-  ADD KEY `job_ticket_responses_completion_status_index` (`completion_status`(250)),
-  ADD KEY `job_ticket_responses_is_completed_in_timeline_index` (`is_completed_in_timeline`),
-  ADD KEY `job_ticket_responses_created_at_index` (`created_at`),
-  ADD KEY `job_ticket_id` (`job_ticket_id`),
-  ADD KEY `staff_id` (`staff_id`),
-  ADD KEY `verifier_id` (`verifier_id`);
-
---
--- Indexes for table `keyword_rules`
---
-ALTER TABLE `keyword_rules`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `section_id` (`section_id`);
-
---
--- Indexes for table `migrations`
---
-ALTER TABLE `migrations`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `organizational_units`
---
-ALTER TABLE `organizational_units`
-  ADD PRIMARY KEY (`unit_id`),
-  ADD KEY `idx_unit_building` (`building_id`),
-  ADD KEY `building_id` (`building_id`);
-
---
--- Indexes for table `priority_levels`
---
-ALTER TABLE `priority_levels`
-  ADD PRIMARY KEY (`priority_level_id`),
-  ADD KEY `priority_levels_priority_name_index` (`priority_name`),
-  ADD KEY `priority_levels_operation_status_index` (`operation_status`),
-  ADD KEY `priority_levels_created_at_index` (`created_at`);
-
---
--- Indexes for table `request_actions`
---
-ALTER TABLE `request_actions`
-  ADD PRIMARY KEY (`action_id`),
-  ADD KEY `request_actions_request_type_id_index` (`request_type_id`),
-  ADD KEY `request_actions_section_id_index` (`section_id`),
-  ADD KEY `request_actions_action_name_index` (`action_name`),
-  ADD KEY `request_actions_created_at_index` (`created_at`),
-  ADD KEY `request_type_id` (`request_type_id`),
-  ADD KEY `section_id` (`section_id`);
-
---
--- Indexes for table `request_platforms`
---
-ALTER TABLE `request_platforms`
-  ADD PRIMARY KEY (`platform_id`),
-  ADD KEY `request_platforms_request_type_id_index` (`request_type_id`),
-  ADD KEY `request_platforms_platform_name_index` (`platform_name`),
-  ADD KEY `request_platforms_created_at_index` (`created_at`),
-  ADD KEY `request_type_id` (`request_type_id`);
-
---
--- Indexes for table `request_types`
---
-ALTER TABLE `request_types`
-  ADD PRIMARY KEY (`request_type_id`),
-  ADD KEY `request_types_section_id_index` (`section_id`),
-  ADD KEY `request_types_request_type_name_index` (`request_type_name`),
-  ADD KEY `request_types_created_at_index` (`created_at`),
-  ADD KEY `section_id` (`section_id`);
-
---
--- Indexes for table `response_parts`
---
-ALTER TABLE `response_parts`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_response_id` (`job_ticket_response_id`);
-
---
--- Indexes for table `roles`
---
-ALTER TABLE `roles`
-  ADD PRIMARY KEY (`role_id`),
-  ADD KEY `idx_role_label` (`label`);
-
---
--- Indexes for table `sections`
---
-ALTER TABLE `sections`
-  ADD PRIMARY KEY (`section_id`),
-  ADD KEY `idx_section_acronym` (`acronym`);
-
---
--- Indexes for table `section_role_access`
---
-ALTER TABLE `section_role_access`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `role_section_unique` (`role_id`,`section_id`),
-  ADD KEY `sra_section_fk` (`section_id`);
-
---
--- Indexes for table `ticket_equipments`
---
-ALTER TABLE `ticket_equipments`
-  ADD PRIMARY KEY (`equipment_id`),
-  ADD KEY `idx_equipment_section` (`section_id`),
-  ADD KEY `section_id` (`section_id`);
-
---
--- Indexes for table `ticket_history`
---
-ALTER TABLE `ticket_history`
-  ADD PRIMARY KEY (`history_id`),
-  ADD KEY `idx_ticket_history_ticket` (`job_ticket_id`),
-  ADD KEY `idx_ticket_history_action` (`action`);
-
---
--- Indexes for table `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`user_id`),
-  ADD KEY `idx_email` (`email`(250)),
-  ADD KEY `idx_user_expertise` (`expertise`(250)),
-  ADD KEY `section_id` (`section_id`),
-  ADD KEY `idx_account_no` (`account_no`),
-  ADD KEY `idx_alt_email` (`alt_email`),
-  ADD KEY `idx_org_id` (`org_unit_id`);
-
---
--- Indexes for table `user_expertise`
---
-ALTER TABLE `user_expertise`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `user_id_expertise_id` (`user_id`,`expertise_id`),
-  ADD KEY `user_expertise_expertise_id_foreign` (`expertise_id`);
-
---
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `assets`
---
-ALTER TABLE `assets`
-  MODIFY `asset_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=171;
-
---
--- AUTO_INCREMENT for table `asset_disposals`
---
-ALTER TABLE `asset_disposals`
-  MODIFY `disposal_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT for table `asset_groups`
---
-ALTER TABLE `asset_groups`
-  MODIFY `group_id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64;
-
---
--- AUTO_INCREMENT for table `buildings`
---
-ALTER TABLE `buildings`
-  MODIFY `building_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
-
---
--- AUTO_INCREMENT for table `expertise`
---
-ALTER TABLE `expertise`
-  MODIFY `expertise_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
-
---
--- AUTO_INCREMENT for table `expertise_signal_map`
---
-ALTER TABLE `expertise_signal_map`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=144;
-
---
--- AUTO_INCREMENT for table `form_option_role_access`
---
-ALTER TABLE `form_option_role_access`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
-
---
--- AUTO_INCREMENT for table `issue_types`
---
-ALTER TABLE `issue_types`
-  MODIFY `issue_type_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
-
---
--- AUTO_INCREMENT for table `job_status`
---
-ALTER TABLE `job_status`
-  MODIFY `status_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
-
---
--- AUTO_INCREMENT for table `job_tickets`
---
-ALTER TABLE `job_tickets`
-  MODIFY `job_ticket_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
-
---
--- AUTO_INCREMENT for table `job_ticket_requests`
---
-ALTER TABLE `job_ticket_requests`
-  MODIFY `job_ticket_request_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
-
---
--- AUTO_INCREMENT for table `job_ticket_responses`
---
-ALTER TABLE `job_ticket_responses`
-  MODIFY `job_ticket_response_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
-
---
--- AUTO_INCREMENT for table `keyword_rules`
---
-ALTER TABLE `keyword_rules`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=83;
-
---
--- AUTO_INCREMENT for table `migrations`
---
-ALTER TABLE `migrations`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `organizational_units`
---
-ALTER TABLE `organizational_units`
-  MODIFY `unit_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
-
---
--- AUTO_INCREMENT for table `priority_levels`
---
-ALTER TABLE `priority_levels`
-  MODIFY `priority_level_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-
---
--- AUTO_INCREMENT for table `request_actions`
---
-ALTER TABLE `request_actions`
-  MODIFY `action_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
-
---
--- AUTO_INCREMENT for table `request_platforms`
---
-ALTER TABLE `request_platforms`
-  MODIFY `platform_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
-
---
--- AUTO_INCREMENT for table `request_types`
---
-ALTER TABLE `request_types`
-  MODIFY `request_type_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
-
---
--- AUTO_INCREMENT for table `response_parts`
---
-ALTER TABLE `response_parts`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT for table `roles`
---
-ALTER TABLE `roles`
-  MODIFY `role_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
-
---
--- AUTO_INCREMENT for table `sections`
---
-ALTER TABLE `sections`
-  MODIFY `section_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- AUTO_INCREMENT for table `section_role_access`
---
-ALTER TABLE `section_role_access`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
-
---
--- AUTO_INCREMENT for table `ticket_equipments`
---
-ALTER TABLE `ticket_equipments`
-  MODIFY `equipment_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
-
---
--- AUTO_INCREMENT for table `ticket_history`
---
-ALTER TABLE `ticket_history`
-  MODIFY `history_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
-
---
--- AUTO_INCREMENT for table `users`
---
-ALTER TABLE `users`
-  MODIFY `user_id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
-
---
--- AUTO_INCREMENT for table `user_expertise`
---
-ALTER TABLE `user_expertise`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
 
 --
 -- Constraints for dumped tables
@@ -1616,6 +1570,18 @@ ALTER TABLE `organizational_units`
   ADD CONSTRAINT `organizational_units_ibfk_1` FOREIGN KEY (`building_id`) REFERENCES `buildings` (`building_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
+-- Constraints for table `pm_plan_activities`
+--
+ALTER TABLE `pm_plan_activities`
+  ADD CONSTRAINT `pm_plan_activities_plan_id_foreign` FOREIGN KEY (`plan_id`) REFERENCES `pm_plans` (`plan_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `pm_plan_items`
+--
+ALTER TABLE `pm_plan_items`
+  ADD CONSTRAINT `pm_plan_items_plan_id_foreign` FOREIGN KEY (`plan_id`) REFERENCES `pm_plans` (`plan_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Constraints for table `request_actions`
 --
 ALTER TABLE `request_actions`
@@ -1638,6 +1604,16 @@ ALTER TABLE `response_parts`
 --
 ALTER TABLE `ticket_equipments`
   ADD CONSTRAINT `ticket_equipments_ibfk_1` FOREIGN KEY (`section_id`) REFERENCES `sections` (`section_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `ticket_sla_rules`
+--
+ALTER TABLE `ticket_sla_rules`
+  ADD CONSTRAINT `fk_sla_action` FOREIGN KEY (`action_id`) REFERENCES `request_actions` (`action_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_sla_equipment` FOREIGN KEY (`equipment_id`) REFERENCES `ticket_equipments` (`equipment_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_sla_platform` FOREIGN KEY (`platform_id`) REFERENCES `request_platforms` (`platform_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_sla_request_type` FOREIGN KEY (`request_type_id`) REFERENCES `request_types` (`request_type_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_sla_section` FOREIGN KEY (`section_id`) REFERENCES `sections` (`section_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `users`

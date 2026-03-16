@@ -17,6 +17,22 @@
       <h3 class="font-bold text-gray-900 text-lg">Ticket Information</h3>
       <?= \App\Models\JobStatusModel::badgeMd((int) $ticket['job_status']) ?: '<span class="text-sm font-bold px-3 py-1.5 rounded-full bg-gray-100 text-gray-600">Unknown</span>' ?>
     </div>
+
+    <?php if (!empty($slaSummary)): ?>
+      <?php
+        $remaining = (int) ($slaSummary['remaining_seconds'] ?? 0);
+        $isOverdue = (bool) ($slaSummary['is_overdue'] ?? false);
+        $chipClass = $isOverdue ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700';
+        $label     = $isOverdue ? 'Overdue by' : 'Time remaining';
+      ?>
+      <div class="mb-5 rounded-xl border border-gray-200 bg-white/80 p-3">
+        <div class="flex items-center justify-between gap-2 flex-wrap">
+          <p class="text-xs text-gray-600">Expected completion: <span class="font-semibold"><?= (int) ($slaSummary['target_hours'] ?? 0) ?> hour(s) after In Progress</span></p>
+          <span class="js-sla-countdown inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold <?= $chipClass ?>" data-remaining="<?= $remaining ?>" data-overdue="<?= $isOverdue ? '1' : '0' ?>"><?= $label ?>...</span>
+        </div>
+      </div>
+    <?php endif; ?>
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div class="space-y-4">
         <div>
@@ -37,10 +53,11 @@
           <p class="text-sm text-gray-700"><?= esc($ticket['hardware_issues']) ?></p>
         </div>
         <?php endif; ?>
-        <?php if(!empty($ticket['sofware_issues'])): ?>
+        <?php $softwareIssues = $ticket['software_issues'] ?? ($ticket['sofware_issues'] ?? null); ?>
+        <?php if(!empty($softwareIssues)): ?>
         <div>
           <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Software Issues</span>
-          <p class="text-sm text-gray-700"><?= esc($ticket['sofware_issues']) ?></p>
+          <p class="text-sm text-gray-700"><?= esc($softwareIssues) ?></p>
         </div>
         <?php endif; ?>
       </div>
@@ -211,4 +228,31 @@
   <?php endif; ?>
 
 </div>
+<script>
+(() => {
+  const nodes = document.querySelectorAll('.js-sla-countdown');
+  if (!nodes.length) return;
+
+  const format = (s) => {
+    const n = Math.max(0, Math.abs(s));
+    const d = Math.floor(n / 86400);
+    const h = Math.floor((n % 86400) / 3600);
+    const m = Math.floor((n % 3600) / 60);
+    return `${d}d ${h}h ${m}m`;
+  };
+
+  nodes.forEach((node) => {
+    let remaining = parseInt(node.dataset.remaining || '0', 10);
+    const overdue = node.dataset.overdue === '1';
+
+    const tick = () => {
+      node.textContent = `${overdue ? 'Overdue by' : 'Time remaining'} ${format(remaining)}`;
+      remaining += overdue ? 1 : -1;
+    };
+
+    tick();
+    setInterval(tick, 60000);
+  });
+})();
+</script>
 <?= $this->endSection() ?>

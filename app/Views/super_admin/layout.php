@@ -141,6 +141,11 @@
           Keyword Rules
         </a>
 
+        <a href="<?= base_url('super-admin/ticket-sla-rules') ?>" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:text-blue-700 hover:bg-blue-50 font-medium text-sm transition-all">
+          <svg class="sidebar-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Ticket Timeframes
+        </a>
+
         <a href="<?= base_url('super-admin/sections') ?>" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:text-blue-700 hover:bg-blue-50 font-medium text-sm transition-all">
           <svg class="sidebar-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
           Sections
@@ -180,7 +185,28 @@
             <a href="<?= base_url('super-admin/ticket-equipment') ?>" class="block px-3 py-2 rounded-lg text-gray-500 hover:text-blue-700 hover:bg-blue-50 text-sm transition-all">Ticket Equipment</a>
           </div>
         </div>
-      </nav>
+
+      <p class="text-xs font-700 text-gray-400 uppercase tracking-widest px-3 pb-1 pt-4">Asset Management</p>
+
+        <a href="<?= base_url('super-admin/assets') ?>" class="sidebar-item <?= str_starts_with(uri_string(), 'super-admin/assets') ? 'sidebar-active' : 'text-gray-600 hover:text-blue-700 hover:bg-blue-50' ?> flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all">
+          <svg class="sidebar-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+          Assets
+        </a>
+
+        <a href="<?= base_url('super-admin/asset-groups') ?>" class="sidebar-item <?= str_starts_with(uri_string(), 'super-admin/asset-groups') ? 'sidebar-active' : 'text-gray-600 hover:text-blue-700 hover:bg-blue-50' ?> flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all">
+          <svg class="sidebar-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+          Asset Groups
+        </a>
+
+        <a href="<?= base_url('super-admin/maintenance') ?>" class="sidebar-item <?= str_starts_with(uri_string(), 'super-admin/maintenance') ? 'sidebar-active' : 'text-gray-600 hover:text-blue-700 hover:bg-blue-50' ?> flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all">
+          <svg class="sidebar-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Maintenance
+        </a>
+
+        <a href="<?= base_url('super-admin/disposals') ?>" class="sidebar-item <?= str_starts_with(uri_string(), 'super-admin/disposals') ? 'sidebar-active' : 'text-gray-600 hover:text-blue-700 hover:bg-blue-50' ?> flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all">
+          <svg class="sidebar-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          Disposals
+        </a>
 
       <!-- Bottom logout -->
       <div class="p-4 border-t border-blue-100/60">
@@ -189,6 +215,9 @@
           Sign Out
         </a>
       </div>
+
+      
+      </nav>
     </aside>
 
     <!-- Main Content -->
@@ -199,18 +228,6 @@
           <h1 class="text-xl font-extrabold text-gray-900">Dashboard <span class="text-gray-400 font-normal text-base">/ Overview</span></h1>
           <p class="text-xs text-gray-400 mono"><?= date('l, F j, Y') ?></p>
         </div>
-        <!-- Search -->
-        <div class="relative hidden md:block">
-          <input type="text" placeholder="Search tickets..." class="pl-10 pr-4 py-2.5 rounded-xl border border-blue-100 bg-blue-50/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white transition-all w-64">
-          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        </div>
-        <!-- Notif -->
-        <button class="relative w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center hover:bg-blue-100 transition-colors">
-          <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-          <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
-        <!-- Avatar -->
-       <?= view_cell('UserCell::displayAvatar') ?>
       </header>
 
       <?= $this->renderSection('content') ?>

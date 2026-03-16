@@ -20,6 +20,7 @@ use App\Models\TicketEquipmentModel;
 use App\Models\SectionRoleAccessModel;
 use App\Models\FormOptionRoleAccessModel;
 use App\Models\KeywordRuleModel;
+use App\Models\TicketSlaRuleModel;
 
 use App\Models\JobTicketModel;
 use App\Models\JobTicketRequestModel;
@@ -29,6 +30,7 @@ use App\Models\TicketHistoryModel;
 use App\Models\RoleModel;
 
 use App\Models\JobStatusModel;
+use App\Libraries\TicketSlaResolver;
 
 class SuperAdminController extends BaseController
 {
@@ -52,6 +54,8 @@ class SuperAdminController extends BaseController
     private SectionRoleAccessModel $sectionRoleAccessModel;
     private FormOptionRoleAccessModel $formOptionRoleAccessModel;
     private KeywordRuleModel $keywordRuleModel;
+    private TicketSlaRuleModel $ticketSlaRuleModel;
+    private TicketSlaResolver $ticketSlaResolver;
 
     public function __construct()
     {
@@ -75,6 +79,8 @@ class SuperAdminController extends BaseController
         $this->sectionRoleAccessModel = new SectionRoleAccessModel();
         $this->formOptionRoleAccessModel = new FormOptionRoleAccessModel();
         $this->keywordRuleModel = new KeywordRuleModel();
+        $this->ticketSlaRuleModel = new TicketSlaRuleModel();
+        $this->ticketSlaResolver = new TicketSlaResolver();
     }
 
     public function dashboard()
@@ -280,12 +286,79 @@ class SuperAdminController extends BaseController
             ->where('job_ticket_responses.job_ticket_id', $ticketId)
             ->first();
 
+        $slaSummary = $this->ticketSlaResolver->resolveForTicket($ticket, $response);
+
         return view('super_admin/view_ticket', [
             'ticket'        => $ticket,
             'response'      => $response,
             'responseParts' => $response ? $this->responsePartModel->getByResponseId((int) $response['job_ticket_response_id']) : [],
             'history'       => $this->ticketHistoryModel->getByTicketId($ticketId),
+            'slaSummary'    => $slaSummary,
         ]);
+    }
+
+    public function ticketSlaRules()
+    {
+        $rules = $this->ticketSlaRuleModel
+            ->select('ticket_sla_rules.*, sections.acronym, request_types.request_type_name, request_platforms.platform_name, request_actions.action_name, ticket_equipments.name as equipment_name')
+            ->join('sections', 'sections.section_id = ticket_sla_rules.section_id')
+            ->join('request_types', 'request_types.request_type_id = ticket_sla_rules.request_type_id', 'left')
+            ->join('request_platforms', 'request_platforms.platform_id = ticket_sla_rules.platform_id', 'left')
+            ->join('request_actions', 'request_actions.action_id = ticket_sla_rules.action_id', 'left')
+            ->join('ticket_equipments', 'ticket_equipments.equipment_id = ticket_sla_rules.equipment_id', 'left')
+            ->orderBy('sections.acronym', 'ASC')
+            ->orderBy('ticket_sla_rules.target_hours', 'ASC')
+            ->findAll();
+
+        return view('super_admin/ticket_sla_rules', [
+            'rules'        => $rules,
+            'sections'     => $this->sectionModel->orderBy('acronym', 'ASC')->findAll(),
+            'requestTypes' => $this->requestTypeModel->orderBy('request_type_name', 'ASC')->findAll(),
+            'platforms'    => $this->requestPlatformModel->orderBy('platform_name', 'ASC')->findAll(),
+            'actions'      => $this->requestActionModel->orderBy('action_name', 'ASC')->findAll(),
+            'equipments'   => $this->ticketEquipmentModel->orderBy('name', 'ASC')->findAll(),
+        ]);
+    }
+
+    public function addTicketSlaRule()
+    {
+        $rules = [
+            'section_id'    => 'required|integer',
+            'request_type_id' => 'permit_empty|integer',
+            'platform_id'   => 'permit_empty|integer',
+            'action_id'     => 'permit_empty|integer',
+            'equipment_id'  => 'permit_empty|integer',
+            'target_hours'  => 'required|integer|greater_than[0]',
+            'notes'         => 'permit_empty|max_length[255]',
+        ];
+
+        if (! $this->validate($rules)) {
+            return redirect()->to('super-admin/ticket-sla-rules')->withInput()->with('error', implode('<br>', $this->validator->getErrors()));
+        }
+
+        $this->ticketSlaRuleModel->insert([
+            'section_id'      => (int) $this->request->getPost('section_id'),
+            'request_type_id' => $this->request->getPost('request_type_id') ?: null,
+            'platform_id'     => $this->request->getPost('platform_id') ?: null,
+            'action_id'       => $this->request->getPost('action_id') ?: null,
+            'equipment_id'    => $this->request->getPost('equipment_id') ?: null,
+            'target_hours'    => (int) $this->request->getPost('target_hours'),
+            'is_active'       => 1,
+            'notes'           => trim((string) $this->request->getPost('notes')) ?: null,
+        ]);
+
+        return redirect()->to('super-admin/ticket-sla-rules')->with('success', 'Ticket timeframe rule added successfully.');
+    }
+
+    public function deleteTicketSlaRule(int $id)
+    {
+        $item = $this->ticketSlaRuleModel->find($id);
+        if (! $item) {
+            return redirect()->to('super-admin/ticket-sla-rules')->with('error', 'Timeframe rule not found.');
+        }
+
+        $this->ticketSlaRuleModel->delete($id);
+        return redirect()->to('super-admin/ticket-sla-rules')->with('success', 'Ticket timeframe rule deleted.');
     }
 
     public function employees()

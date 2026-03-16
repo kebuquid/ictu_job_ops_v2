@@ -40,10 +40,11 @@
           <p class="text-sm text-gray-700"><?= esc($ticket['hardware_issues']) ?></p>
         </div>
         <?php endif; ?>
-        <?php if(!empty($ticket['sofware_issues'])): ?>
+        <?php $softwareIssues = $ticket['software_issues'] ?? ($ticket['sofware_issues'] ?? null); ?>
+        <?php if(!empty($softwareIssues)): ?>
         <div>
           <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Software Issues</span>
-          <p class="text-sm text-gray-700"><?= esc($ticket['sofware_issues']) ?></p>
+          <p class="text-sm text-gray-700"><?= esc($softwareIssues) ?></p>
         </div>
         <?php endif; ?>
       </div>

@@ -29,7 +29,7 @@ class JobTicketRequestModel extends Model
         'additional_details',
         'additional_request_file',
         'verifier_id',
-        'verified_date',
+        'verification_date',
     ];
 
     protected bool $allowEmptyInserts = false;
