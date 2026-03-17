@@ -47,14 +47,29 @@
         .step-view.slide-in { animation: fadeIn 0.35s ease-out both; }
         .step-view.slide-out { animation: fadeOut 0.25s ease-in both; }
         .step-view.hidden { display: none; }
+
+        @media (max-width: 640px) {
+            .otp-digit {
+                width: 2.5rem;
+                height: 3.25rem;
+                font-size: 1.125rem;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .otp-digit {
+                width: 2.25rem;
+                height: 3rem;
+            }
+        }
     </style>
 </head>
-<body class="min-h-screen bg-navy-950 flex items-center justify-center px-4 py-12">
+<body class="min-h-screen bg-navy-950 flex items-start sm:items-center justify-center px-4 py-8 sm:py-12">
 
     <div class="w-full max-w-md">
 
         <!-- Card -->
-        <div class="bg-white rounded-3xl shadow-2xl px-8 py-10 space-y-6">
+        <div class="bg-white rounded-3xl shadow-2xl px-5 sm:px-8 py-8 sm:py-10 space-y-6">
 
             <!-- Logo -->
             <div class="flex items-center justify-center gap-3">

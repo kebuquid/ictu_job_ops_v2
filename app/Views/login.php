@@ -36,16 +36,26 @@
     <div class="min-h-screen flex flex-col lg:flex-row">
 
         <!-- ===================== LEFT PANEL — Branding ===================== -->
-        <div class="relative lg:w-1/2 flex flex-col items-center justify-center px-6 sm:px-8 lg:px-12 py-12 lg:py-0 bg-gradient-to-br from-navy-900 via-navy-800 to-navy-950 overflow-hidden">
+        <div class="relative w-full lg:w-1/2 flex flex-col items-center justify-center px-4 sm:px-6 lg:px-12 py-4 lg:py-0 min-h-[88px] lg:min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-950 overflow-hidden">
 
             <!-- Decorative background shapes - adjusted for mobile visibility -->
-            <div class="absolute top-0 left-0 w-48 h-48 sm:w-72 sm:h-72 bg-navy-600 rounded-full mix-blend-screen opacity-10 -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
-            <div class="absolute bottom-0 right-0 w-64 h-64 sm:w-96 sm:h-96 bg-navy-500 rounded-full mix-blend-screen opacity-10 translate-x-1/3 translate-y-1/3 blur-3xl"></div>
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] border border-white/5 rounded-full"></div>
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] sm:w-[700px] sm:h-[700px] border border-white/[0.03] rounded-full"></div>
+            <div class="hidden lg:block absolute top-0 left-0 w-48 h-48 sm:w-72 sm:h-72 bg-navy-600 rounded-full mix-blend-screen opacity-10 -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
+            <div class="hidden lg:block absolute bottom-0 right-0 w-64 h-64 sm:w-96 sm:h-96 bg-navy-500 rounded-full mix-blend-screen opacity-10 translate-x-1/3 translate-y-1/3 blur-3xl"></div>
+            <div class="hidden lg:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] border border-white/5 rounded-full"></div>
+            <div class="hidden lg:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] sm:w-[700px] sm:h-[700px] border border-white/[0.03] rounded-full"></div>
+
+            <!-- Mobile top bar -->
+            <div class="relative z-10 flex lg:hidden w-full items-center justify-center gap-3">
+                <img src="<?= base_url('ictu_alt_logo.png') ?>" alt="ICTU Logo" class="w-9 h-9 object-contain">
+                <img src="<?= base_url('cspc_logo.png') ?>" alt="CSPC Logo" class="w-9 h-9 object-contain">
+                <p class="text-m font-bold tracking-wide uppercase whitespace-nowrap">
+                    <span class="text-white">CSPC</span>
+                    <span class="text-navy-300"> - ICTU</span>
+                </p>
+            </div>
 
             <!-- Content -->
-            <div class="relative z-10 max-w-lg text-center lg:text-left space-y-6 sm:space-y-8">
+            <div class="hidden lg:block relative z-10 max-w-lg text-center lg:text-left space-y-6 sm:space-y-8">
                 <!-- Logo / Icon - smaller on mobile -->
                 <div class="inline-flex items-center justify-center w-24 h-24 sm:w-16 sm:h-16 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 shadow-lg">
                     <img src="<?= base_url('ictu_alt_logo.png') ?>" alt="ICTU Logo" class="w-24 h-24 sm:w-8 sm:h-8 object-contain">
@@ -98,17 +108,20 @@
         </div>
 
         <!-- ===================== RIGHT PANEL — Login Form ===================== -->
-        <div class="relative lg:w-1/2 flex items-center justify-center bg-white px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-0">
+        <div class="auth-form-panel relative w-full flex-1 lg:w-1/2 flex items-center justify-center bg-white px-4 sm:px-6 lg:px-8 py-6 sm:py-16 lg:py-0">
 
             <!-- Subtle background pattern -->
             <div class="absolute inset-0 opacity-[0.03]" style="background-image:url('data:image/svg+xml,%3Csvg width=&quot;60&quot; height=&quot;60&quot; viewBox=&quot;0 0 60 60&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Cg fill=&quot;none&quot; fill-rule=&quot;evenodd&quot;%3E%3Cg fill=&quot;%23162557&quot;%3E%3Cpath d=&quot;M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z&quot;/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')"></div>
 
-            <div class="relative z-10 w-full max-w-sm sm:max-w-md">
+            <div class="auth-form-shell relative z-10 w-full max-w-sm sm:max-w-md py-2 sm:py-0">
 
                 <!-- ===== VIEW 1: Role Selection ===== -->
                 <div id="viewRoleSelect" class="panel-view space-y-6 sm:space-y-8">
                     <!-- Heading -->
                     <div class="text-center">
+                        <p class="lg:hidden mb-1 text-xl font-bold uppercase">
+                            <span class="text-navy-900">Job</span><span class="text-navy-500">Ops</span>
+                        </p>
                         <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-navy-900 tracking-tight">Sign in to your account</h2>
                         <p class="mt-2 text-sm text-gray-500">Choose how you&rsquo;d like to continue</p>
                     </div>
@@ -339,7 +352,7 @@
                             <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wider">
                                 Email <span class="text-red-500">*</span>
                             </label>
-                            <div class="flex items-center">
+                            <div class="email-field-wrap flex items-center">
                                 <div class="relative flex-1 min-w-0">
                                     <input type="text" name="email" id="newEmail" required
                                         class="w-full rounded-l-xl border border-gray-200 px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 focus:z-10 transition-all placeholder:text-gray-400"
@@ -348,7 +361,7 @@
                                     <span id="emailStatusIcon" class="absolute right-3 top-1/2 -translate-y-1/2 hidden">
                                     </span>
                                 </div>
-                                <span class="inline-flex items-center px-4 rounded-r-xl border border-l-0 border-gray-200 bg-gray-50 text-gray-500 text-sm h-[46px]">
+                                <span class="email-domain-suffix inline-flex items-center px-4 rounded-r-xl border border-l-0 border-gray-200 bg-gray-50 text-gray-500 text-sm h-[46px]">
                                     @cspc.edu.ph
                                 </span>
                             </div>
@@ -573,14 +586,14 @@
                             <label class="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wider">
                                 Email <span class="text-red-500">*</span>
                             </label>
-                            <div class="flex items-center">
+                            <div class="email-field-wrap flex items-center">
                                 <div class="relative flex-1 min-w-0">
                                     <input type="text" name="email" id="newStudentEmail" required
                                         class="w-full rounded-l-xl border border-gray-200 px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 focus:z-10 transition-all placeholder:text-gray-400"
                                         placeholder="juandelacruz" autocomplete="off">
                                     <span id="studentEmailStatusIcon" class="absolute right-3 top-1/2 -translate-y-1/2 hidden"></span>
                                 </div>
-                                <span class="inline-flex items-center px-4 rounded-r-xl border border-l-0 border-gray-200 bg-gray-50 text-gray-500 text-sm h-[46px]">
+                                <span class="email-domain-suffix inline-flex items-center px-4 rounded-r-xl border border-l-0 border-gray-200 bg-gray-50 text-gray-500 text-sm h-[46px]">
                                     @my.cspc.edu.ph
                                 </span>
                             </div>
@@ -680,6 +693,45 @@
         @media (max-width: 640px) {
             .login-btn {
                 min-height: 48px;
+                padding-left: 3rem;
+                padding-right: 3rem;
+            }
+
+            .email-field-wrap {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.5rem;
+            }
+
+            .email-field-wrap input {
+                border-radius: 0.75rem;
+            }
+
+            .email-domain-suffix {
+                width: 100%;
+                justify-content: center;
+                border-left-width: 1px;
+                border-radius: 0.75rem;
+            }
+        }
+
+        @media (max-width: 1023px) {
+            .auth-form-panel {
+                min-height: calc(100vh - 88px);
+            }
+
+            .auth-form-shell {
+                min-height: 100%;
+                display: flex;
+                align-items: center;
+            }
+
+            .panel-view:not(.hidden) {
+                width: 100%;
+                min-height: 70vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
             }
         }
     </style>
