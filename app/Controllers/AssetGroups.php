@@ -42,9 +42,10 @@ class AssetGroups extends BaseController
         unset($g);
 
         return view('asset_groups/index', [
-            'groups' => $groups,
-            'pager'  => $pager,
-            'total'  => $total,
+            'groups'       => $groups,
+            'pager'        => $pager,
+            'total'        => $total,
+            'routePrefix'  => $this->resolveRoutePrefix(),
         ]);
     }
 
@@ -57,6 +58,7 @@ class AssetGroups extends BaseController
             'availableAssets'  => $this->assetModel->where('group_id IS NULL')->orderBy('asset_tag', 'ASC')->findAll(),
             'users'            => model('App\Models\UserModel')->orderBy('name')->findAll(),
             'keywordRulesData' => $this->keywordRuleModel->getGroupedRulesForForm(),
+            'routePrefix'      => $this->resolveRoutePrefix(),
         ]);
     }
 
@@ -84,6 +86,7 @@ class AssetGroups extends BaseController
                 'availableAssets' => $this->assetModel->where('group_id IS NULL')->orderBy('asset_tag', 'ASC')->findAll(),
                 'users'           => model('App\Models\UserModel')->orderBy('name')->findAll(),
                 'keywordRulesData'=> $this->keywordRuleModel->getGroupedRulesForForm(),
+                'routePrefix'     => $this->resolveRoutePrefix(),
             ]);
         }
 
@@ -120,7 +123,7 @@ class AssetGroups extends BaseController
             ? 'Group created with ' . count($assetIds) . ' asset(s) assigned.'
             : 'Group created! You can assign assets from this page.';
 
-        return redirect()->to('/asset-groups/show/' . $groupId)
+        return redirect()->to(site_url($this->resolveRoutePrefix() . '/asset-groups/show/' . $groupId))
             ->with('success', $msg);
     }
 
@@ -167,7 +170,7 @@ class AssetGroups extends BaseController
         $this->groupModel->update($id, ['quantity' => $total]);
         $this->syncGroupCosts($id);
 
-        return redirect()->to('/asset-groups/show/' . $id)
+        return redirect()->to(site_url($this->resolveRoutePrefix() . '/asset-groups/show/' . $id))
             ->with('success', "{$count} asset(s) assigned to this group.");
     }
 
@@ -181,7 +184,7 @@ class AssetGroups extends BaseController
         $this->groupModel->update($groupId, ['quantity' => $total]);
         $this->syncGroupCosts($groupId);
 
-        return redirect()->to('/asset-groups/show/' . $groupId)
+        return redirect()->to(site_url($this->resolveRoutePrefix() . '/asset-groups/show/' . $groupId))
             ->with('success', 'Asset removed from group.');
     }
 
@@ -231,6 +234,7 @@ class AssetGroups extends BaseController
                                     ->findAll(),
             'unitName'        => $unitName,
             'buildingName'    => $buildingName,
+            'routePrefix'     => $this->resolveRoutePrefix(),
         ]);
     }
 
@@ -240,7 +244,7 @@ class AssetGroups extends BaseController
         $targetGroupId = (int) $this->request->getPost('target_group_id');
 
         if (! $this->groupModel->find($targetGroupId)) {
-            return redirect()->to('/asset-groups/show/' . $groupId)
+            return redirect()->to(site_url($this->resolveRoutePrefix() . '/asset-groups/show/' . $groupId))
                 ->with('error', 'Target group not found.');
         }
 
@@ -254,7 +258,7 @@ class AssetGroups extends BaseController
         }
 
         $target = $this->groupModel->find($targetGroupId);
-        return redirect()->to('/asset-groups/show/' . $groupId)
+        return redirect()->to(site_url($this->resolveRoutePrefix() . '/asset-groups/show/' . $groupId))
             ->with('success', 'Asset transferred to "' . $target['group_name'] . '" successfully.');
     }
 
@@ -278,6 +282,7 @@ class AssetGroups extends BaseController
             'buildings'         => $this->buildingModel->orderBy('name')->findAll(),
             'units'             => $this->unitModel->orderBy('name')->findAll(),
             'currentBuildingId' => $currentBuildingId,
+            'routePrefix'       => $this->resolveRoutePrefix(),
         ]);
     }
 
@@ -305,7 +310,7 @@ class AssetGroups extends BaseController
             'lifecycle'         => $this->request->getPost('lifecycle') ?: null,
         ]);
 
-        return redirect()->to('/asset-groups/show/' . $id)
+        return redirect()->to(site_url($this->resolveRoutePrefix() . '/asset-groups/show/' . $id))
             ->with('success', 'Group updated successfully.');
     }
 
@@ -320,7 +325,27 @@ class AssetGroups extends BaseController
         $this->assetModel->where('group_id', $id)->set(['group_id' => null])->update();
         $this->groupModel->delete($id);
 
-        return redirect()->to('/asset-groups')
+        return redirect()->to(site_url($this->resolveRoutePrefix() . '/asset-groups'))
             ->with('success', 'Group deleted. Individual assets were unlinked (not deleted).');
+    }
+
+    private function resolveRoutePrefix(): string
+    {
+        $path = trim((string) $this->request->getUri()->getPath(), '/');
+
+        if (str_starts_with($path, 'admin/')) {
+            return 'admin';
+        }
+
+        if (str_starts_with($path, 'super-admin/')) {
+            return 'super-admin';
+        }
+
+        $sessionUser = session()->get('user');
+        if (isset($sessionUser['role_id']) && (int) $sessionUser['role_id'] === 2) {
+            return 'admin';
+        }
+
+        return 'super-admin';
     }
 }

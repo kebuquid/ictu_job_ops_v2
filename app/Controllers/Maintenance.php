@@ -244,7 +244,7 @@ class Maintenance extends BaseController
         }
 
         $count = max(count($assetIds), 1);
-        return redirect()->to('/maintenance')->with('success', $count . ' maintenance record(s) added successfully.');
+        return redirect()->to(site_url($this->resolveRoutePrefix() . '/maintenance'))->with('success', $count . ' maintenance record(s) added successfully.');
     }
 
     public function show(int $id): string
@@ -470,7 +470,7 @@ class Maintenance extends BaseController
             'responsible_remarks' => $this->request->getPost('responsible_remarks') ?: null,
         ]);
 
-        return redirect()->to('/maintenance')->with('success', 'Maintenance record updated.');
+        return redirect()->to(site_url($this->resolveRoutePrefix() . '/maintenance'))->with('success', 'Maintenance record updated.');
     }
 
     public function delete(int $id)
@@ -478,9 +478,29 @@ class Maintenance extends BaseController
         $this->model->delete($id);
         $bld  = $this->request->getGet('bld')  ?? '';
         $unit = $this->request->getGet('unit') ?? '';
-        $back = '/maintenance?show_log=1';
+        $back = site_url($this->resolveRoutePrefix() . '/maintenance') . '?show_log=1';
         if ($bld  !== '') $back .= '&bld='  . urlencode($bld);
         if ($unit !== '') $back .= '&unit=' . urlencode($unit);
         return redirect()->to($back)->with('success', 'Maintenance record deleted.');
+    }
+
+    private function resolveRoutePrefix(): string
+    {
+        $path = trim((string) $this->request->getUri()->getPath(), '/');
+
+        if (str_starts_with($path, 'admin/')) {
+            return 'admin';
+        }
+
+        if (str_starts_with($path, 'super-admin/')) {
+            return 'super-admin';
+        }
+
+        $sessionUser = session()->get('user');
+        if (isset($sessionUser['role_id']) && (int) $sessionUser['role_id'] === 2) {
+            return 'admin';
+        }
+
+        return 'super-admin';
     }
 }

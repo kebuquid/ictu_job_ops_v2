@@ -4,7 +4,7 @@
 <?= $this->section('pageSubtitle') ?>ICTU-<?= date('Y', strtotime($ticket['created_at'] ?? 'now')) ?>-<?= str_pad($ticket['job_ticket_id'] ?? 0, 5, '0', STR_PAD_LEFT) ?><?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="p-8 space-y-6">
+<div class="p-4 sm:p-6 lg:p-8 space-y-6">
 
   <a href="<?= base_url('student/my-tickets') ?>" class="inline-flex items-center text-sm text-purple-600 hover:text-purple-800 font-medium transition-colors">
     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
@@ -13,7 +13,7 @@
 
   <!-- Ticket Info -->
   <div class="fade-in delay-1 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-purple-200/50 shadow-lg">
-    <div class="flex items-center justify-between mb-5">
+    <div class="flex items-center justify-between gap-3 flex-wrap mb-5">
       <h3 class="font-bold text-gray-900 text-lg">Ticket Information</h3>
       <?= \App\Models\JobStatusModel::badgeMd((int) $ticket['job_status']) ?: '<span class="text-sm font-bold px-3 py-1.5 rounded-full bg-gray-100 text-gray-600">Unknown</span>' ?>
     </div>
@@ -128,8 +128,8 @@
         <?php if(!empty($responseParts)): ?>
         <div>
           <span class="text-xs text-gray-400 uppercase tracking-wider block mb-2">Parts Replaced / Used</span>
-          <div class="overflow-hidden rounded-xl border border-gray-200">
-            <table class="w-full text-sm">
+          <div class="overflow-x-auto rounded-xl border border-gray-200">
+            <table class="w-full min-w-[620px] text-sm">
               <thead class="bg-gray-50">
                 <tr>
                   <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Type</th>

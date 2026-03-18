@@ -439,11 +439,6 @@ class TicketController extends BaseController
             $additionalDetails = trim($additionalDetails . "\nOn behalf of: " . $onBehalfEmail);
         }
 
-        $requestorNumber = trim((string) $this->request->getPost('requestor_number'));
-        if ($requestorNumber !== '') {
-            $additionalDetails = trim($additionalDetails . "\nRequestor Number: " . $requestorNumber);
-        }
-
         $requestData = [
             'job_ticket_id'          => $ticketId,
             'section_id'             => $sectionId,

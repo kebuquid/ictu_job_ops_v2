@@ -31,6 +31,14 @@
     30% { transform: translateY(-6px); opacity: 1; }
   }
 
+  .tip-jump-pulse {
+    animation: tipJumpPulse 1.5s ease-in-out infinite;
+  }
+  @keyframes tipJumpPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.25); }
+    50% { box-shadow: 0 0 0 8px rgba(37, 99, 235, 0); }
+  }
+
   /* Smooth select styling */
   select.smart-select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
@@ -180,6 +188,15 @@
       <!-- Detected keywords pills -->
       <div id="detectedKeywords" class="hidden flex flex-wrap gap-2">
         <span class="text-xs text-gray-500 font-medium py-1">Detected:</span>
+      </div>
+
+      <!-- Mobile helper: visible when a troubleshooting tip is generated -->
+      <div id="tipJumpNotice" class="hidden mt-3 sm:hidden">
+        <button type="button" id="jumpToTipBtn"
+                class="tip-jump-pulse inline-flex items-center gap-2 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-2 rounded-xl">
+          <span aria-hidden="true">↓</span>
+          Troubleshooting tip is ready. Tap to view.
+        </button>
       </div>
     </div>
 
@@ -378,13 +395,6 @@
           MIS — Account & System Details
         </h3>
 
-        <!-- Student/Employee Number (required) -->
-        <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-1.5 field-required">Student / Employee Number</label>
-          <input type="text" name="requestor_number" id="misRequestorNumber" required placeholder="Enter your ID number"
-                 class="w-full px-4 py-2.5 rounded-xl border border-blue-200 bg-blue-50/30 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white transition-all">
-        </div>
-
         <!-- Request Type (radio cards) (required) -->
         <div>
           <label class="block text-sm font-semibold text-gray-700 mb-2 field-required">Request Type</label>
@@ -554,6 +564,8 @@ $(document).ready(function () {
 
   let analysisTimeout = null;
   let matchedRule = null;
+  let lastTipSignature = '';
+  let tipNoticeTimer = null;
   let sectionDataCache = {};  // cache AJAX responses
   let currentStep = 1;
   let currentSectionId = null;
@@ -690,6 +702,8 @@ $(document).ready(function () {
   // ════════════════════════════════════════════════════════
   function showTip(rule, keyword) {
     const tipData = rule.tips[keyword] || rule.tips['default'];
+    const wasHidden = $('#troubleshootingTip').hasClass('hidden');
+    const tipSignature = `${rule.sectionAcronym}|${keyword}|${tipData.title || ''}|${tipData.body || ''}`;
     const colors = {
       NICM:   { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-800', btn: 'bg-green-600 hover:bg-green-700', icon: '🌐' },
       ICTRAM: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-800', btn: 'bg-amber-600 hover:bg-amber-700', icon: '🖥️' },
@@ -719,11 +733,41 @@ $(document).ready(function () {
       </div>
     `;
     $('#troubleshootingTip').html(html).removeClass('hidden');
+
+    if (window.matchMedia('(max-width: 768px)').matches) {
+      $('#tipJumpNotice').removeClass('hidden');
+      if (tipNoticeTimer) clearTimeout(tipNoticeTimer);
+      tipNoticeTimer = setTimeout(() => $('#tipJumpNotice').addClass('hidden'), 6000);
+
+      if (wasHidden || tipSignature !== lastTipSignature) {
+        requestAnimationFrame(() => {
+          const tipEl = document.getElementById('troubleshootingTip');
+          if (tipEl) {
+            tipEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        });
+      }
+    }
+
+    lastTipSignature = tipSignature;
   }
 
   function hideTip() {
+    if (tipNoticeTimer) {
+      clearTimeout(tipNoticeTimer);
+      tipNoticeTimer = null;
+    }
+    $('#tipJumpNotice').addClass('hidden');
     $('#troubleshootingTip').addClass('hidden').empty();
+    lastTipSignature = '';
   }
+
+  $(document).on('click', '#jumpToTipBtn', function () {
+    const tipEl = document.getElementById('troubleshootingTip');
+    if (tipEl && !$('#troubleshootingTip').hasClass('hidden')) {
+      tipEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  });
 
   // ════════════════════════════════════════════════════════
   // TIP BUTTON HANDLERS
@@ -1045,13 +1089,12 @@ $(document).ready(function () {
       }
       valid = v1 && v2 && v3 && v4 && v5;
     } else if (acronym === 'MIS') {
-      const v1 = validateField('#misRequestorNumber');
-      const v2 = $('input[name="request_type_id"]:checked').length > 0;
-      if (!v2) {
+      const v1 = $('input[name="request_type_id"]:checked').length > 0;
+      if (!v1) {
         $('#misRequestTypes').addClass('ring-2 ring-red-400 rounded-xl');
         setTimeout(() => $('#misRequestTypes').removeClass('ring-2 ring-red-400 rounded-xl'), 2000);
       }
-      valid = v1 && v2;
+      valid = v1;
     }
 
     if (!valid) return;
@@ -1121,7 +1164,6 @@ $(document).ready(function () {
     }
 
     if (acronym === 'MIS') {
-      rows.push({ label: 'ID Number', value: escHtml($('#misRequestorNumber').val()) });
       const rt = $('input[name="request_type_id"]:checked');
       if (rt.length) rows.push({ label: 'Request Type', value: escHtml(rt.closest('label').find('span').text()) });
       const plat = $('#misPlatform option:selected').text();

@@ -2,16 +2,17 @@
 // Data: $groups (array with asset_count)
 $pageTitle    = 'Asset Groups';
 $pageSubtitle = 'Manage bulk asset groups';
+$routePrefix  = $routePrefix ?? (str_starts_with(uri_string(), 'admin/') ? 'admin' : 'super-admin');
 ob_start();
 ?>
 
 <!-- Header row -->
-<div class="flex items-center justify-between mb-6">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
     <div>
         <h2 class="text-xl font-bold text-gray-800">Asset Groups</h2>
         <p class="text-sm text-gray-500 mt-0.5"><?= $total ?> group(s) total</p>
     </div>
-    <a href="<?= site_url('asset-groups/create') ?>"
+    <a href="<?= site_url($routePrefix . '/asset-groups/create') ?>"
        class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow transition">
         <i class="fa-solid fa-layer-group"></i> New Group
     </a>
@@ -21,12 +22,12 @@ ob_start();
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-16 text-center">
         <i class="fa-solid fa-layer-group text-4xl text-gray-300 mb-3"></i>
         <p class="text-gray-500 text-sm">No asset groups yet.</p>
-        <a href="<?= site_url('asset-groups/create') ?>" class="mt-4 inline-block text-blue-600 text-sm font-medium hover:underline">Create your first group →</a>
+        <a href="<?= site_url($routePrefix . '/asset-groups/create') ?>" class="mt-4 inline-block text-blue-600 text-sm font-medium hover:underline">Create your first group →</a>
     </div>
 <?php else: ?>
 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
     <div class="overflow-x-auto">
-    <table class="min-w-full text-sm">
+    <table class="w-full min-w-[980px] text-sm">
         <thead>
             <tr class="bg-gray-50 border-b border-gray-100 text-left text-xs text-gray-500 uppercase tracking-wider">
                 <th class="px-5 py-3">Group</th>
@@ -74,7 +75,7 @@ ob_start();
                 </td>
                 <td class="px-5 py-3 text-right">
                     <div class="flex items-center justify-end gap-2">
-                        <a href="<?= site_url('asset-groups/show/' . $g['group_id']) ?>"
+                        <a href="<?= site_url($routePrefix . '/asset-groups/show/' . $g['group_id']) ?>"
                            title="View"
                            class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition">
                             <i class="fa-solid fa-eye text-xs"></i>
@@ -165,7 +166,7 @@ ob_start();
 <script>
 function confirmDelete(id, name) {
     document.getElementById('delete-modal-label').textContent = name;
-    document.getElementById('delete-confirm-btn').href = '<?= site_url('asset-groups/delete') ?>/' + id;
+    document.getElementById('delete-confirm-btn').href = '<?= site_url($routePrefix . '/asset-groups/delete') ?>/' + id;
     document.getElementById('delete-modal').classList.remove('hidden');
 }
 function closeDeleteModal() {

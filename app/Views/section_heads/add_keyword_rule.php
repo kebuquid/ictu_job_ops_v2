@@ -4,7 +4,7 @@
 <?= $this->section('pageSubtitle') ?>Add Keyword<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="p-8 space-y-6 max-w-2xl mx-auto">
+<div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-2xl mx-auto">
 
   <!-- Page Header -->
   <div class="fade-in">

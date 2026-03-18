@@ -10,7 +10,7 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 </style>
-<div class="p-8 max-w-4xl mx-auto space-y-6">
+<div class="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
 
   <?php if(session()->getFlashdata('error')): ?>
     <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm"><?= session()->getFlashdata('error') ?></div>
@@ -31,6 +31,24 @@
         <span class="text-gray-400 text-xs uppercase tracking-wider">Requestor</span>
         <p class="font-semibold text-gray-800"><?= esc($response['requestor_name'] ?? 'N/A') ?></p>
       </div>
+      <?php if(!empty($response['requestor_account_no'])): ?>
+      <div>
+        <span class="text-gray-400 text-xs uppercase tracking-wider">Requestor Account No.</span>
+        <p class="mono text-sm text-gray-700"><?= esc($response['requestor_account_no']) ?></p>
+      </div>
+      <?php endif; ?>
+      <?php if(!empty($response['requestor_email'])): ?>
+      <div>
+        <span class="text-gray-400 text-xs uppercase tracking-wider">Requestor Email</span>
+        <p class="text-gray-700 break-all"><?= esc($response['requestor_email']) ?></p>
+      </div>
+      <?php endif; ?>
+      <?php if(!empty($response['requestor_phone_number'])): ?>
+      <div>
+        <span class="text-gray-400 text-xs uppercase tracking-wider">Requestor Contact</span>
+        <p class="text-gray-700"><?= esc($response['requestor_phone_number']) ?></p>
+      </div>
+      <?php endif; ?>
       <div class="md:col-span-2">
         <span class="text-gray-400 text-xs uppercase tracking-wider">Problem Description</span>
         <p class="text-gray-700 mt-1"><?= esc($response['problem_description'] ?? 'N/A') ?></p>
@@ -96,7 +114,7 @@
     </div>
 
     <!-- Submit -->
-    <div class="flex items-center gap-3 pt-2">
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3 pt-2">
       <button type="submit" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-xl transition-all">
         Submit Response
       </button>

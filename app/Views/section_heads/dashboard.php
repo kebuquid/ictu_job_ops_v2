@@ -4,7 +4,7 @@
 <?= $this->section('pageSubtitle') ?>Section Overview<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="p-8 space-y-6">
+<div class="p-4 sm:p-6 lg:p-8 space-y-6">
 
   <!-- Stats Cards -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -65,7 +65,7 @@
         <a href="<?= base_url('admin/tickets') ?>" class="text-xs text-blue-600 hover:underline font-semibold">View All →</a>
       </div>
       <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+        <table class="w-full min-w-[680px] text-sm">
           <thead>
             <tr class="text-left text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
               <th class="pb-3 pr-4">ID</th>

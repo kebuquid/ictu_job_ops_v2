@@ -4,19 +4,19 @@
 <?= $this->section('pageSubtitle') ?>All Tickets<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="p-8 space-y-6">
+<div class="p-4 sm:p-6 lg:p-8 space-y-6">
 
   <?php if(session()->getFlashdata('success')): ?>
     <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm"><?= session()->getFlashdata('success') ?></div>
   <?php endif; ?>
 
   <div class="fade-in delay-1 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-blue-100/50 shadow-lg">
-    <div class="flex items-center justify-between mb-5">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
       <h3 class="font-bold text-gray-900 text-lg">All Section Tickets</h3>
       <a href="<?= base_url('create-ticket') ?>" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-semibold text-sm rounded-xl shadow hover:shadow-lg transition-all">+ New Ticket</a>
     </div>
     <div class="overflow-x-auto">
-      <table id="ticketsTable" class="w-full text-sm">
+      <table id="ticketsTable" class="w-full min-w-[980px] text-sm">
         <thead>
           <tr class="text-left text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
             <th class="pb-3 pr-4">ID</th>
@@ -69,7 +69,7 @@
 <script>
 $(document).ready(function() {
   if($.fn.dataTable) {
-    $('#ticketsTable').DataTable({ pageLength: 15, order: [[0, 'desc']], language: { emptyTable: 'No tickets found' } });
+    $('#ticketsTable').DataTable({ pageLength: 15, order: [[0, 'desc']], scrollX: true, language: { emptyTable: 'No tickets found' } });
   }
 });
 </script>

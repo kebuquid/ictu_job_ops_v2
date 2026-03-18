@@ -1,6 +1,7 @@
 ﻿<?php
 $pageTitle    = 'Add Preventive/Corrective Maintenance Record';
 $pageSubtitle = 'Log a maintenance for an asset';
+$routePrefix  = str_starts_with(uri_string(), 'admin/') ? 'admin' : 'super-admin';
 
 $activityOptions = ['Repair','Installation','Cleaning','Inspection','Replacement','Calibration','Lubrication','Testing','Updating / Patching','Backup & Restore','Virus Removal','Configuration'];
 $savedActivities = array_map('trim', explode(',', set_value('activities', '')));
@@ -37,7 +38,7 @@ ob_start();
 
     <!-- Breadcrumb -->
     <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
-        <a href="<?= site_url('maintenance') ?>" class="hover:text-blue-600 transition">Maintenance</a>
+        <a href="<?= site_url($routePrefix . '/maintenance') ?>" class="hover:text-blue-600 transition">Maintenance</a>
         <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
         <span class="text-gray-700 font-medium">New Record</span>
     </nav>
@@ -52,7 +53,7 @@ ob_start();
     <?php endif; ?>
 
     <!-- Step Indicators -->
-    <div class="flex items-center justify-between mb-8 relative">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8 relative">
         <div class="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 z-0">
             <div id="progress-bar" class="h-full bg-blue-500 transition-all duration-500" style="width:0%"></div>
         </div>
@@ -78,7 +79,7 @@ ob_start();
         <?php endforeach; ?>
     </div>
 
-    <form action="<?= site_url('maintenance/store') ?>" method="post" id="maint-form">
+    <form action="<?= site_url($routePrefix . '/maintenance/store') ?>" method="post" id="maint-form">
         <?= csrf_field() ?>
         <input type="hidden" name="activities" id="activities_hidden" value="<?= set_value('activities') ?>">
 
@@ -110,7 +111,7 @@ ob_start();
                 <div class="p-4">
                     <?php if (empty($groups)): ?>
                         <p class="text-sm text-gray-400 text-center py-4">
-                            No asset groups found. <a href="<?= site_url('asset-groups/create') ?>" class="text-blue-500 hover:underline">Create one first &rarr;</a>
+                            No asset groups found. <a href="<?= site_url($routePrefix . '/asset-groups/create') ?>" class="text-blue-500 hover:underline">Create one first &rarr;</a>
                         </p>
                     <?php else: ?>
 
@@ -146,7 +147,7 @@ ob_start();
                                  data-group-id="<?= $g['group_id'] ?>"
                                  data-group-name="<?= esc($g['group_name']) ?>"
                                  data-group-code="<?= esc($g['group_code'] ?? '') ?>"
-                                 data-building="<?= strtolower(esc($g['building_name'] ?? '')) ?>"
+                                 data-building="<?= esc(strtolower((string) ($g['building_name'] ?? ''))) ?>"
                                  data-unit="<?= esc($g['unit_name'] ?? '') ?>"
                                  data-search="<?= strtolower(esc($g['group_name'] . ' ' . ($g['group_code'] ?? '') . ' ' . ($g['building_name'] ?? '') . ' ' . ($g['unit_name'] ?? ''))) ?>"
                                  onclick="selectGroup(this)">
@@ -187,8 +188,8 @@ ob_start();
                 <div class="px-6 py-4 overflow-x-auto" id="building-chart-body"></div>
             </div>
 
-            <div class="flex justify-between">
-                <a href="<?= site_url('maintenance') ?>" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-600 bg-white hover:bg-gray-50">
+            <div class="flex flex-col sm:flex-row sm:justify-between gap-3">
+                <a href="<?= site_url($routePrefix . '/maintenance') ?>" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-600 bg-white hover:bg-gray-50">
                     Cancel
                 </a>
                 <button type="button" onclick="goStep(2)" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl flex items-center gap-2">
@@ -298,7 +299,7 @@ ob_start();
                 </div>
             </div>
 
-            <div class="flex justify-between">
+            <div class="flex flex-col sm:flex-row sm:justify-between gap-3">
                 <button type="button" onclick="goStep(1)" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-600 bg-white hover:bg-gray-50 flex items-center gap-2">
                     <i class="fa-solid fa-arrow-left text-xs"></i> Back
                 </button>
@@ -383,7 +384,7 @@ ob_start();
                 </div>
             </div>
 
-            <div class="flex justify-between">
+            <div class="flex flex-col sm:flex-row sm:justify-between gap-3">
                 <button type="button" onclick="goStep(2)" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-600 bg-white hover:bg-gray-50 flex items-center gap-2">
                     <i class="fa-solid fa-arrow-left text-xs"></i> Back
                 </button>
@@ -481,7 +482,7 @@ ob_start();
                     </div>
                 </div>
             </div>
-            <div class="flex justify-between">
+            <div class="flex flex-col sm:flex-row sm:justify-between gap-3">
                 <button type="button" onclick="goStep(3)" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-600 bg-white hover:bg-gray-50 flex items-center gap-2">
                     <i class="fa-solid fa-arrow-left text-xs"></i> Back
                 </button>

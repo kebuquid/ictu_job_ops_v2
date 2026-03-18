@@ -1,6 +1,7 @@
 <?php
 $pageTitle    = 'Disposal Record';
 $pageSubtitle = 'Disposal #' . $record['disposal_id'];
+$routePrefix  = $routePrefix ?? (str_starts_with(uri_string(), 'admin/') ? 'admin' : 'super-admin');
 
 ob_start();
 $r = $record;
@@ -14,7 +15,7 @@ $condColor = match(strtolower($r['condition_status'] ?? '')) {
 ?>
 
 <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
-    <a href="<?= site_url('disposals') ?>" class="hover:text-red-600 transition">Disposals</a>
+    <a href="<?= site_url($routePrefix . '/disposals') ?>" class="hover:text-red-600 transition">Disposals</a>
     <i class="fa-solid fa-chevron-right text-xs text-gray-300"></i>
     <span class="text-gray-700 font-medium">Disposal #<?= $r['disposal_id'] ?></span>
 </nav>
@@ -28,7 +29,7 @@ $condColor = match(strtolower($r['condition_status'] ?? '')) {
         <!-- Header -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-5">
-                <div class="flex items-start justify-between gap-4">
+                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                     <div class="flex items-center gap-4">
                         <div class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center flex-shrink-0">
                             <i class="fa-solid fa-trash-can text-white text-2xl"></i>
@@ -101,23 +102,23 @@ $condColor = match(strtolower($r['condition_status'] ?? '')) {
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
             <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Actions</h3>
             <div class="space-y-2">
-                <a href="<?= site_url("disposals/edit/{$r['disposal_id']}") ?>"
+                <a href="<?= site_url($routePrefix . "/disposals/edit/{$r['disposal_id']}") ?>"
                    class="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl transition font-medium">
                     <i class="fa-solid fa-pencil w-4 text-center"></i>
                     Edit Record
                 </a>
-                <a href="<?= site_url("assets/show/{$r['asset_id']}") ?>"
+                <a href="<?= site_url($routePrefix . "/assets/show/{$r['asset_id']}") ?>"
                    class="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl transition font-medium">
                     <i class="fa-solid fa-box-open w-4 text-center"></i>
                     View Asset
                 </a>
-                <a href="<?= site_url("disposals/delete/{$r['disposal_id']}") ?>"
+                <a href="<?= site_url($routePrefix . "/disposals/delete/{$r['disposal_id']}") ?>"
                    class="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-xl transition font-medium"
                    onclick="return confirm('Delete this disposal record?')">
                     <i class="fa-solid fa-trash w-4 text-center"></i>
                     Delete Record
                 </a>
-                <a href="<?= site_url('disposals') ?>"
+                <a href="<?= site_url($routePrefix . '/disposals') ?>"
                        class="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-600 font-medium text-sm transition">
                         <i class="fa-solid fa-arrow-left w-4 text-center"></i>
                         Back to List

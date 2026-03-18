@@ -4,7 +4,7 @@
 <?= $this->section('pageSubtitle') ?>Detection Keywords<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="p-8 space-y-6">
+<div class="p-4 sm:p-6 lg:p-8 space-y-6">
 
   <?php if (session()->getFlashdata('success')): ?>
     <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm"><?= session()->getFlashdata('success') ?></div>
@@ -23,13 +23,13 @@
   </div>
 
   <div class="fade-in delay-1 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-blue-100/50 shadow-lg">
-    <div class="flex items-center justify-between mb-5">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
       <h3 class="font-bold text-gray-900 text-lg">Keyword Rules</h3>
       <a href="<?= base_url('admin/keyword-rules/add') ?>"
          class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-semibold text-sm rounded-xl shadow hover:shadow-lg transition-all">+ Add Keyword</a>
     </div>
     <div class="overflow-x-auto">
-      <table class="w-full text-sm" id="keywordRulesTable">
+      <table class="w-full min-w-[760px] text-sm" id="keywordRulesTable">
         <thead>
           <tr class="text-left text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
             <th class="pb-3 pr-4">#</th>
@@ -70,7 +70,7 @@
                 <?php endif; ?>
               </td>
               <td class="py-3">
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2">
                   <a href="<?= base_url('admin/keyword-rules/edit/' . $item['id']) ?>"
                      class="inline-flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
@@ -122,6 +122,7 @@ $(document).ready(function () {
     $('#keywordRulesTable').DataTable({
       pageLength: 25,
       order: [[0, 'asc']],
+      scrollX: true,
       language: { emptyTable: 'No keyword rules found for your section. Add one to get started.' }
     });
   }

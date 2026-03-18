@@ -53,10 +53,12 @@
 </head>
 <body class="bg-gray-100 min-h-screen">
 
+<?php $routePrefix = str_starts_with(uri_string(), 'admin/') ? 'admin' : 'super-admin'; ?>
+
 <!-- Toolbar (hidden on print) -->
-<div class="no-print sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm px-6 py-3 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-        <a href="<?= site_url('super-admin/pm-plans') ?>"
+<div class="no-print sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm px-4 sm:px-6 py-3 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+    <div class="flex flex-wrap items-center gap-3">
+        <a href="<?= site_url($routePrefix . '/pm-plans') ?>"
            class="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition">
             <i class="fa-solid fa-arrow-left"></i> Back to Plans
         </a>
@@ -65,8 +67,8 @@
             PM Plan <?= esc($plan['plan_year']) ?> – <?= esc($plan['title']) ?>
         </span>
     </div>
-    <div class="flex items-center gap-2">
-        <a href="<?= site_url('super-admin/pm-plans/edit/' . $plan['plan_id']) ?>"
+    <div class="flex flex-wrap items-center gap-2">
+        <a href="<?= site_url($routePrefix . '/pm-plans/edit/' . $plan['plan_id']) ?>"
            class="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
             <i class="fa-solid fa-pencil text-xs"></i> Edit
         </a>
@@ -84,7 +86,7 @@
 <div class="page">
 
     <!-- ── HEADER ──────────────────────────────────────────────────────────── -->
-    <div class="flex items-start justify-between mb-1">
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-1">
         <!-- Logo placeholder -->
         <div class="flex items-center gap-2">
             <div class="w-14 h-14 rounded-full border-2 border-gray-400 flex items-center justify-center bg-gray-100 text-gray-500 text-xs text-center leading-tight font-bold">
@@ -132,7 +134,7 @@
             <tr>
                 <th rowspan="2" class="desc-cell text-left px-3 py-2" style="min-width:160px;">DESCRIPTION</th>
                 <th colspan="12">
-                    <?= strtoupper(esc($plan['title'])) ?> EQUIPMENT
+                    <?= esc(strtoupper((string) ($plan['title'] ?? ''))) ?> EQUIPMENT
                 </th>
             </tr>
             <tr>

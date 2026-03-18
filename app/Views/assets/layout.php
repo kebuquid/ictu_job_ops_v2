@@ -52,21 +52,28 @@ $_isSA = ($_p === 'super-admin');
 
   <div class="flex h-screen overflow-hidden relative z-10">
 
+    <div id="assetSidebarOverlay" class="fixed inset-0 bg-slate-900/45 backdrop-blur-[1px] z-30 hidden lg:hidden" aria-hidden="true"></div>
+
     <!-- ─── SIDEBAR ─── -->
-    <aside class="w-72 bg-white/80 backdrop-blur-xl shadow-2xl flex flex-col border-r border-blue-100/50 shrink-0">
+    <aside id="assetSidebar" class="fixed inset-y-0 left-0 z-40 w-72 max-w-[86vw] bg-white/90 backdrop-blur-xl shadow-2xl flex flex-col border-r border-blue-100/50 shrink-0 -translate-x-full transition-transform duration-300 ease-out lg:relative lg:z-auto lg:max-w-none lg:translate-x-0">
 
       <!-- Logo -->
       <div class="p-6 border-b border-blue-100/60">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-            </svg>
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+              </svg>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400 font-semibold tracking-wider uppercase">CSPC – ICTU</p>
+              <p class="text-sm font-extrabold text-gray-900 leading-tight">Job Ticketing</p>
+            </div>
           </div>
-          <div>
-            <p class="text-xs text-gray-400 font-semibold tracking-wider uppercase">CSPC – ICTU</p>
-            <p class="text-sm font-extrabold text-gray-900 leading-tight">Job Ticketing</p>
-          </div>
+          <button id="assetSidebarClose" type="button" class="inline-flex lg:hidden items-center justify-center w-9 h-9 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition" aria-label="Close navigation menu">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
         </div>
       </div>
 
@@ -208,25 +215,23 @@ $_isSA = ($_p === 'super-admin');
     </aside>
 
     <!-- ─── MAIN CONTENT ─── -->
-    <main class="flex-1 overflow-y-auto">
+    <main class="flex-1 overflow-y-auto min-w-0">
 
       <!-- Top bar -->
-      <header class="bg-white/70 backdrop-blur-xl border-b border-blue-100/50 px-8 py-4 flex items-center gap-4 sticky top-0 z-20">
+      <header class="bg-white/70 backdrop-blur-xl border-b border-blue-100/50 px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-3 sticky top-0 z-20">
+        <button id="assetSidebarToggle" type="button" class="inline-flex lg:hidden items-center justify-center w-10 h-10 rounded-xl border border-blue-200 bg-white text-blue-700 hover:bg-blue-50 transition" aria-controls="assetSidebar" aria-expanded="false" aria-label="Open navigation menu">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
         <div class="flex-1">
-          <h1 class="text-xl font-extrabold text-gray-900">
+          <h1 class="text-lg sm:text-xl font-extrabold text-gray-900">
             <?= esc($pageTitle ?? 'Asset Management') ?>
-            <span class="text-gray-400 font-normal text-base">/ <?= esc($pageSubtitle ?? '') ?></span>
+            <span class="block sm:inline text-gray-400 font-normal text-sm sm:text-base">/ <?= esc($pageSubtitle ?? '') ?></span>
           </h1>
           <p class="text-xs text-gray-400 mono"><?= date('l, F j, Y') ?></p>
         </div>
-        <div class="relative hidden md:block">
-          <input type="text" placeholder="Search..." class="pl-10 pr-4 py-2.5 rounded-xl border border-blue-100 bg-blue-50/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white transition-all w-64">
-          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        </div>
-        <?= view_cell('UserCell::displayAvatar') ?>
       </header>
 
-      <div class="p-6">
+      <div class="p-4 sm:p-6">
 
         <!-- Flash messages -->
         <?php if (session()->has('success')): ?>
@@ -254,5 +259,42 @@ $_isSA = ($_p === 'super-admin');
     </main>
 
   </div>
+
+  <script>
+  (() => {
+    const sidebar = document.getElementById('assetSidebar');
+    const overlay = document.getElementById('assetSidebarOverlay');
+    const openBtn = document.getElementById('assetSidebarToggle');
+    const closeBtn = document.getElementById('assetSidebarClose');
+    if (!sidebar || !overlay || !openBtn || !closeBtn) return;
+
+    const mq = window.matchMedia('(min-width: 1024px)');
+
+    const setOpen = (isOpen) => {
+      if (mq.matches) {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.add('hidden');
+        openBtn.setAttribute('aria-expanded', 'false');
+        document.body.classList.remove('overflow-hidden');
+        return;
+      }
+      sidebar.classList.toggle('-translate-x-full', !isOpen);
+      overlay.classList.toggle('hidden', !isOpen);
+      openBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      document.body.classList.toggle('overflow-hidden', isOpen);
+    };
+
+    openBtn.addEventListener('click', () => setOpen(true));
+    closeBtn.addEventListener('click', () => setOpen(false));
+    overlay.addEventListener('click', () => setOpen(false));
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    });
+
+    mq.addEventListener('change', () => setOpen(false));
+    setOpen(false);
+  })();
+  </script>
 </body>
 </html>

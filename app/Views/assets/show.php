@@ -44,7 +44,7 @@ ob_start();
             <!-- Hero Card -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5">
-                    <div class="flex items-start justify-between">
+                    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                         <div class="flex items-center gap-4">
                             <?php if (!empty($asset['asset_image'])): ?>
                             <img src="<?= base_url('uploads/assets/' . esc($asset['asset_image'])) ?>"

@@ -1,6 +1,7 @@
 <?php
 $pageTitle    = 'Preventive Maintenance Plans';
 $pageSubtitle = 'Annual PM schedules for ICTU assets';
+$routePrefix  = str_starts_with(uri_string(), 'admin/') ? 'admin' : 'super-admin';
 
 ob_start();
 ?>
@@ -44,24 +45,24 @@ ob_start();
             PM Plans
             <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full"><?= $total ?></span>
         </h2>
-        <div class="flex items-center gap-2">
-            <form method="get" action="<?= site_url('super-admin/pm-plans') ?>" class="flex items-center gap-1">
+        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <form method="get" action="<?= site_url($routePrefix . '/pm-plans') ?>" class="flex items-center gap-1 w-full sm:w-auto">
                 <div class="relative">
                     <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
                         <i class="fa-solid fa-magnifying-glass text-xs"></i>
                     </span>
                     <input type="text" name="q"
-                           class="pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
+                           class="pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-48"
                            placeholder="Search year, title…"
                            value="<?= esc($keyword ?? '') ?>">
                 </div>
                 <?php if (!empty($keyword)): ?>
-                    <a href="<?= site_url('super-admin/pm-plans') ?>" class="p-2 text-gray-400 hover:text-red-500 transition">
+                    <a href="<?= site_url($routePrefix . '/pm-plans') ?>" class="p-2 text-gray-400 hover:text-red-500 transition">
                         <i class="fa-solid fa-xmark"></i>
                     </a>
                 <?php endif; ?>
             </form>
-            <a href="<?= site_url('super-admin/pm-plans/create') ?>"
+            <a href="<?= site_url($routePrefix . '/pm-plans/create') ?>"
                class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
                 <i class="fa-solid fa-plus text-xs"></i>
                 New Plan
@@ -70,7 +71,7 @@ ob_start();
     </div>
 
     <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+        <table class="w-full min-w-[980px] text-sm">
             <thead>
                 <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
                     <th class="px-4 py-3 text-left">#</th>
@@ -89,7 +90,7 @@ ob_start();
                     <td colspan="8" class="px-4 py-12 text-center text-gray-400">
                         <i class="fa-solid fa-calendar-days text-4xl mb-3 block text-gray-200"></i>
                         No preventive maintenance plans found.
-                        <a href="<?= site_url('super-admin/pm-plans/create') ?>" class="text-blue-500 hover:underline ml-1">Create one</a>
+                        <a href="<?= site_url($routePrefix . '/pm-plans/create') ?>" class="text-blue-500 hover:underline ml-1">Create one</a>
                     </td>
                 </tr>
             <?php else: ?>
@@ -123,19 +124,19 @@ ob_start();
                     </td>
                     <td class="px-4 py-3">
                         <div class="flex items-center justify-center gap-1 opacity-80 group-hover:opacity-100 transition">
-                            <a href="<?= site_url('super-admin/pm-plans/show/' . $pl['plan_id']) ?>"
+                                     <a href="<?= site_url($routePrefix . '/pm-plans/show/' . $pl['plan_id']) ?>"
                                class="p-1.5 rounded-lg text-blue-500 hover:bg-blue-50 transition" title="View">
                                 <i class="fa-solid fa-eye text-xs"></i>
                             </a>
-                            <a href="<?= site_url('super-admin/pm-plans/show/' . $pl['plan_id']) ?>" target="_blank"
+                                     <a href="<?= site_url($routePrefix . '/pm-plans/show/' . $pl['plan_id']) ?>" target="_blank"
                                class="p-1.5 rounded-lg text-green-600 hover:bg-green-50 transition" title="Print / Save PDF">
                                 <i class="fa-solid fa-print text-xs"></i>
                             </a>
-                            <a href="<?= site_url('super-admin/pm-plans/edit/' . $pl['plan_id']) ?>"
+                                     <a href="<?= site_url($routePrefix . '/pm-plans/edit/' . $pl['plan_id']) ?>"
                                class="p-1.5 rounded-lg text-amber-500 hover:bg-amber-50 transition" title="Edit">
                                 <i class="fa-solid fa-pencil text-xs"></i>
                             </a>
-                            <a href="<?= site_url('super-admin/pm-plans/delete/' . $pl['plan_id']) ?>"
+                                     <a href="<?= site_url($routePrefix . '/pm-plans/delete/' . $pl['plan_id']) ?>"
                                class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition" title="Delete"
                                onclick="return confirm('Delete this PM plan and all its items?')">
                                 <i class="fa-solid fa-trash text-xs"></i>
@@ -149,13 +150,13 @@ ob_start();
         </table>
     </div>
 
-    <div class="px-6 py-3 border-t border-gray-100 bg-gray-50 text-xs text-gray-400 flex items-center justify-between">
+    <div class="px-6 py-3 border-t border-gray-100 bg-gray-50 text-xs text-gray-400 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <span>Showing <?= count($plans) ?> of <?= $total ?> plans</span>
         <span>Updated: <?= date('M d, Y h:i A') ?></span>
     </div>
 
     <?php if (isset($pager) && $pager->getPageCount() > 1): ?>
-    <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+    <div class="px-6 py-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <span class="text-xs text-gray-400">
             <?= ($pager->getCurrentPage() - 1) * $perPage + 1 ?> – <?= min($pager->getCurrentPage() * $perPage, $total) ?> of <?= $total ?>
         </span>
@@ -163,7 +164,7 @@ ob_start();
             <?php
             $cur      = $pager->getCurrentPage();
             $tot      = $pager->getPageCount();
-            $base     = site_url('super-admin/pm-plans') . (empty($keyword) ? '?' : '?q=' . urlencode($keyword) . '&');
+            $base     = site_url($routePrefix . '/pm-plans') . (empty($keyword) ? '?' : '?q=' . urlencode($keyword) . '&');
             ?>
             <?php if ($cur > 1): ?>
                 <a href="<?= $base ?>page=<?= $cur - 1 ?>" class="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition text-xs">

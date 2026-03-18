@@ -4,7 +4,7 @@
 <?= $this->section('pageSubtitle') ?>Reassign to Another Employee<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="p-8 space-y-6 max-w-3xl mx-auto">
+<div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-3xl mx-auto">
 
   <?php if(session()->getFlashdata('error')): ?>
     <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm"><?= session()->getFlashdata('error') ?></div>
@@ -13,7 +13,7 @@
   <!-- Ticket Info Card -->
   <div class="fade-in bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-blue-100/50 shadow-lg">
     <h3 class="font-bold text-gray-900 text-lg mb-4">Ticket Details</h3>
-    <div class="grid grid-cols-2 gap-4 text-sm">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
       <div>
         <span class="text-gray-400 text-xs uppercase tracking-wider">Ticket ID</span>
         <p class="font-bold text-blue-600 mono">ICTU-<?= date('Y', strtotime($response['created_at'])) ?>-<?= str_pad($response['job_ticket_id'], 5, '0', STR_PAD_LEFT) ?></p>
@@ -22,7 +22,7 @@
         <span class="text-gray-400 text-xs uppercase tracking-wider">Currently Assigned To</span>
         <p class="font-semibold text-gray-700"><?= esc($response['assigned_name'] ?? 'Unassigned') ?></p>
       </div>
-      <div class="col-span-2">
+      <div class="sm:col-span-2">
         <span class="text-gray-400 text-xs uppercase tracking-wider">Problem Description</span>
         <p class="text-gray-700 mt-1"><?= esc($response['problem_description'] ?? 'N/A') ?></p>
       </div>
@@ -58,7 +58,7 @@
       </div>
 
       <?php if(!empty($employees)): ?>
-      <div class="flex items-center gap-3 mt-6">
+      <div class="flex flex-col sm:flex-row sm:items-center gap-3 mt-6">
         <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-semibold text-sm rounded-xl shadow hover:shadow-lg transition-all">
           Transfer Ticket
         </button>

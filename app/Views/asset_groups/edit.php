@@ -2,6 +2,7 @@
 $pageTitle    = 'Edit Group: ' . esc($group['group_name']);
 $pageSubtitle = 'Update group details (individual assets keep their own data)';
 $g = $group;
+$routePrefix  = $routePrefix ?? (str_starts_with(uri_string(), 'admin/') ? 'admin' : 'super-admin');
 ob_start();
 ?>
 
@@ -9,15 +10,15 @@ ob_start();
 
     <!-- Breadcrumb -->
     <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
-        <a href="<?= site_url('asset-groups') ?>" class="hover:text-blue-600 transition">Asset Groups</a>
+        <a href="<?= site_url($routePrefix . '/asset-groups') ?>" class="hover:text-blue-600 transition">Asset Groups</a>
         <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
-        <a href="<?= site_url('asset-groups/show/' . $g['group_id']) ?>" class="hover:text-blue-600 transition"><?= esc($g['group_name']) ?></a>
+        <a href="<?= site_url($routePrefix . '/asset-groups/show/' . $g['group_id']) ?>" class="hover:text-blue-600 transition"><?= esc($g['group_name']) ?></a>
         <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
         <span class="text-gray-700 font-medium">Edit</span>
     </nav>
 
     <!-- Step Indicators -->
-    <div class="flex items-center justify-between mb-8 relative">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8 relative">
         <div class="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 z-0">
             <div id="progress-bar" class="h-full bg-blue-500 transition-all duration-500" style="width:0%"></div>
         </div>
@@ -42,7 +43,7 @@ ob_start();
         <?php endforeach; ?>
     </div>
 
-    <form action="<?= site_url('asset-groups/update/' . $g['group_id']) ?>" method="post" id="group-form">
+    <form action="<?= site_url($routePrefix . '/asset-groups/update/' . $g['group_id']) ?>" method="post" id="group-form">
         <?= csrf_field() ?>
 
         <!-- STEP 1: Group Info + Settings -->
@@ -104,8 +105,8 @@ ob_start();
                     </div>
                 </div>
             </div>
-            <div class="flex justify-between">
-                <a href="<?= site_url('asset-groups/show/' . $g['group_id']) ?>" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-600 bg-white hover:bg-gray-50">
+            <div class="flex flex-col sm:flex-row sm:justify-between gap-3">
+                <a href="<?= site_url($routePrefix . '/asset-groups/show/' . $g['group_id']) ?>" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-600 bg-white hover:bg-gray-50">
                     Cancel
                 </a>
                 <button type="button" onclick="goStep(2)" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl flex items-center gap-2">
@@ -193,7 +194,7 @@ ob_start();
                 </div>
             </div>
 
-            <div class="flex justify-between">
+            <div class="flex flex-col sm:flex-row sm:justify-between gap-3">
                 <button type="button" onclick="goStep(1)" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-600 bg-white hover:bg-gray-50 flex items-center gap-2">
                     <i class="fa-solid fa-arrow-left text-xs"></i> Back
                 </button>
@@ -246,7 +247,7 @@ ob_start();
                     </div>
                 </div>
             </div>
-            <div class="flex justify-between">
+            <div class="flex flex-col sm:flex-row sm:justify-between gap-3">
                 <button type="button" onclick="goStep(2)" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-600 bg-white hover:bg-gray-50 flex items-center gap-2">
                     <i class="fa-solid fa-arrow-left text-xs"></i> Back
                 </button>

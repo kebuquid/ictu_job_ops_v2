@@ -48,9 +48,12 @@
 
   <div class="flex h-screen overflow-hidden relative z-10">
 
-    <aside class="w-72 bg-white/80 backdrop-blur-xl shadow-2xl flex flex-col border-r border-purple-100/50 shrink-0">
+    <div id="studentSidebarOverlay" class="fixed inset-0 bg-violet-900/45 backdrop-blur-[1px] z-30 hidden lg:hidden" aria-hidden="true"></div>
+
+    <aside id="studentSidebar" class="fixed inset-y-0 left-0 z-40 w-72 max-w-[86vw] bg-white/90 backdrop-blur-xl shadow-2xl flex flex-col border-r border-purple-100/50 shrink-0 -translate-x-full transition-transform duration-300 ease-out lg:relative lg:z-auto lg:max-w-none lg:translate-x-0">
       <div class="p-6 border-b border-purple-100/60">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
           <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-violet-700 rounded-xl flex items-center justify-center shadow-lg">
             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
@@ -60,6 +63,10 @@
             <p class="text-xs text-purple-400 font-semibold tracking-wider uppercase">CSPC – ICTU</p>
             <p class="text-sm font-800 font-extrabold text-gray-900 leading-tight">Job Ticketing</p>
           </div>
+          </div>
+          <button id="studentSidebarClose" type="button" class="inline-flex lg:hidden items-center justify-center w-9 h-9 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition" aria-label="Close navigation menu">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
         </div>
       </div>
 
@@ -93,17 +100,15 @@
       </div>
     </aside>
 
-    <main class="flex-1 overflow-y-auto">
-      <header class="bg-white/70 backdrop-blur-xl border-b border-purple-100/50 px-8 py-4 flex items-center gap-4 sticky top-0 z-20">
+    <main class="flex-1 overflow-y-auto min-w-0">
+      <header class="bg-white/70 backdrop-blur-xl border-b border-purple-100/50 px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-3 sticky top-0 z-20">
+        <button id="studentSidebarToggle" type="button" class="inline-flex lg:hidden items-center justify-center w-10 h-10 rounded-xl border border-purple-200 bg-white text-purple-700 hover:text-purple-800 hover:bg-purple-50 transition" aria-controls="studentSidebar" aria-expanded="false" aria-label="Open navigation menu">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
         <div class="flex-1">
-          <h1 class="text-xl font-extrabold text-gray-900"><?= $this->renderSection('pageTitle') ?: 'Dashboard' ?> <span class="text-purple-400 font-normal text-base">/ <?= $this->renderSection('pageSubtitle') ?: 'Overview' ?></span></h1>
+          <h1 class="text-lg sm:text-xl font-extrabold text-gray-900\"><?= $this->renderSection('pageTitle') ?: 'Dashboard' ?> <span class="block sm:inline text-purple-400 font-normal text-sm sm:text-base">/ <?= $this->renderSection('pageSubtitle') ?: 'Overview' ?></span></h1>
           <p class="text-xs text-purple-400 mono"><?= date('l, F j, Y') ?></p>
         </div>
-        <button class="relative w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center hover:bg-purple-100 transition-colors">
-          <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-          <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
-        <?= view_cell('UserCell::displayAvatar') ?>
       </header>
 
       <?= $this->renderSection('content') ?>
@@ -119,5 +124,42 @@
       <path d="M0,64 C240,96 480,32 720,64 C960,96 1200,32 1440,64 L1440,120 L0,120 Z" fill="#9333ea"/>
     </svg>
   </div>
+
+  <script>
+  (() => {
+    const sidebar = document.getElementById('studentSidebar');
+    const overlay = document.getElementById('studentSidebarOverlay');
+    const openBtn = document.getElementById('studentSidebarToggle');
+    const closeBtn = document.getElementById('studentSidebarClose');
+    if (!sidebar || !overlay || !openBtn || !closeBtn) return;
+
+    const mq = window.matchMedia('(min-width: 1024px)');
+
+    const setOpen = (isOpen) => {
+      if (mq.matches) {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.add('hidden');
+        openBtn.setAttribute('aria-expanded', 'false');
+        document.body.classList.remove('overflow-hidden');
+        return;
+      }
+      sidebar.classList.toggle('-translate-x-full', !isOpen);
+      overlay.classList.toggle('hidden', !isOpen);
+      openBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      document.body.classList.toggle('overflow-hidden', isOpen);
+    };
+
+    openBtn.addEventListener('click', () => setOpen(true));
+    closeBtn.addEventListener('click', () => setOpen(false));
+    overlay.addEventListener('click', () => setOpen(false));
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    });
+
+    mq.addEventListener('change', () => setOpen(false));
+    setOpen(false);
+  })();
+  </script>
 </body>
 </html>

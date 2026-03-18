@@ -138,9 +138,10 @@ class TechnicianController extends BaseController
         $userId = $this->userId();
 
         $ticket = $this->jobTicketModel
-            ->select('job_tickets.*, job_ticket_requests.*')
+            ->select('job_tickets.*, job_ticket_requests.*, requestor.name as requestor_name, requestor.email as requestor_email, requestor.account_no as requestor_account_no, requestor.phone_number as requestor_phone_number')
             ->join('job_ticket_requests', 'job_ticket_requests.job_ticket_id = job_tickets.job_ticket_id')
             ->join('job_ticket_responses', 'job_ticket_responses.job_ticket_id = job_tickets.job_ticket_id')
+            ->join('users as requestor', 'requestor.user_id = job_tickets.requestor_id', 'left')
             ->where('job_tickets.job_ticket_id', $ticketId)
             ->where('job_ticket_responses.staff_id', $userId)
             ->first();
@@ -175,7 +176,7 @@ class TechnicianController extends BaseController
         $userId = $this->userId();
 
         $response = $this->jobTicketResponseModel
-            ->select('job_ticket_responses.*, job_tickets.job_status, job_ticket_requests.*, requestor.name as requestor_name')
+            ->select('job_ticket_responses.*, job_tickets.job_status, job_ticket_requests.*, requestor.name as requestor_name, requestor.email as requestor_email, requestor.account_no as requestor_account_no, requestor.phone_number as requestor_phone_number')
             ->join('job_tickets', 'job_tickets.job_ticket_id = job_ticket_responses.job_ticket_id')
             ->join('job_ticket_requests', 'job_ticket_requests.job_ticket_id = job_tickets.job_ticket_id')
             ->join('users as requestor', 'requestor.user_id = job_tickets.requestor_id', 'left')

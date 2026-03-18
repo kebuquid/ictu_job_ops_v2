@@ -48,19 +48,26 @@
 
   <div class="flex h-screen overflow-hidden relative z-10">
 
+    <div id="sectionHeadSidebarOverlay" class="fixed inset-0 bg-slate-900/45 backdrop-blur-[1px] z-30 hidden lg:hidden" aria-hidden="true"></div>
+
     <!-- Sidebar -->
-    <aside class="w-72 bg-white/80 backdrop-blur-xl shadow-2xl flex flex-col border-r border-blue-100/50 shrink-0">
+    <aside id="sectionHeadSidebar" class="fixed inset-y-0 left-0 z-40 w-72 max-w-[86vw] bg-white/90 backdrop-blur-xl shadow-2xl flex flex-col border-r border-blue-100/50 shrink-0 -translate-x-full transition-transform duration-300 ease-out lg:relative lg:z-auto lg:max-w-none lg:translate-x-0">
       <div class="p-6 border-b border-blue-100/60">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-            </svg>
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+              </svg>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400 font-semibold tracking-wider uppercase">CSPC – ICTU</p>
+              <p class="text-sm font-800 font-extrabold text-gray-900 leading-tight">Job Ticketing</p>
+            </div>
           </div>
-          <div>
-            <p class="text-xs text-gray-400 font-semibold tracking-wider uppercase">CSPC – ICTU</p>
-            <p class="text-sm font-800 font-extrabold text-gray-900 leading-tight">Job Ticketing</p>
-          </div>
+          <button id="sectionHeadSidebarClose" type="button" class="inline-flex lg:hidden items-center justify-center w-9 h-9 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition" aria-label="Close navigation menu">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
         </div>
       </div>
 
@@ -108,22 +115,22 @@
 
         <p class="text-xs font-700 text-gray-400 uppercase tracking-widest px-3 pb-1 pt-4">Asset Management</p>
 
-        <a href="<?= base_url('admin/assets') ?>" class="sidebar-item <?= str_starts_with(uri_string(), 'super-admin/assets') ? 'sidebar-active' : 'text-gray-600 hover:text-blue-700 hover:bg-blue-50' ?> flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all">
+        <a href="<?= base_url('admin/assets') ?>" class="sidebar-item <?= str_starts_with(uri_string(), 'admin/assets') ? 'sidebar-active' : 'text-gray-600 hover:text-blue-700 hover:bg-blue-50' ?> flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all">
           <svg class="sidebar-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
           Assets
         </a>
 
-        <a href="<?= base_url('admin/asset-groups') ?>" class="sidebar-item <?= str_starts_with(uri_string(), 'super-admin/asset-groups') ? 'sidebar-active' : 'text-gray-600 hover:text-blue-700 hover:bg-blue-50' ?> flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all">
+        <a href="<?= base_url('admin/asset-groups') ?>" class="sidebar-item <?= str_starts_with(uri_string(), 'admin/asset-groups') ? 'sidebar-active' : 'text-gray-600 hover:text-blue-700 hover:bg-blue-50' ?> flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all">
           <svg class="sidebar-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
           Asset Groups
         </a>
 
-        <a href="<?= base_url('admin/maintenance') ?>" class="sidebar-item <?= str_starts_with(uri_string(), 'super-admin/maintenance') ? 'sidebar-active' : 'text-gray-600 hover:text-blue-700 hover:bg-blue-50' ?> flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all">
+        <a href="<?= base_url('admin/maintenance') ?>" class="sidebar-item <?= str_starts_with(uri_string(), 'admin/maintenance') ? 'sidebar-active' : 'text-gray-600 hover:text-blue-700 hover:bg-blue-50' ?> flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all">
           <svg class="sidebar-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
           Maintenance
         </a>
 
-        <a href="<?= base_url('admin/disposals') ?>" class="sidebar-item <?= str_starts_with(uri_string(), 'super-admin/disposals') ? 'sidebar-active' : 'text-gray-600 hover:text-blue-700 hover:bg-blue-50' ?> flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all">
+        <a href="<?= base_url('admin/disposals') ?>" class="sidebar-item <?= str_starts_with(uri_string(), 'admin/disposals') ? 'sidebar-active' : 'text-gray-600 hover:text-blue-700 hover:bg-blue-50' ?> flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all">
           <svg class="sidebar-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
           Disposals
         </a>
@@ -139,10 +146,13 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 overflow-y-auto">
-      <header class="bg-white/70 backdrop-blur-xl border-b border-blue-100/50 px-8 py-4 flex items-center gap-4 sticky top-0 z-20">
+    <main class="flex-1 overflow-y-auto min-w-0">
+      <header class="bg-white/70 backdrop-blur-xl border-b border-blue-100/50 px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-3 sticky top-0 z-20">
+        <button id="sectionHeadSidebarToggle" type="button" class="inline-flex lg:hidden items-center justify-center w-10 h-10 rounded-xl border border-blue-200 bg-white text-blue-700 hover:bg-blue-50 transition" aria-controls="sectionHeadSidebar" aria-expanded="false" aria-label="Open navigation menu">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
         <div class="flex-1">
-          <h1 class="text-xl font-extrabold text-gray-900"><?= $this->renderSection('pageTitle') ?: 'Dashboard' ?> <span class="text-gray-400 font-normal text-base">/ <?= $this->renderSection('pageSubtitle') ?: 'Overview' ?></span></h1>
+          <h1 class="text-lg sm:text-xl font-extrabold text-gray-900\"><?= $this->renderSection('pageTitle') ?: 'Dashboard' ?> <span class="block sm:inline text-gray-400 font-normal text-sm sm:text-base">/ <?= $this->renderSection('pageSubtitle') ?: 'Overview' ?></span></h1>
           <p class="text-xs text-gray-400 mono"><?= date('l, F j, Y') ?></p>
         </div>
       </header>
@@ -160,5 +170,42 @@
       <path d="M0,64 C240,96 480,32 720,64 C960,96 1200,32 1440,64 L1440,120 L0,120 Z" fill="#0ea5e9"/>
     </svg>
   </div>
+
+  <script>
+  (() => {
+    const sidebar = document.getElementById('sectionHeadSidebar');
+    const overlay = document.getElementById('sectionHeadSidebarOverlay');
+    const openBtn = document.getElementById('sectionHeadSidebarToggle');
+    const closeBtn = document.getElementById('sectionHeadSidebarClose');
+    if (!sidebar || !overlay || !openBtn || !closeBtn) return;
+
+    const mq = window.matchMedia('(min-width: 1024px)');
+
+    const setOpen = (isOpen) => {
+      if (mq.matches) {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.add('hidden');
+        openBtn.setAttribute('aria-expanded', 'false');
+        document.body.classList.remove('overflow-hidden');
+        return;
+      }
+      sidebar.classList.toggle('-translate-x-full', !isOpen);
+      overlay.classList.toggle('hidden', !isOpen);
+      openBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      document.body.classList.toggle('overflow-hidden', isOpen);
+    };
+
+    openBtn.addEventListener('click', () => setOpen(true));
+    closeBtn.addEventListener('click', () => setOpen(false));
+    overlay.addEventListener('click', () => setOpen(false));
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    });
+
+    mq.addEventListener('change', () => setOpen(false));
+    setOpen(false);
+  })();
+  </script>
 </body>
 </html>

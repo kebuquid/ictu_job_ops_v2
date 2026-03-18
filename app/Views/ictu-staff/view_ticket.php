@@ -1,7 +1,7 @@
 <?= $this->extend('ictu-staff/layout') ?>
 
 <?= $this->section('content') ?>
-<div class="p-8 space-y-6">
+<div class="p-4 sm:p-6 lg:p-8 space-y-6">
 
   <a href="<?= base_url($urlPrefix . '/my-tickets') ?>" class="inline-flex items-center text-sm text-slate-600 hover:text-slate-800 font-medium transition-colors">
     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
@@ -9,7 +9,7 @@
   </a>
 
   <!-- Page Header -->
-  <div class="flex items-center justify-between">
+  <div class="flex items-center justify-between gap-3 flex-wrap">
     <div>
       <h2 class="text-xl font-bold text-gray-900">Ticket Details</h2>
       <p class="text-sm text-gray-500 mono">ICTU-<?= date('Y', strtotime($ticket['created_at'] ?? 'now')) ?>-<?= str_pad($ticket['job_ticket_id'] ?? 0, 5, '0', STR_PAD_LEFT) ?></p>
@@ -49,9 +49,37 @@
           <p class="text-sm text-gray-700"><?= date('F d, Y h:i A', strtotime($ticket['created_at'])) ?></p>
         </div>
         <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Requestor</span>
+          <p class="text-sm text-gray-700"><?= esc($ticket['requestor_name'] ?? 'N/A') ?></p>
+        </div>
+        <?php if(!empty($ticket['requestor_account_no'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Requestor Account No.</span>
+          <p class="mono text-sm text-gray-700"><?= esc($ticket['requestor_account_no']) ?></p>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($ticket['requestor_email'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Requestor Email</span>
+          <p class="text-sm text-gray-700 break-all"><?= esc($ticket['requestor_email']) ?></p>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($ticket['requestor_phone_number'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Requestor Contact</span>
+          <p class="text-sm text-gray-700"><?= esc($ticket['requestor_phone_number']) ?></p>
+        </div>
+        <?php endif; ?>
+        <div>
           <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Problem Description</span>
           <p class="text-sm text-gray-700"><?= esc($ticket['problem_description'] ?? 'N/A') ?></p>
         </div>
+        <?php if(!empty($ticket['additional_details'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Additional Details</span>
+          <p class="text-sm text-gray-700 whitespace-pre-line"><?= esc($ticket['additional_details']) ?></p>
+        </div>
+        <?php endif; ?>
         <?php if(!empty($ticket['hardware_issues'])): ?>
         <div>
           <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Hardware Issues</span>
@@ -85,10 +113,46 @@
           <p class="mono text-sm text-gray-700"><?= esc($ticket['property_no']) ?></p>
         </div>
         <?php endif; ?>
-        <?php if(!empty($ticket['attachments'])): ?>
+        <?php if(!empty($ticket['asset_id'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Asset ID</span>
+          <p class="mono text-sm text-gray-700"><?= esc((string) $ticket['asset_id']) ?></p>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($ticket['priority_level'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Priority Level</span>
+          <p class="text-sm text-gray-700"><?= esc((string) $ticket['priority_level']) ?></p>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($ticket['request_type'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Request Type</span>
+          <p class="text-sm text-gray-700"><?= esc((string) $ticket['request_type']) ?></p>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($ticket['request_platform'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Request Platform</span>
+          <p class="text-sm text-gray-700"><?= esc((string) $ticket['request_platform']) ?></p>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($ticket['request_action'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Request Action</span>
+          <p class="text-sm text-gray-700"><?= esc((string) $ticket['request_action']) ?></p>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($ticket['additional_request_file'])): ?>
         <div>
           <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Attachment</span>
-          <a href="<?= base_url('uploads/tickets/' . $ticket['attachments']) ?>" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 underline"><?= esc($ticket['attachments']) ?></a>
+          <a href="<?= base_url($ticket['additional_request_file']) ?>" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 underline"><?= esc(basename((string) $ticket['additional_request_file'])) ?></a>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($ticket['pre_repair_form'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Pre-Repair Form</span>
+          <a href="<?= base_url($ticket['pre_repair_form']) ?>" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 underline"><?= esc(basename((string) $ticket['pre_repair_form'])) ?></a>
         </div>
         <?php endif; ?>
       </div>
@@ -132,8 +196,8 @@
         <?php if(!empty($responseParts)): ?>
         <div>
           <span class="text-xs text-gray-400 uppercase tracking-wider block mb-2">Parts Replaced / Used</span>
-          <div class="overflow-hidden rounded-xl border border-gray-200">
-            <table class="w-full text-sm">
+          <div class="overflow-x-auto rounded-xl border border-gray-200">
+            <table class="w-full min-w-[620px] text-sm">
               <thead class="bg-gray-50">
                 <tr>
                   <th class="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase">Type</th>

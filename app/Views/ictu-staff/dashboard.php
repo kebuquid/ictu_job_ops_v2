@@ -4,7 +4,7 @@
 <?= $this->section('pageSubtitle') ?>My Overview<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="p-8 space-y-6">
+<div class="p-4 sm:p-6 lg:p-8 space-y-6">
 
   <!-- Stats Cards -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -56,12 +56,12 @@
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- My Active Tickets -->
     <div class="fade-in delay-3 lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-emerald-100/50 shadow-lg">
-      <div class="flex items-center justify-between mb-5">
+      <div class="flex items-center justify-between gap-3 flex-wrap mb-5">
         <h3 class="font-bold text-gray-900">My Active Tickets</h3>
         <a href="<?= base_url('ictu-staff/my-tickets') ?>" class="text-xs text-emerald-600 hover:underline font-semibold">View All →</a>
       </div>
       <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+        <table class="w-full min-w-[700px] text-sm">
           <thead>
             <tr class="text-left text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
               <th class="pb-3 pr-4">ID</th>

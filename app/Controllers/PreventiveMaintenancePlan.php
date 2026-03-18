@@ -136,7 +136,7 @@ class PreventiveMaintenancePlan extends BaseController
             ]);
         }
 
-        return redirect()->to(site_url('super-admin/pm-plans'))
+        return redirect()->to(site_url($this->resolveRoutePrefix() . '/pm-plans'))
                          ->with('success', 'Preventive Maintenance Plan created for year ' . $this->request->getPost('plan_year') . '.');
     }
 
@@ -248,7 +248,7 @@ class PreventiveMaintenancePlan extends BaseController
             ]);
         }
 
-        return redirect()->to(site_url('super-admin/pm-plans'))
+        return redirect()->to(site_url($this->resolveRoutePrefix() . '/pm-plans'))
                          ->with('success', 'Plan updated successfully.');
     }
 
@@ -288,7 +288,18 @@ class PreventiveMaintenancePlan extends BaseController
             $this->planModel->delete($id);
         }
 
-        return redirect()->to(site_url('super-admin/pm-plans'))
+        return redirect()->to(site_url($this->resolveRoutePrefix() . '/pm-plans'))
                          ->with('success', 'Plan deleted.');
+    }
+
+    private function resolveRoutePrefix(): string
+    {
+        $path = trim((string) $this->request->getUri()->getPath(), '/');
+
+        if (str_starts_with($path, 'admin/')) {
+            return 'admin';
+        }
+
+        return 'super-admin';
     }
 }

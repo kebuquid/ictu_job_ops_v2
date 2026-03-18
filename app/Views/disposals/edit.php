@@ -1,15 +1,16 @@
 <?php
 $pageTitle    = 'Edit Disposal Record';
 $pageSubtitle = 'Update disposal details';
+$routePrefix  = $routePrefix ?? (str_starts_with(uri_string(), 'admin/') ? 'admin' : 'super-admin');
 
 ob_start();
 $r = $record;
 ?>
 
 <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
-    <a href="<?= site_url('disposals') ?>" class="hover:text-red-600 transition">Disposals</a>
+    <a href="<?= site_url($routePrefix . '/disposals') ?>" class="hover:text-red-600 transition">Disposals</a>
     <i class="fa-solid fa-chevron-right text-xs text-gray-300"></i>
-    <a href="<?= site_url("disposals/show/{$r['disposal_id']}") ?>" class="hover:text-red-600 transition">Record #<?= $r['disposal_id'] ?></a>
+    <a href="<?= site_url($routePrefix . "/disposals/show/{$r['disposal_id']}") ?>" class="hover:text-red-600 transition">Record #<?= $r['disposal_id'] ?></a>
     <i class="fa-solid fa-chevron-right text-xs text-gray-300"></i>
     <span class="text-gray-700 font-medium">Edit</span>
 </nav>
@@ -23,7 +24,7 @@ $r = $record;
 </div>
 <?php endif; ?>
 
-<form action="<?= site_url("disposals/update/{$r['disposal_id']}") ?>" method="post" enctype="multipart/form-data" class="space-y-6">
+<form action="<?= site_url($routePrefix . "/disposals/update/{$r['disposal_id']}") ?>" method="post" enctype="multipart/form-data" class="space-y-6">
     <?= csrf_field() ?>
     <input type="hidden" name="existing_disposal_image" value="<?= esc($r['disposal_image'] ?? '') ?>">
     <input type="file" name="disposal_image" id="disposal_image_input" accept="image/*" class="hidden" onchange="previewImage(this)">
@@ -133,8 +134,8 @@ $r = $record;
         </div>
     </div>
 
-    <div class="flex items-center justify-end gap-3">
-        <a href="<?= site_url("disposals/show/{$r['disposal_id']}") ?>"
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
+        <a href="<?= site_url($routePrefix . "/disposals/show/{$r['disposal_id']}") ?>"
            class="px-5 py-2.5 text-sm text-gray-600 hover:text-gray-800 border border-gray-200 rounded-xl hover:bg-gray-50 transition">
             Cancel
         </a>

@@ -4,7 +4,7 @@
 <?= $this->section('pageSubtitle') ?>Track Your Submissions<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="p-8 space-y-6">
+<div class="p-4 sm:p-6 lg:p-8 space-y-6">
 
   <?php if(session()->getFlashdata('success')): ?>
     <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm"><?= session()->getFlashdata('success') ?></div>
@@ -14,12 +14,12 @@
   <?php endif; ?>
 
   <div class="fade-in delay-1 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 shadow-lg">
-    <div class="flex items-center justify-between mb-5">
+    <div class="flex items-center justify-between gap-3 flex-wrap mb-5">
       <h3 class="font-bold text-gray-900 text-lg">All My Tickets</h3>
       <a href="<?= base_url('employee/create-ticket') ?>" class="px-4 py-2 bg-gradient-to-r from-gray-700 to-slate-800 text-white font-semibold text-sm rounded-xl shadow hover:shadow-lg transition-all">+ New Ticket</a>
     </div>
     <div class="overflow-x-auto">
-      <table id="myTicketsTable" class="w-full text-sm">
+      <table id="myTicketsTable" class="w-full min-w-[760px] text-sm">
         <thead>
           <tr class="text-left text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
             <th class="pb-3 pr-4">ID</th>
@@ -57,6 +57,7 @@ $(document).ready(function() {
     $('#myTicketsTable').DataTable({
       pageLength: 15,
       order: [[0, 'desc']],
+      scrollX: true,
       language: { emptyTable: 'You haven\'t submitted any tickets yet' }
     });
   }

@@ -1,12 +1,13 @@
 <?php
 $pageTitle    = 'Preventive Maintenance Records';
 $pageSubtitle = 'Track repairs and servicing for assets';
+$routePrefix  = str_starts_with(uri_string(), 'admin/') ? 'admin' : 'super-admin';
 
 ob_start();
 ?>
 
 <!-- Stats -->
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
         <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
             <i class="fa-solid fa-screwdriver-wrench text-blue-600 text-lg"></i>
@@ -124,24 +125,24 @@ ob_start();
             Maintenance Log
             <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full"><?= $stats['total'] ?></span>
         </h2>
-        <div class="flex items-center gap-2">
-            <form method="get" action="<?= site_url('maintenance') ?>" class="flex items-center gap-1">
+        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <form method="get" action="<?= site_url($routePrefix . '/maintenance') ?>" class="flex items-center gap-1 w-full sm:w-auto">
                 <div class="relative">
                     <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
                         <i class="fa-solid fa-magnifying-glass text-xs"></i>
                     </span>
                     <input type="text" name="q"
-                           class="pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-52"
+                           class="pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-52"
                            placeholder="Search…"
                            value="<?= esc($keyword ?? '') ?>">
                 </div>
                 <?php if (!empty($keyword)): ?>
-                    <a href="<?= site_url('maintenance') ?>?show_log=1" class="p-2 text-gray-400 hover:text-red-500 transition">
+                    <a href="<?= site_url($routePrefix . '/maintenance') ?>?show_log=1" class="p-2 text-gray-400 hover:text-red-500 transition">
                         <i class="fa-solid fa-xmark"></i>
                     </a>
                 <?php endif; ?>
             </form>
-            <a href="<?= site_url('maintenance/create') ?>"
+            <a href="<?= site_url($routePrefix . '/maintenance/create') ?>"
                class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
                 <i class="fa-solid fa-plus text-xs"></i>
                 Add Record
@@ -150,7 +151,7 @@ ob_start();
     </div>
 
     <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+        <table class="w-full min-w-[1080px] text-sm">
             <thead>
                 <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
                     <th class="px-4 py-3 text-left">#</th>
@@ -169,7 +170,7 @@ ob_start();
                     <td colspan="8" class="px-4 py-12 text-center text-gray-400">
                         <i class="fa-solid fa-wrench text-4xl mb-3 block text-gray-200"></i>
                         No maintenance records found.
-                        <a href="<?= site_url('maintenance/create') ?>" class="text-blue-500 hover:underline ml-1">Add one now</a>
+                        <a href="<?= site_url($routePrefix . '/maintenance/create') ?>" class="text-blue-500 hover:underline ml-1">Add one now</a>
                     </td>
                 </tr>
             <?php else: ?>
@@ -179,7 +180,7 @@ ob_start();
                     <td class="px-4 py-3 text-gray-400 text-xs row-num-cell" data-orig-num="<?= $rowNum ?>"><?= $rowNum ?></td>
                     <td class="px-4 py-3">
                         <?php if (!empty($r['asset_tag'])): ?>
-                            <a href="<?= site_url("assets/show/{$r['asset_id']}") ?>"
+                                     <a href="<?= site_url($routePrefix . "/assets/show/{$r['asset_id']}") ?>"
                                class="font-semibold text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-md hover:bg-gray-200">
                                 <?= esc($r['asset_tag']) ?>
                             </a>
@@ -194,7 +195,7 @@ ob_start();
                         <?php endif; ?>
                     </td>
                     <td class="px-4 py-3">
-                        <a href="<?= site_url("asset-groups/show/{$r['group_id']}") ?>"
+                                <a href="<?= site_url($routePrefix . "/asset-groups/show/{$r['group_id']}") ?>"
                            class="font-semibold text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-md hover:bg-blue-100">
                             <?= esc($r['group_name'] ?? '—') ?>
                         </a>
@@ -243,20 +244,20 @@ ob_start();
                     </td>
                     <td class="px-4 py-3">
                         <div class="flex items-center justify-center gap-1 opacity-80 group-hover:opacity-100 transition">
-                            <a href="<?= site_url("maintenance/show/{$r['maintenance_id']}") ?>"
+                                     <a href="<?= site_url($routePrefix . "/maintenance/show/{$r['maintenance_id']}") ?>"
                                class="p-1.5 rounded-lg text-blue-500 hover:bg-blue-50 transition" title="View">
                                 <i class="fa-solid fa-eye text-xs"></i>
                             </a>
-                            <a href="<?= site_url("maintenance/print/{$r['maintenance_id']}") ?>" target="_blank"
+                                     <a href="<?= site_url($routePrefix . "/maintenance/print/{$r['maintenance_id']}") ?>" target="_blank"
                                class="p-1.5 rounded-lg text-green-600 hover:bg-green-50 transition" title="Print Summary">
                                 <i class="fa-solid fa-print text-xs"></i>
                             </a>
-                            <a href="<?= site_url("maintenance/edit/{$r['maintenance_id']}") ?>"
+                                     <a href="<?= site_url($routePrefix . "/maintenance/edit/{$r['maintenance_id']}") ?>"
                                class="p-1.5 rounded-lg text-amber-500 hover:bg-amber-50 transition" title="Edit">
                                 <i class="fa-solid fa-pencil text-xs"></i>
                             </a>
                             <?php
-                                $_delUrl = site_url("maintenance/delete/{$r['maintenance_id']}") . '?show_log=1';
+                                $_delUrl = site_url($routePrefix . "/maintenance/delete/{$r['maintenance_id']}") . '?show_log=1';
                                 if (!empty($_GET['bld']))  $_delUrl .= '&bld='  . urlencode($_GET['bld']);
                                 if (!empty($_GET['unit'])) $_delUrl .= '&unit=' . urlencode($_GET['unit']);
                             ?>
@@ -274,13 +275,13 @@ ob_start();
         </table>
     </div>
 
-    <div class="px-6 py-3 border-t border-gray-100 bg-gray-50 text-xs text-gray-400 flex items-center justify-between">
+    <div class="px-6 py-3 border-t border-gray-100 bg-gray-50 text-xs text-gray-400 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <span>Showing <?= count($records) ?> of <?= $stats['total'] ?> records</span>
         <span>Updated: <?= date('M d, Y h:i A') ?></span>
     </div>
 
     <?php if (isset($pager)): ?>
-    <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+    <div class="px-6 py-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <span class="text-xs text-gray-400">
             <?= ($pager->getCurrentPage() - 1) * $perPage + 1 ?>
             &ndash;
@@ -293,7 +294,7 @@ ob_start();
             $totalPages   = $pager->getPageCount();
             $_bld         = $_GET['bld']  ?? '';
             $_unit        = $_GET['unit'] ?? '';
-            $baseUrl      = site_url('maintenance') . '?';
+            $baseUrl      = site_url($routePrefix . '/maintenance') . '?';
             if (!empty($keyword)) $baseUrl .= 'q='    . urlencode($keyword) . '&';
             if (!empty($_bld))    $baseUrl .= 'bld='  . urlencode($_bld)    . '&';
             if (!empty($_unit))   $baseUrl .= 'unit=' . urlencode($_unit)   . '&';
@@ -340,7 +341,7 @@ ob_start();
 <script>
 const _pmOuStats = <?= json_encode($pmOuStats ?? []) ?>;   // building → unit → {scheduled, done, assets[]}
 const _orgLogs   = <?= json_encode($orgUnitStats ?? []) ?>; // building → unit → record count
-const _basePageUrl = <?= json_encode(site_url('maintenance') . '?' . (!empty($keyword) ? 'q=' . urlencode($keyword) . '&' : '')) ?>;
+const _basePageUrl = <?= json_encode(site_url($routePrefix . '/maintenance') . '?' . (!empty($keyword) ? 'q=' . urlencode($keyword) . '&' : '')) ?>;
 
 let _activeBldg = null;
 let _activeUnit = null;

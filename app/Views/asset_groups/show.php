@@ -3,13 +3,14 @@
 // Also need all groups for the transfer modal
 $pageTitle    = 'Group: ' . esc($group['group_name']);
 $pageSubtitle = ($group['quantity'] ?? 0) . ' asset(s) in this group';
+$routePrefix  = $routePrefix ?? (str_starts_with(uri_string(), 'admin/') ? 'admin' : 'super-admin');
 ob_start();
 ?>
 
 <div class="max-w-5xl mx-auto">
 
     <!-- Back -->
-    <a href="<?= site_url('asset-groups') ?>" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-5">
+    <a href="<?= site_url($routePrefix . '/asset-groups') ?>" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-5">
         <i class="fa-solid fa-arrow-left text-xs"></i> Back to Groups
     </a>
 
@@ -25,7 +26,7 @@ ob_start();
                     <p class="text-sm text-gray-500"><?= esc($group['group_code'] ?? '') ?></p>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-3">
                 <?php
                 $sc = match($group['status'] ?? '') {
                     'Active'       => 'bg-green-100 text-green-700',
@@ -38,11 +39,11 @@ ob_start();
                 <span class="text-sm font-semibold px-3 py-1.5 rounded-full <?= $sc ?>">
                     <?= esc($group['status']) ?>
                 </span>
-                <a href="<?= site_url('asset-groups/edit/' . $group['group_id']) ?>"
+                <a href="<?= site_url($routePrefix . '/asset-groups/edit/' . $group['group_id']) ?>"
                    class="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 border border-blue-200 px-3 py-1.5 rounded-xl font-medium transition">
                     <i class="fa-solid fa-pen-to-square"></i> Edit Group
                 </a>
-                <a href="<?= site_url('asset-groups/delete/' . $group['group_id']) ?>"
+                <a href="<?= site_url($routePrefix . '/asset-groups/delete/' . $group['group_id']) ?>"
                    onclick="return confirm('Delete group? Individual assets will be unlinked but NOT deleted.')"
                    class="inline-flex items-center gap-2 text-sm text-red-500 hover:text-red-700 border border-red-200 px-3 py-1.5 rounded-xl font-medium transition">
                     <i class="fa-solid fa-trash"></i> Delete Group
@@ -134,7 +135,7 @@ ob_start();
                 <h3 class="font-semibold text-gray-800">Generated Assets</h3>
                 <span class="ml-1 text-xs bg-blue-100 text-blue-700 font-bold px-2.5 py-0.5 rounded-full"><?= count($assets) ?></span>
             </div>
-            <a href="<?= site_url('assets') ?>" class="text-xs text-blue-600 hover:underline font-medium">
+            <a href="<?= site_url($routePrefix . '/assets') ?>" class="text-xs text-blue-600 hover:underline font-medium">
                 View all assets →
             </a>
         </div>
@@ -142,7 +143,8 @@ ob_start();
         <?php if (empty($assets)): ?>
             <div class="p-10 text-center text-gray-400 text-sm">No assets linked to this group.</div>
         <?php else: ?>
-        <table class="w-full text-sm">
+        <div class="overflow-x-auto">
+        <table class="w-full min-w-[920px] text-sm">
             <thead>
                 <tr class="bg-gray-50 text-xs text-gray-500 uppercase tracking-wider border-b border-gray-100">
                     <th class="px-5 py-3 text-left">#</th>
@@ -177,11 +179,11 @@ ob_start();
                         </span>
                     </td>
                     <td class="px-5 py-3 text-right whitespace-nowrap">
-                        <a href="<?= site_url('assets/show/' . $a['asset_id']) ?>"
+                        <a href="<?= site_url($routePrefix . '/assets/show/' . $a['asset_id']) ?>"
                            class="text-xs text-blue-600 hover:text-blue-800 font-medium">
                             <i class="fa-solid fa-eye mr-1"></i>View
                         </a>
-                        <a href="<?= site_url('assets/edit/' . $a['asset_id']) ?>"
+                        <a href="<?= site_url($routePrefix . '/assets/edit/' . $a['asset_id']) ?>"
                            class="ml-3 text-xs text-gray-500 hover:text-gray-700 font-medium">
                             <i class="fa-solid fa-pen mr-1"></i>Edit
                         </a>
@@ -190,7 +192,7 @@ ob_start();
                                 class="ml-3 text-xs text-purple-600 hover:text-purple-800 font-medium">
                             <i class="fa-solid fa-right-left mr-1"></i>Transfer
                         </button>
-                        <a href="<?= site_url('asset-groups/remove/' . $group['group_id'] . '/' . $a['asset_id']) ?>"
+                        <a href="<?= site_url($routePrefix . '/asset-groups/remove/' . $group['group_id'] . '/' . $a['asset_id']) ?>"
                            onclick="return confirm('Remove this asset from the group? The asset itself will not be deleted.')"
                            class="ml-3 text-xs text-red-400 hover:text-red-600 font-medium">
                             <i class="fa-solid fa-xmark mr-1"></i>Remove
@@ -200,6 +202,7 @@ ob_start();
             <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
         <?php endif; ?>
     </div>
 
@@ -215,19 +218,19 @@ ob_start();
             <div class="p-8 text-center text-gray-400 text-sm">
                 <i class="fa-solid fa-box-open text-2xl mb-2 block text-gray-300"></i>
                 All assets are already assigned to a group.
-                <a href="<?= site_url('assets/create') ?>" class="ml-1 text-blue-500 hover:underline">Create a new asset →</a>
+                <a href="<?= site_url($routePrefix . '/assets/create') ?>" class="ml-1 text-blue-500 hover:underline">Create a new asset →</a>
             </div>
         <?php else: ?>
-            <form action="<?= site_url('asset-groups/assign/' . $group['group_id']) ?>" method="post" class="p-6">
+            <form action="<?= site_url($routePrefix . '/asset-groups/assign/' . $group['group_id']) ?>" method="post" class="p-6">
                 <?= csrf_field() ?>
                 <p class="text-xs text-gray-500 mb-3">Select one or more assets and click <strong>Assign to Group</strong>.</p>
 
                 <div class="border border-gray-200 rounded-xl overflow-hidden mb-4">
-                    <div class="bg-gray-50 px-4 py-2 flex items-center gap-2 border-b border-gray-100">
+                    <div class="bg-gray-50 px-4 py-2 flex flex-wrap items-center gap-2 border-b border-gray-100">
                         <input type="checkbox" id="check-all" class="rounded" onchange="document.querySelectorAll('.asset-cb').forEach(c=>c.checked=this.checked); updateAssignCosts();">
                         <label for="check-all" class="text-xs font-semibold text-gray-500 cursor-pointer select-none">Select all</label>
                         <input type="text" id="asset-search" placeholder="Search by tag, serial no., brand or category..."
-                               class="ml-auto border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-blue-400 outline-none w-64"
+                               class="sm:ml-auto border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-blue-400 outline-none w-full sm:w-64"
                                oninput="filterAssets(this.value)">
                     </div>
                     <div class="divide-y divide-gray-50 max-h-72 overflow-y-auto" id="asset-list">
@@ -411,7 +414,7 @@ document.querySelectorAll('.asset-cb').forEach(cb => {
 
 function openTransfer(assetId, assetTag, acqCost, deprCost) {
     document.getElementById('modal-asset-label').textContent = assetTag;
-    document.getElementById('transfer-form').action = '<?= site_url('asset-groups/transfer/' . $group['group_id']) ?>/' + assetId;
+    document.getElementById('transfer-form').action = '<?= site_url($routePrefix . '/asset-groups/transfer/' . $group['group_id']) ?>/' + assetId;
     const costInfo = document.getElementById('modal-cost-info');
     if (acqCost > 0 || deprCost > 0) {
         costInfo.classList.remove('hidden');

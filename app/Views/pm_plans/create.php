@@ -1,6 +1,7 @@
 <?php
 $pageTitle    = 'Create PM Plan';
 $pageSubtitle = 'New Preventive Maintenance Plan';
+$routePrefix  = str_starts_with(uri_string(), 'admin/') ? 'admin' : 'super-admin';
 
 ob_start();
 $errors = $validation->getErrors();
@@ -8,7 +9,7 @@ $months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','De
 ?>
 
 <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
-    <a href="<?= site_url('super-admin/pm-plans') ?>" class="hover:text-blue-600 transition">PM Plans</a>
+    <a href="<?= site_url($routePrefix . '/pm-plans') ?>" class="hover:text-blue-600 transition">PM Plans</a>
     <i class="fa-solid fa-chevron-right text-xs text-gray-300"></i>
     <span class="text-gray-700 font-medium">Create New Plan</span>
 </nav>
@@ -24,7 +25,7 @@ $months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','De
 </div>
 <?php endif; ?>
 
-<form method="post" action="<?= site_url('super-admin/pm-plans/store') ?>" id="pm-form">
+<form method="post" action="<?= site_url($routePrefix . '/pm-plans/store') ?>" id="pm-form">
 <?= csrf_field() ?>
 
 <!-- ── PLAN HEADER ─────────────────────────────────────────────────────────── -->
@@ -124,7 +125,7 @@ $months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','De
 
 <!-- ── EQUIPMENT ROWS ──────────────────────────────────────────────────────── -->
 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-5">
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <h3 class="font-semibold text-gray-800 text-base flex items-center gap-2">
             <i class="fa-solid fa-server text-green-500"></i>
             Equipment / Assets
@@ -137,7 +138,7 @@ $months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','De
     </div>
 
     <div class="overflow-x-auto">
-        <table class="w-full text-sm" id="items-table">
+        <table class="w-full min-w-[980px] text-sm" id="items-table">
             <thead>
                 <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
                     <th class="px-3 py-2 text-left w-48">Linked Asset</th>
@@ -167,8 +168,8 @@ $months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','De
 </div>
 
 <!-- ── ACTIONS ─────────────────────────────────────────────────────────────── -->
-<div class="flex items-center justify-end gap-3">
-    <a href="<?= site_url('super-admin/pm-plans') ?>"
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
+    <a href="<?= site_url($routePrefix . '/pm-plans') ?>"
        class="px-5 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition">Cancel</a>
     <button type="submit"
             class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition">

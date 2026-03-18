@@ -4,7 +4,7 @@
 <?= $this->section('pageSubtitle') ?>Section SLA Rules<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="p-8 space-y-6">
+<div class="p-4 sm:p-6 lg:p-8 space-y-6">
   <?php if (session()->getFlashdata('success')): ?>
     <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm"><?= session()->getFlashdata('success') ?></div>
   <?php endif; ?>
@@ -83,7 +83,7 @@
     <div class="xl:col-span-2 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-blue-100/50 shadow-lg">
       <h3 class="font-bold text-gray-900 text-lg mb-4">Current Section Rules</h3>
       <div class="overflow-x-auto">
-        <table class="w-full text-sm" id="slaRulesTable">
+        <table class="w-full min-w-[760px] text-sm" id="slaRulesTable">
           <thead>
             <tr class="text-left text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
               <th class="pb-3 pr-4">Match Scope</th>
@@ -130,6 +130,7 @@ $(function () {
     $('#slaRulesTable').DataTable({
       pageLength: 25,
       order: [[0, 'asc']],
+      scrollX: true,
       language: { emptyTable: 'No timeframe rules yet for this section.' }
     });
   }

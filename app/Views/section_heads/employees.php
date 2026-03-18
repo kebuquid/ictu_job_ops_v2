@@ -4,11 +4,11 @@
 <?= $this->section('pageSubtitle') ?>Staff & Technicians<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="p-8 space-y-6">
+<div class="p-4 sm:p-6 lg:p-8 space-y-6">
   <div class="fade-in delay-1 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-blue-100/50 shadow-lg">
     <h3 class="font-bold text-gray-900 text-lg mb-5">Section Employees</h3>
     <div class="overflow-x-auto">
-      <table id="employeesTable" class="w-full text-sm">
+      <table id="employeesTable" class="w-full min-w-[700px] text-sm">
         <thead>
           <tr class="text-left text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
             <th class="pb-3 pr-4">Name</th>
@@ -45,7 +45,7 @@
 <script>
 $(document).ready(function() {
   if($.fn.dataTable && $('#employeesTable tbody tr').length > 0 && !$('#employeesTable tbody tr td[colspan]').length) {
-    $('#employeesTable').DataTable({ pageLength: 15 });
+    $('#employeesTable').DataTable({ pageLength: 15, scrollX: true });
   }
 });
 </script>

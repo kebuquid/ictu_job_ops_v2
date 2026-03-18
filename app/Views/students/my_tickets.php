@@ -4,7 +4,42 @@
 <?= $this->section('pageSubtitle') ?>Track Your Submissions<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="p-8 space-y-6">
+<style>
+  .ticket-table-shell {
+    color-scheme: light;
+  }
+  .ticket-table-shell .dt-container,
+  .ticket-table-shell .dt-layout-row,
+  .ticket-table-shell .dt-layout-cell,
+  .ticket-table-shell .dt-length,
+  .ticket-table-shell .dt-search,
+  .ticket-table-shell .dt-info,
+  .ticket-table-shell .dt-paging,
+  .ticket-table-shell .dt-input,
+  .ticket-table-shell .dt-paging-button {
+    color: #1f2937 !important;
+    background-color: transparent !important;
+  }
+  .ticket-table-shell table.dataTable,
+  .ticket-table-shell table.dataTable thead th,
+  .ticket-table-shell table.dataTable tbody td {
+    color: #374151 !important;
+    background-color: #ffffff !important;
+  }
+  .ticket-table-shell .dt-paging-button.current {
+    background: #f3e8ff !important;
+    color: #6b21a8 !important;
+    border-color: #e9d5ff !important;
+  }
+  @media (max-width: 640px) {
+    .ticket-table-shell .dt-layout-row {
+      flex-direction: column;
+      gap: 0.75rem;
+      align-items: stretch;
+    }
+  }
+</style>
+<div class="p-4 sm:p-6 lg:p-8 space-y-6">
 
   <?php if(session()->getFlashdata('success')): ?>
     <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm"><?= session()->getFlashdata('success') ?></div>
@@ -14,12 +49,12 @@
   <?php endif; ?>
 
   <div class="fade-in delay-1 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-purple-200/50 shadow-lg">
-    <div class="flex items-center justify-between mb-5">
+    <div class="flex items-center justify-between gap-3 flex-wrap mb-5">
       <h3 class="font-bold text-gray-900 text-lg">All My Tickets</h3>
       <a href="<?= base_url('student/create-ticket') ?>" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-violet-700 text-white font-semibold text-sm rounded-xl shadow hover:shadow-lg transition-all">+ New Ticket</a>
     </div>
-    <div class="overflow-x-auto">
-      <table id="myTicketsTable" class="w-full text-sm">
+    <div class="overflow-x-auto ticket-table-shell">
+      <table id="myTicketsTable" class="w-full min-w-[760px] text-sm">
         <thead>
           <tr class="text-left text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
             <th class="pb-3 pr-4">ID</th>
@@ -57,6 +92,8 @@ $(document).ready(function() {
     $('#myTicketsTable').DataTable({
       pageLength: 15,
       order: [[0, 'desc']],
+      scrollX: true,
+      autoWidth: false,
       language: { emptyTable: 'You haven\'t submitted any tickets yet' }
     });
   }

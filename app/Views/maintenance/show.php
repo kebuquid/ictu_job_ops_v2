@@ -1,17 +1,17 @@
 ﻿<?php
 $pageTitle    = 'Maintenance Record';
 $pageSubtitle = 'Record #' . $record['maintenance_id'];
+$routePrefix  = str_starts_with(uri_string(), 'admin/') ? 'admin' : 'super-admin';
 
 ob_start();
 $r = $record;
 ?>
 
 <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
-    <a href="<?= site_url('maintenance') ?>" class="hover:text-blue-600 transition">Maintenance</a>
+    <a href="<?= site_url($routePrefix . '/maintenance') ?>" class="hover:text-blue-600 transition">Maintenance</a>
     <i class="fa-solid fa-chevron-right text-xs text-gray-300"></i>
     <span class="text-gray-700 font-medium">Record #<?= $r['maintenance_id'] ?></span>
 </nav>
-
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
     <!-- LEFT: Main content -->
@@ -19,7 +19,7 @@ $r = $record;
 
         <!-- Header Card -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <div class="flex items-start justify-between gap-4 mb-5">
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-5">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
                         <i class="fa-solid fa-screwdriver-wrench text-blue-600 text-lg"></i>
@@ -145,7 +145,7 @@ $r = $record;
                 <i class="fa-solid fa-user-check text-indigo-400"></i>
                 Conducted &amp; Verified By
             </h3>
-            <div class="grid grid-cols-2 gap-4 text-sm">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
                     <p class="text-xs text-gray-400 mb-0.5">Conducted By</p>
                     <p class="font-medium text-gray-700"><?= esc($r['conducted_by'] ?? '') ?></p>
@@ -178,7 +178,7 @@ $r = $record;
                 <i class="fa-solid fa-triangle-exclamation text-yellow-400"></i>
                 Corrective Action
             </h3>
-            <div class="grid grid-cols-2 gap-4 text-sm">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div class="col-span-2">
                     <p class="text-xs text-gray-400 mb-0.5">Action Taken</p>
                     <p class="text-gray-700 whitespace-pre-wrap"><?= esc($r['corrective_action'] ?? '') ?></p>
@@ -198,7 +198,7 @@ $r = $record;
                 <i class="fa-solid fa-user-tie text-teal-400"></i>
                 Responsible Person
             </h3>
-            <div class="grid grid-cols-2 gap-4 text-sm">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
                     <p class="text-xs text-gray-400 mb-0.5">Name</p>
                     <p class="font-medium text-gray-700"><?= esc($r['responsible_person']) ?></p>
@@ -226,30 +226,30 @@ $r = $record;
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
             <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Actions</h3>
             <div class="space-y-2">
-                <a href="<?= site_url("maintenance/print/{$r['maintenance_id']}") ?>" target="_blank"
+                <a href="<?= site_url($routePrefix . "/maintenance/print/{$r['maintenance_id']}") ?>" target="_blank"
                    class="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-green-700 bg-green-50 hover:bg-green-100 rounded-xl transition font-medium">
                     <i class="fa-solid fa-print w-4 text-center"></i> Print / Save PDF
                 </a>
-                <a href="<?= site_url("maintenance/checklist/{$r['maintenance_id']}") ?>" target="_blank"
+                <a href="<?= site_url($routePrefix . "/maintenance/checklist/{$r['maintenance_id']}") ?>" target="_blank"
                    class="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-xl transition font-medium">
                     <i class="fa-solid fa-list-check w-4 text-center"></i> PM Checklist (ICTU-15)
                 </a>
-                <a href="<?= site_url("maintenance/edit/{$r['maintenance_id']}") ?>"
+                <a href="<?= site_url($routePrefix . "/maintenance/edit/{$r['maintenance_id']}") ?>"
                    class="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl transition font-medium">
                     <i class="fa-solid fa-pencil w-4 text-center"></i> Edit Record
                 </a>
                 <?php if (!empty($r['group_id'])): ?>
-                <a href="<?= site_url("asset-groups/show/{$r['group_id']}") ?>"
+                <a href="<?= site_url($routePrefix . "/asset-groups/show/{$r['group_id']}") ?>"
                    class="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl transition font-medium">
                     <i class="fa-solid fa-layer-group w-4 text-center"></i> View Group
                 </a>
                 <?php endif; ?>
-                <a href="<?= site_url("maintenance/delete/{$r['maintenance_id']}") ?>"
+                <a href="<?= site_url($routePrefix . "/maintenance/delete/{$r['maintenance_id']}") ?>"
                    class="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-xl transition font-medium"
                    onclick="return confirm('Delete this record?')">
                     <i class="fa-solid fa-trash w-4 text-center"></i> Delete Record
                 </a>
-                <a href="<?= site_url('maintenance') ?>"
+                <a href="<?= site_url($routePrefix . '/maintenance') ?>"
                        class="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-600 font-medium text-sm transition">
                         <i class="fa-solid fa-arrow-left w-4 text-center"></i>
                         Back to List
@@ -318,7 +318,7 @@ $r = $record;
                             <span class="text-xs font-semibold px-2 py-0.5 rounded-full <?= $asc ?>"><?= esc($r['asset_status']) ?></span>
                         </div>
                         <?php endif; ?>
-                        <a href="<?= site_url('assets/show/' . $r['asset_id']) ?>"
+                        <a href="<?= site_url($routePrefix . '/assets/show/' . $r['asset_id']) ?>"
                            class="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 font-medium mt-1">
                             <i class="fa-solid fa-eye text-xs"></i> View Asset
                         </a>

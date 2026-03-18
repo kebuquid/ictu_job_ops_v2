@@ -83,6 +83,7 @@
 
 <?php
 $r           = $record;
+$routePrefix = str_starts_with(uri_string(), 'admin/') ? 'admin' : 'super-admin';
 $activities  = array_filter(array_map('trim', explode(',', $r['activities'] ?? '')));
 $actBase     = array_unique(array_map(function($a) {
     return preg_match('/^Others:/i', $a) ? 'Others' : $a;
@@ -119,9 +120,9 @@ $eqOthersText = $eqOthersOn ? $r['equipment_type'] : '';
 ?>
 
 <!-- ── TOOLBAR (no-print) ───────────────────────────────────── -->
-<div class="no-print sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm px-6 py-3 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-        <a href="<?= site_url('maintenance') ?>" class="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition">
+<div class="no-print sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm px-4 sm:px-6 py-3 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+    <div class="flex flex-wrap items-center gap-3">
+        <a href="<?= site_url($routePrefix . '/maintenance') ?>" class="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
             Back to Maintenance
         </a>
@@ -131,8 +132,8 @@ $eqOthersText = $eqOthersOn ? $r['equipment_type'] : '';
             <?php if (!empty($r['group_code'])): ?><span class="text-gray-400">(<?= esc($r['group_code']) ?>)</span><?php endif; ?>
         </span>
     </div>
-    <div class="flex items-center gap-2">
-        <a href="<?= site_url("maintenance/show/{$r['maintenance_id']}") ?>" class="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition">
+    <div class="flex flex-wrap items-center gap-2">
+        <a href="<?= site_url($routePrefix . "/maintenance/show/{$r['maintenance_id']}") ?>" class="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
             View Record
         </a>

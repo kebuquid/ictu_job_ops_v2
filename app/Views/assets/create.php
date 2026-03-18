@@ -39,7 +39,7 @@ ob_start();
     <?php endif; ?>
 
     <!-- Step Indicators -->
-    <div class="flex items-center justify-between mb-8 relative">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8 relative">
         <div class="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 z-0">
             <div id="progress-bar" class="h-full bg-blue-500 transition-all duration-500" style="width:0%"></div>
         </div>
@@ -286,7 +286,7 @@ ob_start();
             </div>
             </div><!-- /#software-os-section -->
 
-            <div class="flex justify-between">
+            <div class="flex flex-col sm:flex-row sm:justify-between gap-3">
                 <a href="<?= site_url($routePrefix . '/assets') ?>" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-600 bg-white hover:bg-gray-50">
                     Cancel
                 </a>
@@ -389,7 +389,7 @@ ob_start();
                     </div>
                 </div>
             </div>
-            <div class="flex justify-between">
+            <div class="flex flex-col sm:flex-row sm:justify-between gap-3">
                 <button type="button" onclick="goStep(1)" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-600 bg-white hover:bg-gray-50 flex items-center gap-2">
                     <i class="fa-solid fa-arrow-left text-xs"></i> Back
                 </button>
@@ -492,7 +492,7 @@ ob_start();
                     </div>
                 </div>
             </div>
-            <div class="flex justify-between">
+            <div class="flex flex-col sm:flex-row sm:justify-between gap-3">
                 <button type="button" onclick="goStep(2)" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-600 bg-white hover:bg-gray-50 flex items-center gap-2">
                     <i class="fa-solid fa-arrow-left text-xs"></i> Back
                 </button>
@@ -580,7 +580,7 @@ ob_start();
                     </div>
                 </div>
             </div>
-            <div class="flex justify-between">
+            <div class="flex flex-col sm:flex-row sm:justify-between gap-3">
                 <button type="button" onclick="goStep(3)" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-600 bg-white hover:bg-gray-50 flex items-center gap-2">
                     <i class="fa-solid fa-arrow-left text-xs"></i> Back
                 </button>

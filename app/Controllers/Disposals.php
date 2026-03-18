@@ -43,6 +43,7 @@ class Disposals extends BaseController
             'records' => $records,
             'keyword' => $keyword,
             'stats'   => $stats,
+            'routePrefix' => $this->resolveRoutePrefix(),
         ]);
     }
 
@@ -56,6 +57,7 @@ class Disposals extends BaseController
             'assetId'          => $this->request->getGet('asset_id'),
             'users'            => $this->userModel->orderBy('name')->findAll(),
             'keywordRulesData' => $this->keywordRuleModel->getGroupedRulesForForm(),
+            'routePrefix'      => $this->resolveRoutePrefix(),
         ]);
     }
 
@@ -77,6 +79,7 @@ class Disposals extends BaseController
                 'assetId'          => $this->request->getPost('asset_id'),
                 'users'            => $this->userModel->orderBy('name')->findAll(),
                 'keywordRulesData' => $this->keywordRuleModel->getGroupedRulesForForm(),
+                'routePrefix'      => $this->resolveRoutePrefix(),
             ]);
         }
 
@@ -105,7 +108,7 @@ class Disposals extends BaseController
         // Auto-update the asset status to Disposed
         $this->assetModel->update($assetId, ['status' => 'Disposed']);
 
-        return redirect()->to('/disposals')->with('success', 'Disposal record added and asset marked as Disposed.');
+        return redirect()->to(site_url($this->resolveRoutePrefix() . '/disposals'))->with('success', 'Disposal record added and asset marked as Disposed.');
     }
 
     public function show(int $id): string
@@ -115,7 +118,10 @@ class Disposals extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
         }
 
-        return view('disposals/show', ['record' => $record]);
+        return view('disposals/show', [
+            'record'      => $record,
+            'routePrefix' => $this->resolveRoutePrefix(),
+        ]);
     }
 
     public function edit(int $id): string
@@ -133,6 +139,7 @@ class Disposals extends BaseController
             'validation'       => \Config\Services::validation(),
             'users'            => $this->userModel->orderBy('name')->findAll(),
             'keywordRulesData' => $this->keywordRuleModel->getGroupedRulesForForm(),
+            'routePrefix'      => $this->resolveRoutePrefix(),
         ]);
     }
 
@@ -156,6 +163,7 @@ class Disposals extends BaseController
                 'validation'       => $this->validator,
                 'users'            => $this->userModel->orderBy('name')->findAll(),
                 'keywordRulesData' => $this->keywordRuleModel->getGroupedRulesForForm(),
+                'routePrefix'      => $this->resolveRoutePrefix(),
             ]);
         }
 
@@ -192,12 +200,32 @@ class Disposals extends BaseController
 
         $this->model->update($id, $updateData);
 
-        return redirect()->to(site_url("disposals/show/{$id}"))->with('success', 'Disposal record updated.');
+        return redirect()->to(site_url($this->resolveRoutePrefix() . "/disposals/show/{$id}"))->with('success', 'Disposal record updated.');
     }
 
     public function delete(int $id)
     {
         $this->model->delete($id);
-        return redirect()->to('/disposals')->with('success', 'Disposal record deleted.');
+        return redirect()->to(site_url($this->resolveRoutePrefix() . '/disposals'))->with('success', 'Disposal record deleted.');
+    }
+
+    private function resolveRoutePrefix(): string
+    {
+        $path = trim((string) $this->request->getUri()->getPath(), '/');
+
+        if (str_starts_with($path, 'admin/')) {
+            return 'admin';
+        }
+
+        if (str_starts_with($path, 'super-admin/')) {
+            return 'super-admin';
+        }
+
+        $sessionUser = session()->get('user');
+        if (isset($sessionUser['role_id']) && (int) $sessionUser['role_id'] === 2) {
+            return 'admin';
+        }
+
+        return 'super-admin';
     }
 }

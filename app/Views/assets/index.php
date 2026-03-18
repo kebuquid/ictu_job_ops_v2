@@ -23,7 +23,7 @@ ob_start();
 ?>
 
 <!-- STAT CARDS -->
-<div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
 
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
         <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
@@ -87,15 +87,15 @@ ob_start();
             Asset List
             <span class="ml-1 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full"><?= $pager->getTotal('assets') ?></span>
         </h2>
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <!-- Search -->
-            <form method="get" action="<?= site_url($routePrefix . '/assets') ?>" class="flex items-center gap-1">
+            <form method="get" action="<?= site_url($routePrefix . '/assets') ?>" class="flex items-center gap-1 w-full sm:w-auto">
                 <div class="relative">
                     <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
                         <i class="fa-solid fa-magnifying-glass text-xs"></i>
                     </span>
                     <input type="text" name="q"
-                           class="pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-56"
+                           class="pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-56"
                            placeholder="Search assets…"
                            value="<?= esc($keyword ?? '') ?>">
                 </div>
@@ -107,9 +107,9 @@ ob_start();
                 <?php endif; ?>
             </form>
             <!-- Filter by status -->
-            <form method="get" action="<?= site_url($routePrefix . '/assets') ?>">
+            <form method="get" action="<?= site_url($routePrefix . '/assets') ?>" class="w-full sm:w-auto">
                 <select name="status" onchange="this.form.submit()"
-                        class="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600">
+                        class="w-full sm:w-auto text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600">
                     <option value="">All Status</option>
                     <?php foreach (['Active','Inactive','Under Repair','Disposed'] as $s): ?>
                         <option value="<?= $s ?>" <?= (($filterStatus ?? '') === $s) ? 'selected' : '' ?>><?= $s ?></option>
@@ -127,7 +127,7 @@ ob_start();
 
     <!-- Table -->
     <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+        <table class="w-full min-w-[980px] text-sm">
             <thead>
                 <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
                     <th class="px-4 py-3 text-left font-semibold">#</th>
