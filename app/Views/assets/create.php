@@ -448,7 +448,7 @@ ob_start();
                             <!-- hidden real value -->
                             <input type="hidden" name="assigned_to" id="assigned_to_id" value="<?= set_value('assigned_to') ?>">
                             <div class="relative">
-                                <input type="text" id="assigned_to_search"
+                                <input type="text" id="assigned_to_search" name="assigned_to_search"
                                     placeholder="Search user..."
                                     autocomplete="off"
                                     class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -476,6 +476,7 @@ ob_start();
                                     <?php endforeach; ?>
                                 </ul>
                             </div>
+                            <p id="assigned_to_validation" class="mt-1 text-xs text-gray-500">Type a name or email to validate the assignee.</p>
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-gray-600 mb-1.5">Section</label>
@@ -910,6 +911,17 @@ function goReview() {
 
     // Assigned To — show name from search input
     const assignedName = document.getElementById('assigned_to_search')?.value?.trim();
+    const assignedId = document.getElementById('assigned_to_id')?.value?.trim();
+    if (assignedName && !assignedId) {
+        const hint = document.getElementById('assigned_to_validation');
+        if (hint) {
+            hint.textContent = 'Please choose a valid assignee. No matching user was validated.';
+            hint.className = 'mt-1 text-xs text-red-600';
+        }
+        goStep(3);
+        document.getElementById('assigned_to_search')?.focus();
+        return;
+    }
     document.getElementById('rv-assigned_to').textContent = assignedName || '—';
 
     // Status (radio)
@@ -1139,35 +1151,53 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('assigned_to_search');
     const hiddenInput = document.getElementById('assigned_to_id');
     const dropdown    = document.getElementById('user_dropdown');
-    const options     = Array.from(dropdown.querySelectorAll('.user-option'));
+    const hint        = document.getElementById('assigned_to_validation');
+    const endpoint    = '<?= site_url($routePrefix . '/assets/check-user-api') ?>';
+    if (!searchInput || !hiddenInput || !dropdown || !hint) return;
 
-    if (!searchInput) return;
+    const options = Array.from(dropdown.querySelectorAll('.user-option'));
+    let validateTimer = null;
+    let requestToken = 0;
+
+    function setHint(kind, text) {
+        if (kind === 'ok') {
+            hint.className = 'mt-1 text-xs text-green-600';
+        } else if (kind === 'warn') {
+            hint.className = 'mt-1 text-xs text-amber-600';
+        } else if (kind === 'error') {
+            hint.className = 'mt-1 text-xs text-red-600';
+        } else {
+            hint.className = 'mt-1 text-xs text-gray-500';
+        }
+        hint.textContent = text;
+    }
 
     function positionDropdown() {
         const rect = searchInput.getBoundingClientRect();
-        const dropH = dropdown.offsetHeight || 192; // max-h-48 = 192px
+        const dropH = dropdown.offsetHeight || 192;
         const spaceBelow = window.innerHeight - rect.bottom;
         const spaceAbove = rect.top;
 
         if (spaceBelow < dropH && spaceAbove > spaceBelow) {
-            // open upward
-            dropdown.style.top    = (rect.top + window.scrollY - dropH - 4) + 'px';
+            dropdown.style.top = (rect.top + window.scrollY - dropH - 4) + 'px';
         } else {
-            // open downward
-            dropdown.style.top    = (rect.bottom + window.scrollY + 4) + 'px';
+            dropdown.style.top = (rect.bottom + window.scrollY + 4) + 'px';
         }
-        dropdown.style.left  = rect.left + 'px';
+
+        dropdown.style.left = rect.left + 'px';
         dropdown.style.width = rect.width + 'px';
     }
 
     function showDropdown(filter) {
-        const q = filter.toLowerCase();
+        const q = String(filter || '').toLowerCase();
         let hasVisible = false;
+
         options.forEach(li => {
             const match = !q || li.dataset.name.toLowerCase().includes(q) || li.dataset.email.toLowerCase().includes(q);
             li.style.display = match ? '' : 'none';
             if (match) hasVisible = true;
         });
+
         if (hasVisible) {
             positionDropdown();
             dropdown.classList.remove('hidden');
@@ -1176,13 +1206,73 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function validateTypedUser(force = false) {
+        const q = searchInput.value.trim();
+        if (!q) {
+            hiddenInput.value = '';
+            setHint('muted', 'Type a name or email to validate the assignee.');
+            return false;
+        }
+
+        if (hiddenInput.value && !force) {
+            setHint('ok', 'Valid assignee selected.');
+            return true;
+        }
+
+        if (!force && q.length < 3) {
+            setHint('warn', 'Keep typing to validate this assignee.');
+            return false;
+        }
+
+        const token = ++requestToken;
+        setHint('muted', 'Validating assignee...');
+
+        try {
+            const res = await fetch(endpoint + '?q=' + encodeURIComponent(q), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await res.json();
+            if (token !== requestToken) return false;
+
+            if (data.valid && data.user_id) {
+                hiddenInput.value = String(data.user_id);
+                if (data.name) searchInput.value = data.name;
+                setHint('ok', data.reason || 'Valid assignee found.');
+                return true;
+            }
+
+            hiddenInput.value = '';
+            setHint('error', data.reason || 'No valid assignee found for this input.');
+            return false;
+        } catch (_) {
+            if (token !== requestToken) return false;
+            hiddenInput.value = '';
+            setHint('error', 'Unable to validate right now. Please try again.');
+            return false;
+        }
+    }
+
     searchInput.addEventListener('input', function () {
         hiddenInput.value = '';
         showDropdown(this.value);
+        clearTimeout(validateTimer);
+        validateTimer = setTimeout(() => { validateTypedUser(false); }, 350);
     });
 
     searchInput.addEventListener('focus', function () {
         showDropdown(this.value);
+    });
+
+    searchInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            validateTypedUser(true);
+        }
+    });
+
+    searchInput.addEventListener('blur', function () {
+        clearTimeout(validateTimer);
+        validateTimer = setTimeout(() => { validateTypedUser(true); }, 150);
     });
 
     window.addEventListener('scroll', function () {
@@ -1195,6 +1285,7 @@ document.addEventListener('DOMContentLoaded', () => {
             hiddenInput.value = this.dataset.id;
             searchInput.value = this.dataset.name;
             dropdown.classList.add('hidden');
+            setHint('ok', 'Valid assignee selected.');
         });
     });
 
@@ -1204,6 +1295,24 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!hiddenInput.value) searchInput.value = '';
         }
     });
+
+    document.getElementById('asset-form')?.addEventListener('submit', async function (e) {
+        const hasTypedValue = !!searchInput.value.trim();
+        if (!hasTypedValue) return;
+        if (hiddenInput.value) return;
+
+        e.preventDefault();
+        const ok = await validateTypedUser(true);
+        if (!ok) {
+            searchInput.focus();
+            return;
+        }
+        this.submit();
+    });
+
+    if (hiddenInput.value) {
+        setHint('ok', 'Valid assignee selected.');
+    }
 })();
 
 // ── Keyword Tip ──────────────────────────────────────────────

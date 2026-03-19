@@ -235,6 +235,7 @@ class Assets extends BaseController
             'units'            => $this->unitModel->orderBy('name')->findAll(),
             'groups'           => $this->groupModel->orderBy('group_name')->findAll(),
             'sections'         => $this->sectionModel->orderBy('name')->findAll(),
+            'users'            => $this->userModel->orderBy('name')->findAll(),
             'keywordRulesData' => $this->keywordRuleModel->getGroupedRulesForForm(),
         ]);
     }
@@ -245,6 +246,21 @@ class Assets extends BaseController
         $asset = $this->model->find($id);
         if (! $asset) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound("Asset #{$id} not found.");
+        }
+
+        $assignedToIdRaw   = trim((string) $this->request->getPost('assigned_to'));
+        $assignedToTyped   = trim((string) $this->request->getPost('assigned_to_search'));
+
+        if ($assignedToTyped !== '' && $assignedToIdRaw === '') {
+            return redirect()->back()->withInput()->with('error', 'Assigned To is invalid. Please select a valid user from suggestions.');
+        }
+
+        if ($assignedToIdRaw !== '' && ! ctype_digit($assignedToIdRaw)) {
+            return redirect()->back()->withInput()->with('error', 'Assigned To value is invalid.');
+        }
+
+        if ($assignedToIdRaw !== '' && ! $this->userModel->find((int) $assignedToIdRaw)) {
+            return redirect()->back()->withInput()->with('error', 'Assigned To user was not found. Please select a valid user.');
         }
 
         $rules = [
@@ -259,6 +275,7 @@ class Assets extends BaseController
                 'units'            => $this->unitModel->orderBy('name')->findAll(),
                 'groups'           => $this->groupModel->orderBy('group_name')->findAll(),
                 'sections'         => $this->sectionModel->orderBy('name')->findAll(),
+                'users'            => $this->userModel->orderBy('name')->findAll(),
                 'keywordRulesData' => $this->keywordRuleModel->getGroupedRulesForForm(),
             ]);
         }
@@ -347,6 +364,106 @@ class Assets extends BaseController
         return redirect()->to(site_url($this->resolveRoutePrefix() . "/assets/show/{$id}"))->with('success', 'Asset updated successfully.');
     }
 
+    // AJAX: validate assignee by name/email against local users and external API
+    public function checkUserApi()
+    {
+        $query = trim((string) $this->request->getGet('q'));
+
+        if ($query === '') {
+            return $this->response->setStatusCode(422)->setJSON([
+                'valid'  => false,
+                'reason' => 'Please type a name or email to validate.',
+            ]);
+        }
+
+        $queryLower = mb_strtolower($query);
+
+        $exact = $this->userModel
+            ->groupStart()
+                ->where('LOWER(name)', $queryLower)
+                ->orWhere('LOWER(email)', $queryLower)
+            ->groupEnd()
+            ->first();
+
+        if ($exact) {
+            return $this->response->setJSON([
+                'valid'   => true,
+                'user_id' => (int) $exact['user_id'],
+                'name'    => (string) ($exact['name'] ?? ''),
+                'email'   => (string) ($exact['email'] ?? ''),
+                'reason'  => 'Valid user found.',
+                'source'  => 'local',
+            ]);
+        }
+
+        $candidates = $this->userModel
+            ->groupStart()
+                ->like('name', $query)
+                ->orLike('email', $query)
+            ->groupEnd()
+            ->orderBy('name', 'ASC')
+            ->findAll(6);
+
+        if (count($candidates) > 0) {
+            if (count($candidates) === 1) {
+                return $this->response->setStatusCode(409)->setJSON([
+                    'valid'  => false,
+                    'reason' => 'Possible match found, but not exact. Please pick the user from the dropdown to confirm.',
+                    'source' => 'local',
+                ]);
+            }
+
+            return $this->response->setStatusCode(409)->setJSON([
+                'valid'  => false,
+                'reason' => 'Multiple users match this input. Please type a more specific name/email or pick from the dropdown.',
+                'source' => 'local',
+            ]);
+        }
+
+        if (filter_var($query, FILTER_VALIDATE_EMAIL)) {
+            $apiCheck = $this->checkUserInExternalApi($query);
+            if ($apiCheck['exists']) {
+                $newUser = $this->userModel->insert([
+                    'account_no' => $apiCheck['user_data']['EmployeeNo'] ? $apiCheck['user_data']['EmployeeNo'] : $apiCheck['user_data']['StudentNo'],
+                    'name'       => $apiCheck['user_data']['FirstName'] . ' ' . $apiCheck['user_data']['LastName'],
+                    'email'      => $apiCheck['user_data']['EmailAddress'] ,
+                    'role_id'    => $apiCheck['user_data']['EmployeeNo'] ? 4 : 5, // Default to "Employee" or "External" role for API
+                ]);
+
+                $newUserId = $this->userModel->getInsertID();
+                $exact = $this->userModel->find($newUserId);
+
+                if($exact) {
+                    return $this->response->setJSON([
+                    'valid'   => true,
+                    'user_id' => (int) $exact['user_id'],
+                    'name'    => (string) ($exact['name'] ?? ''),
+                    'email'   => (string) ($exact['email'] ?? ''),
+                    'reason'  => 'Valid user found.',
+                    'source'  => 'local',
+            ]);
+                }
+                return $this->response->setStatusCode(404)->setJSON([
+                    'valid'  => false,
+                    'reason' => 'Email exists in CheckUser API but no local account was found. Please register/import this user first.',
+                    'source' => 'external',
+                ]);
+            }
+
+            return $this->response->setStatusCode(404)->setJSON([
+                'valid'  => false,
+                'reason' => $apiCheck['reason'] ?: 'No user found for this email in local records or CheckUser API.',
+                'source' => 'external',
+            ]);
+        }
+
+        return $this->response->setStatusCode(404)->setJSON([
+            'valid'  => false,
+            'reason' => 'No user found. Please enter a valid full name or email.',
+            'source' => 'local',
+        ]);
+    }
+
     // DELETE
     public function delete(int $id)
     {
@@ -386,6 +503,56 @@ class Assets extends BaseController
         }
 
         return 'super-admin';
+    }
+
+    private function checkUserInExternalApi(string $email): array
+    {
+        $authId   = (string) env('UNISAP_AUTH_ID');
+        $apiToken = (string) env('UNISAP_API_TOKEN');
+        $base     = (env('USE_TEST_API') === 'true') ? (string) env('TEST_API_ENDPOINT') : (string) env('UNISAP_API_ENDPOINT');
+
+        if ($authId === '' || $apiToken === '' || $base === '') {
+            return ['exists' => false, 'reason' => 'CheckUser API is not configured in this environment.'];
+        }
+
+        $client = service('curlrequest');
+        $headers = [
+            'Auth-ID'       => $authId,
+            'Authorization' => $apiToken,
+        ];
+
+        $endpoints = [];
+        if (str_ends_with(strtolower($email), '@cspc.edu.ph')) {
+            $endpoints[] = 'EmployeeInfoByEmail/' . rawurlencode($email);
+        } elseif (str_ends_with(strtolower($email), '@my.cspc.edu.ph')) {
+            $endpoints[] = 'StudentInfoByEmail/' . rawurlencode($email);
+        } else {
+            return ['status' => 'error', 'message' => 'Invalid email domain. Only @cspc.edu.ph and @my.cspc.edu.ph are allowed for CheckUser API validation.'];
+        }
+
+        foreach ($endpoints as $path) {
+            try {
+                $res  = $client->get(rtrim($base, '/') . '/' . $path, [
+                    'http_errors' => false,
+                    'headers'     => $headers,
+                ]);
+                $jsonResponse = json_decode($res->getBody(), true);
+                log_message('debug', 'Assets::checkUserInExternalApi response for {0}: {1}', [$email, json_encode($jsonResponse)]);
+                if ($jsonResponse['status'] == '200' && str_ends_with(strtolower($email), '@cspc.edu.ph')) {
+                    return ['user_data' => $jsonResponse['EmployeeInfo'], 'exists' => true];
+                } else if ($jsonResponse['status'] == '200' && str_ends_with(strtolower($email), '@my.cspc.edu.ph')) {
+                    return ['user_data' => $jsonResponse['StudentInfo'], 'exists' => true];
+                } else {
+                    log_message('info', 'Assets::checkUserInExternalApi no match for {0} at endpoint {1}', [$email, $path]);
+                    return ['exists' => false, 'reason' => 'No matching account found in CheckUser API.'];
+                }
+            } catch (\Throwable $e) {
+                log_message('warning', 'Assets::checkUserInExternalApi failed: {0}', [$e->getMessage()]);
+                return ['exists' => false, 'reason' => 'No matching account found in CheckUser API.'];
+            }
+        }
+
+        return ['exists' => false, 'reason' => 'No matching account found in CheckUser API.'];
     }
 
     /**

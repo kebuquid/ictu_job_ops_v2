@@ -154,6 +154,7 @@ $routes->group('super-admin', ['filter' => 'role:1'], static function ($routes) 
     $routes->post('assets/store',         'Assets::store');
     $routes->get('assets/show/(:num)',    'Assets::show/$1');
     $routes->get('assets/edit/(:num)',    'Assets::edit/$1');
+    $routes->get('assets/check-user-api', 'Assets::checkUserApi');
     $routes->post('assets/update/(:num)', 'Assets::update/$1');
     $routes->get('assets/delete/(:num)', 'Assets::delete/$1');
 
@@ -233,6 +234,7 @@ $routes->group('admin', ['filter' => 'role:2'], static function ($routes) {
     $routes->post('assets/store',         'Assets::store');
     $routes->get('assets/show/(:num)',    'Assets::show/$1');
     $routes->get('assets/edit/(:num)',    'Assets::edit/$1');
+    $routes->get('assets/check-user-api', 'Assets::checkUserApi');
     $routes->post('assets/update/(:num)', 'Assets::update/$1');
     $routes->get('assets/delete/(:num)', 'Assets::delete/$1');
 

@@ -147,7 +147,8 @@ class Auth extends BaseController
             ]);
 
             $arrayResponse = json_decode($response->getBody(), true);
-            $accountNo = $arrayResponse['EmployeeInfo']['EmployeeNo'] ?? null;
+            $accountNo = $arrayResponse['EmployeeInfo']['EmployeeNo'] 
+            ?? null;
         } else {
             $response = $client->get($this->validationEndpoint . 'StudentInfoByEmail/' . $userEmail, [
                 'headers' => [
