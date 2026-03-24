@@ -113,8 +113,8 @@ ob_start();
 
             <!-- Software & Operating System (hardware only) -->
             <?php
-            $swListData   = !empty($a['software_list']) ? json_decode($a['software_list'], true) : [];
-            $swListData   = is_array($swListData) ? $swListData : [];
+            $swListData   = $softwares ?? [];
+            $swListData   = is_array($swListData) ? array_values($swListData) : [];
             $hasSoftwareData = !empty($a['operating_system']) || !empty($a['os_license_key'])
                              || !empty($a['os_license_type'])  || !empty($a['os_license_expiry'])
                              || !empty($a['os_last_updated'])  || !empty($a['os_is_updated'])
@@ -254,7 +254,7 @@ ob_start();
                         <!-- entries injected by JS -->
                     </div>
 
-                    <!-- Existing software_list seed for JS -->
+                    <!-- Existing software rows seed for JS -->
                     <script>
                     window._existingSoftwareList = <?= json_encode($swListData) ?>;
                     </script>
@@ -421,40 +421,59 @@ ob_start();
                     <!-- Building -->
                     <?php
                     $currentUnitId   = $a['assigned_unit_id'] ?? null;
-                    $currentBuilding = '';
                     foreach ($units as $u) {
-                        if ($u['unit_id'] == $currentUnitId) { $currentBuilding = $u['building_id']; break; }
+                        if ($u['unit_id'] == $currentUnitId) {
+                            break;
+                        }
+                    }
+
+                    $groupUnitMap = [];
+                    foreach (($groups ?? []) as $g) {
+                        $gid = (string) ($g['group_id'] ?? '');
+                        $uid = (string) ($g['assigned_unit_id'] ?? '');
+                        if ($gid === '' || $uid === '') {
+                            $groupUnitMap[$gid] = ['unit' => '', 'building' => '', 'unit_name' => '', 'building_name' => ''];
+                            continue;
+                        }
+
+                        $bid = '';
+                        $unitName = '';
+                        foreach ($units as $u) {
+                            if ((string) $u['unit_id'] === $uid) {
+                                $bid = (string) $u['building_id'];
+                                $unitName = (string) ($u['name'] ?? '');
+                                break;
+                            }
+                        }
+
+                        $buildingName = '';
+                        foreach ($buildings as $b) {
+                            if ((string) $b['building_id'] === $bid) {
+                                $buildingName = (string) ($b['name'] ?? '');
+                                break;
+                            }
+                        }
+
+                        $groupUnitMap[$gid] = ['unit' => $uid, 'building' => $bid, 'unit_name' => $unitName, 'building_name' => $buildingName];
                     }
                     ?>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1.5">Building</label>
-                        <select id="building_select" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">-- Select Building --</option>
-                            <?php foreach ($buildings as $b): ?>
-                                <option value="<?= $b['building_id'] ?>" <?= $b['building_id'] == $currentBuilding ? 'selected' : '' ?>><?= esc($b['name']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <!-- Unit -->
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1.5">Organizational Unit</label>
-                        <select name="assigned_unit_id" id="unit_select" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">-- Select Unit --</option>
-                            <?php foreach ($units as $u): ?>
-                                <option value="<?= $u['unit_id'] ?>" data-building="<?= $u['building_id'] ?>"
-                                    <?= set_select('assigned_unit_id', (string)$u['unit_id'], $a['assigned_unit_id'] == $u['unit_id']) ?>>
-                                    <?= esc($u['name']) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
+                    <input type="hidden" name="assigned_unit_id" id="assigned_unit_id" value="<?= esc((string) ($a['assigned_unit_id'] ?? '')) ?>">
                     <!-- Group -->
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 mb-1.5">Asset Group</label>
-                        <select name="group_id" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select name="group_id" id="group_select" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">-- Select Group (optional) --</option>
                             <?php foreach (($groups ?? []) as $g): ?>
-                                <option value="<?= $g['group_id'] ?>" <?= set_select('group_id', (string)$g['group_id'], ($a['group_id'] ?? '') == $g['group_id']) ?>>
+                                <?php
+                                    $gid = (string) $g['group_id'];
+                                    $map = $groupUnitMap[$gid] ?? ['unit' => '', 'building' => '', 'unit_name' => '', 'building_name' => ''];
+                                ?>
+                                <option value="<?= $g['group_id'] ?>"
+                                    data-unit="<?= esc($map['unit']) ?>"
+                                    data-building="<?= esc($map['building']) ?>"
+                                    data-unit-name="<?= esc($map['unit_name']) ?>"
+                                    data-building-name="<?= esc($map['building_name']) ?>"
+                                    <?= set_select('group_id', (string)$g['group_id'], ($a['group_id'] ?? '') == $g['group_id']) ?>>
                                     <?= esc($g['group_name']) ?> (<?= esc($g['group_code']) ?>)
                                 </option>
                             <?php endforeach; ?>
@@ -565,6 +584,20 @@ ob_start();
                         </div>
                     </div>
 
+                    <!-- Procurement -->
+                    <div>
+                        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-invoice text-violet-400"></i> Procurement Information
+                        </h4>
+                        <div class="grid grid-cols-2 gap-x-6 gap-y-2 bg-gray-50 rounded-xl p-4">
+                            <div class="col-span-2"><span class="text-xs text-gray-400">Supplier / Vendor</span><p class="text-sm font-medium text-gray-800" id="rv-supplier"></p></div>
+                            <div><span class="text-xs text-gray-400">PO Number</span><p class="text-sm font-medium text-gray-800" id="rv-po_number"></p></div>
+                            <div><span class="text-xs text-gray-400">Invoice Number</span><p class="text-sm font-medium text-gray-800" id="rv-invoice_number"></p></div>
+                            <div><span class="text-xs text-gray-400">Mode of Procurement</span><p class="text-sm font-medium text-gray-800" id="rv-procurement_mode"></p></div>
+                            <div><span class="text-xs text-gray-400">Fund Source</span><p class="text-sm font-medium text-gray-800" id="rv-fund_source"></p></div>
+                        </div>
+                    </div>
+
                     <!-- Assignment -->
                     <div>
                         <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
@@ -573,6 +606,7 @@ ob_start();
                         <div class="grid grid-cols-2 gap-x-6 gap-y-2 bg-gray-50 rounded-xl p-4">
                             <div><span class="text-xs text-gray-400">Status</span><p class="text-sm font-medium text-gray-800" id="rv-status"></p></div>
                             <div><span class="text-xs text-gray-400">Asset Group</span><p class="text-sm font-medium text-gray-800" id="rv-group_id"></p></div>
+                            <div><span class="text-xs text-gray-400">Building</span><p class="text-sm font-medium text-gray-800" id="rv-building"></p></div>
                             <div><span class="text-xs text-gray-400">Organizational Unit</span><p class="text-sm font-medium text-gray-800" id="rv-assigned_unit_id"></p></div>
                             <div><span class="text-xs text-gray-400">Assigned To</span><p class="text-sm font-medium text-gray-800" id="rv-assigned_to"></p></div>
                         </div>
@@ -651,7 +685,8 @@ function goReview() {
     }
 
     ['asset_tag','property_no','brand_model','serial_number','category',
-     'date_acquired','warranty_end','lifecycle'].forEach(f => {
+     'date_acquired','warranty_end','lifecycle',
+     'supplier','po_number','invoice_number','procurement_mode','fund_source'].forEach(f => {
         const el = document.getElementById('rv-' + f);
         if (el) el.textContent = fv(f);
     });
@@ -687,9 +722,12 @@ function goReview() {
         rvWrap.style.display = 'none';
     }
 
-    const unitSel = document.getElementById('unit_select');
-    document.getElementById('rv-assigned_unit_id').textContent =
-        unitSel && unitSel.value ? unitSel.options[unitSel.selectedIndex].text : '';
+    const groupForUnit = document.getElementById('group_select');
+    const selectedGroupOpt = groupForUnit ? groupForUnit.options[groupForUnit.selectedIndex] : null;
+    const selectedBuildingName = selectedGroupOpt?.dataset?.buildingName || '';
+    const selectedUnitName = selectedGroupOpt?.dataset?.unitName || '';
+    document.getElementById('rv-building').textContent = selectedBuildingName || '';
+    document.getElementById('rv-assigned_unit_id').textContent = selectedUnitName || '';
 
     ['acquisition_cost','depreciation_cost'].forEach(f => {
         const el  = document.getElementById('rv-' + f);
@@ -720,13 +758,19 @@ function goReview() {
         const rvSwList = document.getElementById('rv-sw-list');
         rvSwList.innerHTML = '';
         swEntries.forEach((entry, idx) => {
-            const name    = entry.querySelector('[name$="[name]"]')?.value?.trim();
+            const detailRow = entry.nextElementSibling && entry.nextElementSibling.classList.contains('sw-detail')
+                ? entry.nextElementSibling
+                : null;
+            const readField = (selector) =>
+                entry.querySelector(selector) || detailRow?.querySelector(selector);
+
+            const name    = readField('[name$="[name]"]')?.value?.trim();
             if (!name) return;
-            const licType = entry.querySelector('[name$="[license_type]"]');
-            const expiry  = entry.querySelector('[name$="[license_expiry]"]')?.value?.trim();
-            const updated = entry.querySelector('[name$="[last_updated]"]')?.value?.trim();
-            const isUpd   = entry.querySelector('[name$="[is_updated]"][type="checkbox"]')?.checked;
-            const notes   = entry.querySelector('[name$="[notes]"]')?.value?.trim();
+            const licType = readField('[name$="[license_type]"]');
+            const expiry  = readField('[name$="[license_expiry]"]')?.value?.trim();
+            const updated = readField('[name$="[last_updated]"]')?.value?.trim();
+            const isUpd   = readField('[name$="[is_updated]"][type="checkbox"]')?.checked;
+            const notes   = readField('[name$="[notes]"]')?.value?.trim();
             const licLabel = licType ? (licType.options[licType.selectedIndex]?.text || '—') : '—';
             const row = document.createElement('div');
             row.className = (idx > 0 ? 'border-t border-gray-200 pt-3 mt-1 ' : '') + 'grid grid-cols-2 gap-x-6 gap-y-1';
@@ -909,7 +953,7 @@ function toggleSoftwareSection(val) {
     sec.classList.toggle('hidden', !isHardwareCategory(val) && !hasExistingData);
 }
 document.addEventListener('DOMContentLoaded', () => {
-    // Seed existing software_list entries from PHP
+    // Seed existing software entries from PHP
     const existing = window._existingSoftwareList || [];
     if (existing.length > 0) {
         existing.forEach(sw => addSoftwareEntry(sw));
@@ -920,26 +964,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cat) toggleSoftwareSection(cat.value);
 });
 
-// Building  Unit cascade
+// Group-driven location auto-fill (no manual Building/Unit selection)
 (function () {
-    const buildingSel = document.getElementById('building_select');
-    const unitSel     = document.getElementById('unit_select');
-    const allOptions  = Array.from(unitSel.querySelectorAll('option'));
-    buildingSel.addEventListener('change', function () {
-        const bid     = this.value;
-        const current = unitSel.value;
-        unitSel.innerHTML = '<option value="">-- Select Unit --</option>';
-        allOptions.forEach(opt => {
-            if (!opt.value) return;
-            if (!bid || opt.dataset.building === bid) {
-                const clone = opt.cloneNode(true);
-                if (clone.value === current) clone.selected = true;
-                unitSel.appendChild(clone);
-            }
-        });
-    });
-    // Trigger on load to filter to current building
-    buildingSel.dispatchEvent(new Event('change'));
+    const groupSel    = document.getElementById('group_select');
+    const assignedUnitInput = document.getElementById('assigned_unit_id');
+    if (!groupSel || !assignedUnitInput) return;
+
+    function applyGroupLocation() {
+        const selected = groupSel.options[groupSel.selectedIndex];
+        if (!selected) return;
+
+        assignedUnitInput.value = selected.dataset.unit || '';
+    }
+
+    groupSel.addEventListener('change', applyGroupLocation);
+
+    if (groupSel.value) {
+        applyGroupLocation();
+    }
 })();
 
 // User live-search picker

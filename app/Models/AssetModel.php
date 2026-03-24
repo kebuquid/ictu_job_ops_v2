@@ -27,7 +27,6 @@ class AssetModel extends Model
         'os_is_updated',
         'software_installed',
         'software_license',
-        'software_list',
         'section_id',
         'assigned_to',
         'assigned_unit_id',

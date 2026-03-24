@@ -248,7 +248,7 @@ ob_start();
 
             <!-- Software & Operating System -->
             <?php
-            $swList = !empty($asset['software_list']) ? json_decode($asset['software_list'], true) : [];
+            $swList = $softwares ?? [];
             $swList = is_array($swList) ? $swList : [];
             $hasSwOs = !empty($asset['operating_system']) || !empty($asset['software_installed']) || !empty($asset['os_license_key']) || !empty($asset['software_license']) || !empty($swList);
             ?>

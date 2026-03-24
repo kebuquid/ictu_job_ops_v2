@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\AssetModel;
+use App\Models\AssetSoftwareModel;
 use App\Models\AssetGroupModel;
 use App\Models\BuildingModel;
 use App\Models\OrganizationalUnitModel;
@@ -13,6 +14,7 @@ use App\Models\KeywordRuleModel;
 class Assets extends BaseController
 {
     protected AssetModel $model;
+    protected AssetSoftwareModel $assetSoftwareModel;
     protected AssetGroupModel $groupModel;
     protected BuildingModel $buildingModel;
     protected OrganizationalUnitModel $unitModel;
@@ -23,6 +25,7 @@ class Assets extends BaseController
     public function __construct()
     {
         $this->model             = new AssetModel();
+        $this->assetSoftwareModel = new AssetSoftwareModel();
         $this->groupModel        = new AssetGroupModel();
         $this->buildingModel     = new BuildingModel();
         $this->unitModel         = new OrganizationalUnitModel();
@@ -148,6 +151,18 @@ class Assets extends BaseController
             $imageFile->move($uploadPath, $imageName);
         }
 
+        $groupIdInput = (int) ($this->request->getPost('group_id') ?: 0);
+        $assignedUnitId = null;
+        if ($groupIdInput > 0) {
+            $group = $this->groupModel->find($groupIdInput);
+            if (! $group || empty($group['assigned_unit_id'])) {
+                return redirect()->back()->withInput()->with('error', 'Selected asset group has no assigned organizational unit. Please update the group first.');
+            }
+            $assignedUnitId = (int) $group['assigned_unit_id'];
+        }
+
+        $softwares = $this->normalizeSoftwareRows($this->request->getPost('software_list'));
+
         $this->model->insert([
             'asset_tag'          => $this->request->getPost('asset_tag'),
             'property_no'        => $this->request->getPost('property_no'),
@@ -160,17 +175,11 @@ class Assets extends BaseController
             'os_license_expiry'  => $this->request->getPost('os_license_expiry') ?: null,
             'os_last_updated'    => $this->request->getPost('os_last_updated') ?: null,
             'os_is_updated'      => (int) ($this->request->getPost('os_is_updated') ?? 0),
-            'software_installed' => $this->request->getPost('software_installed') ?: null,
-            'software_license'   => $this->request->getPost('software_license') ?: null,
-            'software_list'      => (function() {
-                $list = $this->request->getPost('software_list');
-                if (!is_array($list)) return null;
-                $clean = array_values(array_filter($list, fn($s) => !empty(trim($s['name'] ?? ''))));
-                return $clean ? json_encode($clean) : null;
-            })(),
+            'software_installed' => null,
+            'software_license'   => null,
             'section_id'         => $this->request->getPost('section_id') ?: null,
             'assigned_to'        => $this->request->getPost('assigned_to') ?: null,
-            'assigned_unit_id'   => $this->request->getPost('assigned_unit_id') ?: null,
+            'assigned_unit_id'   => $assignedUnitId,
             'date_acquired'      => $this->request->getPost('date_acquired') ?: null,
             'acquisition_cost'   => $this->request->getPost('acquisition_cost') ?: null,
             'depreciation_cost'  => $this->request->getPost('depreciation_cost') ?: null,
@@ -182,12 +191,19 @@ class Assets extends BaseController
             'invoice_number'     => $this->request->getPost('invoice_number') ?: null,
             'procurement_mode'   => $this->request->getPost('procurement_mode') ?: null,
             'fund_source'        => $this->request->getPost('fund_source') ?: null,
-            'group_id'           => $this->request->getPost('group_id') ?: null,
+            'group_id'           => $groupIdInput ?: null,
             'asset_image'        => $imageName,
         ]);
 
+        $assetId = (int) $this->model->getInsertID();
+        $softwareIds = $this->assetSoftwareModel->syncSoftwares($assetId, $softwares);
+        $this->model->update($assetId, [
+            'software_installed' => $softwareIds !== [] ? implode(',', $softwareIds) : null,
+            'software_license'   => $this->buildSoftwareLicenseSummary($softwares),
+        ]);
+
         // Sync group quantity and costs if a group was selected
-        $groupId = (int) ($this->request->getPost('group_id') ?: 0);
+        $groupId = $groupIdInput;
         if ($groupId) {
             $total = $this->model->where('group_id', $groupId)->countAllResults();
             $this->groupModel->update($groupId, ['quantity' => $total]);
@@ -213,6 +229,7 @@ class Assets extends BaseController
 
         return view('assets/show', [
             'asset'          => $asset,
+            'softwares'      => $this->assetSoftwareModel->getByAssetId($id),
             'unitName'       => $unit['name']         ?? null,
             'buildingName'   => $building['name']     ?? null,
             'sectionName'    => $section ? ($section['acronym'] ?? $section['name'] ?? null) : null,
@@ -230,6 +247,7 @@ class Assets extends BaseController
 
         return view('assets/edit', [
             'asset'            => $asset,
+            'softwares'        => $this->assetSoftwareModel->getByAssetId($id),
             'validation'       => \Config\Services::validation(),
             'buildings'        => $this->buildingModel->orderBy('name')->findAll(),
             'units'            => $this->unitModel->orderBy('name')->findAll(),
@@ -270,6 +288,9 @@ class Assets extends BaseController
         if (! $this->validate($rules)) {
             return view('assets/edit', [
                 'asset'            => $asset,
+                'softwares'        => is_array($this->request->getPost('software_list'))
+                    ? $this->request->getPost('software_list')
+                    : $this->assetSoftwareModel->getByAssetId($id),
                 'validation'       => $this->validator,
                 'buildings'        => $this->buildingModel->orderBy('name')->findAll(),
                 'units'            => $this->unitModel->orderBy('name')->findAll(),
@@ -279,6 +300,18 @@ class Assets extends BaseController
                 'keywordRulesData' => $this->keywordRuleModel->getGroupedRulesForForm(),
             ]);
         }
+
+        $newGroupId = (int) ($this->request->getPost('group_id') ?: 0);
+        $assignedUnitId = null;
+        if ($newGroupId > 0) {
+            $group = $this->groupModel->find($newGroupId);
+            if (! $group || empty($group['assigned_unit_id'])) {
+                return redirect()->back()->withInput()->with('error', 'Selected asset group has no assigned organizational unit. Please update the group first.');
+            }
+            $assignedUnitId = (int) $group['assigned_unit_id'];
+        }
+
+        $softwares = $this->normalizeSoftwareRows($this->request->getPost('software_list'));
 
         $updateData = [
             'asset_tag'          => $this->request->getPost('asset_tag'),
@@ -292,17 +325,11 @@ class Assets extends BaseController
             'os_license_expiry'  => $this->request->getPost('os_license_expiry') ?: null,
             'os_last_updated'    => $this->request->getPost('os_last_updated') ?: null,
             'os_is_updated'      => (int) ($this->request->getPost('os_is_updated') ?? 0),
-            'software_installed' => $this->request->getPost('software_installed') ?: null,
-            'software_license'   => $this->request->getPost('software_license') ?: null,
-            'software_list'      => (function() {
-                $list = $this->request->getPost('software_list');
-                if (!is_array($list)) return null;
-                $clean = array_values(array_filter($list, fn($s) => !empty(trim($s['name'] ?? ''))));
-                return $clean ? json_encode($clean) : null;
-            })(),
+            'software_installed' => null,
+            'software_license'   => null,
             'section_id'         => $this->request->getPost('section_id') ?: null,
             'assigned_to'        => $this->request->getPost('assigned_to') ?: null,
-            'assigned_unit_id'   => $this->request->getPost('assigned_unit_id') ?: null,
+            'assigned_unit_id'   => $assignedUnitId,
             'date_acquired'      => $this->request->getPost('date_acquired') ?: null,
             'acquisition_cost'   => $this->request->getPost('acquisition_cost') ?: null,
             'depreciation_cost'  => $this->request->getPost('depreciation_cost') ?: null,
@@ -314,7 +341,7 @@ class Assets extends BaseController
             'invoice_number'     => $this->request->getPost('invoice_number') ?: null,
             'procurement_mode'   => $this->request->getPost('procurement_mode') ?: null,
             'fund_source'        => $this->request->getPost('fund_source') ?: null,
-            'group_id'           => $this->request->getPost('group_id') ?: null,
+            'group_id'           => $newGroupId ?: null,
         ];
 
         // Handle image upload
@@ -351,9 +378,14 @@ class Assets extends BaseController
 
         $this->model->update($id, $updateData);
 
+        $softwareIds = $this->assetSoftwareModel->syncSoftwares($id, $softwares);
+        $this->model->update($id, [
+            'software_installed' => $softwareIds !== [] ? implode(',', $softwareIds) : null,
+            'software_license'   => $this->buildSoftwareLicenseSummary($softwares),
+        ]);
+
         // Sync group quantity and costs for affected groups
         $oldGroupId = (int) ($asset['group_id'] ?? 0);
-        $newGroupId = (int) ($this->request->getPost('group_id') ?: 0);
         $groupsToSync = array_unique(array_filter([$oldGroupId, $newGroupId]));
         foreach ($groupsToSync as $gid) {
             $total = $this->model->where('group_id', $gid)->countAllResults();
@@ -483,6 +515,54 @@ class Assets extends BaseController
         }
 
         return redirect()->to(site_url($this->resolveRoutePrefix() . '/assets'))->with('success', 'Asset deleted successfully.');
+    }
+
+    private function normalizeSoftwareRows($rows): array
+    {
+        if (! is_array($rows)) {
+            return [];
+        }
+
+        $clean = [];
+        foreach ($rows as $row) {
+            $name = trim((string) ($row['name'] ?? ''));
+            if ($name === '') {
+                continue;
+            }
+
+            $clean[] = [
+                'name'           => $name,
+                'license_type'   => trim((string) ($row['license_type'] ?? '')),
+                'license_expiry' => trim((string) ($row['license_expiry'] ?? '')),
+                'last_updated'   => trim((string) ($row['last_updated'] ?? '')),
+                'is_updated'     => (int) ($row['is_updated'] ?? 0),
+                'notes'          => trim((string) ($row['notes'] ?? '')),
+            ];
+        }
+
+        return $clean;
+    }
+
+    private function buildSoftwareLicenseSummary(array $softwares): ?string
+    {
+        if ($softwares === []) {
+            return null;
+        }
+
+        $types = [];
+        foreach ($softwares as $software) {
+            $type = trim((string) ($software['license_type'] ?? ''));
+            if ($type !== '') {
+                $types[] = $type;
+            }
+        }
+
+        if ($types === []) {
+            return null;
+        }
+
+        $types = array_values(array_unique($types));
+        return implode(', ', $types);
     }
 
     private function resolveRoutePrefix(): string
