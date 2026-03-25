@@ -7,7 +7,8 @@
 <div class="p-4 sm:p-6 lg:p-8 space-y-6">
 
   <!-- Stats Cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+  <!-- <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"> -->
+  <div class="grid grid-cols-2 xl:grid-cols-4 gap-5">
     <div class="fade-in delay-1 stat-card bg-white/80 backdrop-blur-sm rounded-2xl p-5 border border-gray-100/50 shadow-lg">
       <div class="flex items-center justify-between mb-3">
         <div class="w-11 h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
