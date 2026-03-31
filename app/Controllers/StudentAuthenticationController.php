@@ -63,6 +63,14 @@ class StudentAuthenticationController extends BaseController
 
         log_message('debug', 'UNISAP Student API Response: ' . print_r($apiResponse['StudentInfo'], true));
 
+        if (!$this->checkUserInLocalDB($apiResponse['StudentInfo'])) {
+            return $this->response->setStatusCode(ResponseInterface::HTTP_INTERNAL_SERVER_ERROR)
+                                  ->setJSON([
+                                      'status'  => 'error',
+                                      'message' => 'Failed to process student data. Please try again later.'
+                                  ]);
+        }
+
         // Always store in session so the forgot-account flow can reference it
         session()->set('pending_student', $apiResponse['StudentInfo']);
 
@@ -80,6 +88,29 @@ class StudentAuthenticationController extends BaseController
                                   'status'  => 'success',
                                   'message' => 'Student found. Please verify your identity.',
                               ]);
+    }
+
+    private function checkUserInLocalDB(array $studentData): bool
+    {
+        $user = $this->userModel->where('LOWER(email)', strtolower($studentData['EmailAddress']))->first();
+
+        if ($user) {
+            return true;
+        }
+
+        $addUser = $this->userModel->insert([
+            'name'    => trim(($studentData['FirstName'] ?? '') . ' ' . ($studentData['LastName'] ?? '')),
+            'email'   => $studentData['EmailAddress'],
+            'role_id' => 4,
+        ]);
+
+        if(!$addUser) {
+            log_message('error', 'Failed to add user to local DB for StudentNo: ' . ($studentData['StudentNo'] ?? '?'));
+            return false;
+        }
+
+        return true;
+
     }
 
     private function maskEmail($email)
@@ -527,8 +558,8 @@ class StudentAuthenticationController extends BaseController
 
         // -- 7. Create job ticket --
         $this->jobTicketModel->insert([
-            'job_status' => $newStatus,
             'requestor_id' => $user['user_id'],
+            'job_status' => $newStatus
             ]);
         $jobTicketId = $this->jobTicketModel->getInsertID();
 
