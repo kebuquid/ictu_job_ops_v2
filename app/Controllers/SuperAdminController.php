@@ -21,6 +21,7 @@ use App\Models\SectionRoleAccessModel;
 use App\Models\FormOptionRoleAccessModel;
 use App\Models\KeywordRuleModel;
 use App\Models\TicketSlaRuleModel;
+use App\Models\AssetModel;
 
 use App\Models\JobTicketModel;
 use App\Models\JobTicketRequestModel;
@@ -56,6 +57,7 @@ class SuperAdminController extends BaseController
     private KeywordRuleModel $keywordRuleModel;
     private TicketSlaRuleModel $ticketSlaRuleModel;
     private TicketSlaResolver $ticketSlaResolver;
+    private AssetModel $assetModel;
 
     public function __construct()
     {
@@ -81,6 +83,7 @@ class SuperAdminController extends BaseController
         $this->keywordRuleModel = new KeywordRuleModel();
         $this->ticketSlaRuleModel = new TicketSlaRuleModel();
         $this->ticketSlaResolver = new TicketSlaResolver();
+        $this->assetModel = new AssetModel();
     }
 
     public function dashboard()
@@ -174,7 +177,7 @@ class SuperAdminController extends BaseController
             }
         }
 
-        // ── 6. Recent activity (last 6 created/updated tickets) ──
+        // ── 6. Recent activity (last 10 created/updated tickets) ──
         $recentActivity = $this->jobTicketModel
             ->select('job_tickets.*, 
                       job_ticket_requests.problem_description,
@@ -185,7 +188,7 @@ class SuperAdminController extends BaseController
             ->join('job_ticket_responses', 'job_ticket_responses.job_ticket_id = job_tickets.job_ticket_id', 'left')
             ->join('users as resp_staff', 'resp_staff.user_id = job_ticket_responses.staff_id', 'left')
             ->orderBy('job_tickets.updated_at', 'DESC')
-            ->limit(6)
+            ->limit(10)
             ->findAll();
 
         // ── 7. Pending verification count ──
@@ -271,14 +274,29 @@ class SuperAdminController extends BaseController
     public function viewTicket(int $ticketId)
     {
         $ticket = $this->jobTicketModel
-            ->select('job_tickets.*, job_ticket_requests.*')
+            ->select('job_tickets.*, job_ticket_requests.*, requestor.name as requestor_name, requestor.email as requestor_email, requestor.account_no as requestor_account_no, requestor.phone_number as requestor_phone_number')
             ->join('job_ticket_requests', 'job_ticket_requests.job_ticket_id = job_tickets.job_ticket_id')
+            ->join('users as requestor', 'requestor.user_id = job_tickets.requestor_id', 'left')
             ->where('job_tickets.job_ticket_id', $ticketId)
             ->first();
 
         if (! $ticket) {
             return redirect()->to('super-admin/tickets')->with('error', 'Ticket not found.');
         }
+
+        $asset = null;
+        if (! empty($ticket['asset_id'])) {
+            $asset = $this->assetModel->find($ticket['asset_id']);
+        }
+
+        $ticket['hardware_issues_text'] = $this->resolveIssueTypes($ticket['hardware_issues'] ?? '');
+        $ticket['software_issues_text'] = $this->resolveIssueTypes($ticket['software_issues'] ?? '');
+
+        // Resolve other request details if they are numeric IDs
+        $ticket['request_type']      = $this->resolveRequestType($ticket['request_type'] ?? '');
+        $ticket['request_platform']  = $this->resolveRequestPlatform($ticket['request_platform'] ?? '');
+        $ticket['request_action']    = $this->resolveRequestAction($ticket['request_action'] ?? '');
+        $ticket['request_equipment'] = $this->resolveTicketEquipment($ticket['request_equipment'] ?? '');
 
         $response = $this->jobTicketResponseModel
             ->select('job_ticket_responses.*, users.name as staff_name')
@@ -290,11 +308,74 @@ class SuperAdminController extends BaseController
 
         return view('super_admin/view_ticket', [
             'ticket'        => $ticket,
+            'asset'         => $asset,
             'response'      => $response,
             'responseParts' => $response ? $this->responsePartModel->getByResponseId((int) $response['job_ticket_response_id']) : [],
             'history'       => $this->ticketHistoryModel->getByTicketId($ticketId),
             'slaSummary'    => $slaSummary,
         ]);
+    }
+
+    private function resolveIssueTypes(string $ids): string
+    {
+        if (empty($ids)) {
+            return '';
+        }
+
+        $idArray = explode(',', $ids);
+        $resolvedNames = [];
+
+        foreach ($idArray as $id) {
+            $id = trim($id);
+            if (is_numeric($id)) {
+                $issue = $this->issueTypeModel->find($id);
+                if ($issue) {
+                    $resolvedNames[] = $issue['issue_type_name'];
+                } else {
+                    $resolvedNames[] = $id;
+                }
+            } else {
+                $resolvedNames[] = $id;
+            }
+        }
+
+        return implode(', ', $resolvedNames);
+    }
+
+    private function resolveRequestType($id)
+    {
+        if (is_numeric($id)) {
+            $item = $this->requestTypeModel->find($id);
+            return $item ? $item['request_type_name'] : $id;
+        }
+        return $id;
+    }
+
+    private function resolveRequestPlatform($id)
+    {
+        if (is_numeric($id)) {
+            $item = $this->requestPlatformModel->find($id);
+            return $item ? $item['platform_name'] : $id;
+        }
+        return $id;
+    }
+
+    private function resolveRequestAction($id)
+    {
+        if (is_numeric($id)) {
+            $item = $this->requestActionModel->find($id);
+            return $item ? $item['action_name'] : $id;
+        }
+        return $id;
+    }
+
+    private function resolveTicketEquipment($id)
+    {
+        if (is_numeric($id)) {
+            $item = $this->ticketEquipmentModel->find($id);
+            return $item ? $item['name'] : $id;
+        }
+        return $id;
     }
 
     public function ticketSlaRules()

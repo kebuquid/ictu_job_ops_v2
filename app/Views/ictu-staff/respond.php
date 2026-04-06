@@ -53,13 +53,41 @@
         <span class="text-gray-400 text-xs uppercase tracking-wider">Problem Description</span>
         <p class="text-gray-700 mt-1"><?= esc($response['problem_description'] ?? 'N/A') ?></p>
       </div>
-      <?php if(!empty($response['hardware_issues'])): ?>
+      <?php if(!empty($asset)): ?>
+      <div class="md:col-span-2 bg-emerald-50/50 p-4 rounded-xl border border-emerald-100">
+        <span class="text-emerald-700 text-xs font-bold uppercase tracking-wider block mb-2">Linked Asset Information</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+          <div>
+            <span class="text-gray-500 text-[10px] uppercase">Asset Tag</span>
+            <p class="text-sm font-semibold text-gray-800"><?= esc($asset['asset_tag'] ?? 'N/A') ?></p>
+          </div>
+          <div>
+            <span class="text-gray-500 text-[10px] uppercase">Property No.</span>
+            <p class="text-sm font-semibold text-gray-800"><?= esc($asset['property_no'] ?? 'N/A') ?></p>
+          </div>
+          <div>
+            <span class="text-gray-500 text-[10px] uppercase">Brand/Model</span>
+            <p class="text-sm font-semibold text-gray-800"><?= esc($asset['brand_model'] ?? 'N/A') ?></p>
+          </div>
+          <div>
+            <span class="text-gray-500 text-[10px] uppercase">Serial Number</span>
+            <p class="text-sm font-semibold text-gray-800"><?= esc($asset['serial_number'] ?? 'N/A') ?></p>
+          </div>
+        </div>
+      </div>
+      <?php endif; ?>
+      <?php if(!empty($response['hardware_issues_text'])): ?>
+      <div>
+        <span class="text-gray-400 text-xs uppercase tracking-wider">Hardware Issues</span>
+        <p class="text-gray-700"><?= esc($response['hardware_issues_text']) ?></p>
+      </div>
+      <?php elseif(!empty($response['hardware_issues'])): ?>
       <div>
         <span class="text-gray-400 text-xs uppercase tracking-wider">Hardware Issues</span>
         <p class="text-gray-700"><?= esc($response['hardware_issues']) ?></p>
       </div>
       <?php endif; ?>
-      <?php $softwareIssues = $response['software_issues'] ?? ($response['sofware_issues'] ?? null); ?>
+      <?php $softwareIssues = $response['software_issues_text'] ?? ($response['software_issues'] ?? ($response['sofware_issues'] ?? null)); ?>
       <?php if(!empty($softwareIssues)): ?>
       <div>
         <span class="text-gray-400 text-xs uppercase tracking-wider">Software Issues</span>
@@ -73,9 +101,49 @@
       </div>
       <?php endif; ?>
       <?php if(!empty($response['additional_request_file'])): ?>
-      <div>
-        <span class="text-gray-400 text-xs uppercase tracking-wider">Attached File</span>
-        <a href="<?= base_url($response['additional_request_file']) ?>" target="_blank" class="text-blue-600 hover:underline text-sm">View Attachment</a>
+      <div class="md:col-span-2">
+        <span class="text-gray-400 text-xs uppercase tracking-wider block mb-2">Attached File</span>
+        <?php 
+          $fileExt = strtolower(pathinfo($response['additional_request_file'], PATHINFO_EXTENSION));
+          $isImage = in_array($fileExt, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+        ?>
+        <?php if ($isImage): ?>
+          <div class="mt-2 group relative inline-block">
+            <img src="<?= base_url($response['additional_request_file']) ?>" 
+                 alt="Attached File" 
+                 class="max-w-md rounded-lg shadow-md border border-gray-200 cursor-zoom-in hover:shadow-xl transition-shadow">
+            <a href="<?= base_url($response['additional_request_file']) ?>" 
+               target="_blank" 
+               class="absolute bottom-2 right-2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            </a>
+          </div>
+        <?php else: ?>
+          <a href="<?= base_url($response['additional_request_file']) ?>" target="_blank" class="text-blue-600 hover:underline text-sm">View Attachment</a>
+        <?php endif; ?>
+      </div>
+      <?php endif; ?>
+      <?php if(!empty($response['pre_repair_form'])): ?>
+      <div class="md:col-span-2">
+        <span class="text-gray-400 text-xs uppercase tracking-wider block mb-2">Pre-Repair Form</span>
+        <?php 
+          $fileExt = strtolower(pathinfo($response['pre_repair_form'], PATHINFO_EXTENSION));
+          $isImage = in_array($fileExt, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+        ?>
+        <?php if ($isImage): ?>
+          <div class="mt-2 group relative inline-block">
+            <img src="<?= base_url($response['pre_repair_form']) ?>" 
+                 alt="Pre-Repair Form" 
+                 class="max-w-md rounded-lg shadow-md border border-gray-200 cursor-zoom-in hover:shadow-xl transition-shadow">
+            <a href="<?= base_url($response['pre_repair_form']) ?>" 
+               target="_blank" 
+               class="absolute bottom-2 right-2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            </a>
+          </div>
+        <?php else: ?>
+          <a href="<?= base_url($response['pre_repair_form']) ?>" target="_blank" class="text-blue-600 hover:underline text-sm">View Pre-Repair Form</a>
+        <?php endif; ?>
       </div>
       <?php endif; ?>
     </div>

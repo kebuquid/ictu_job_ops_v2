@@ -83,7 +83,7 @@
         <?php if(!empty($ticket['attachments'])): ?>
         <div>
           <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Attachment</span>
-          <a href="<?= base_url('uploads/tickets/' . $ticket['attachments']) ?>" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 underline"><?= esc($ticket['attachments']) ?></a>
+          <a href="<?= base_url($ticket['attachments']) ?>" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 underline"><?= esc($ticket['attachments']) ?></a>
         </div>
         <?php endif; ?>
       </div>

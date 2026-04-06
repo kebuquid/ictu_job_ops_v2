@@ -49,28 +49,138 @@
           <p class="text-sm text-gray-700"><?= date('F d, Y h:i A', strtotime($ticket['created_at'])) ?></p>
         </div>
         <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Requestor</span>
+          <p class="text-sm text-gray-700"><?= esc($ticket['requestor_name'] ?? 'N/A') ?></p>
+        </div>
+        <?php if(!empty($ticket['requestor_account_no'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Requestor Account No.</span>
+          <p class="mono text-sm text-gray-700"><?= esc($ticket['requestor_account_no']) ?></p>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($ticket['requestor_email'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Requestor Email</span>
+          <p class="text-sm text-gray-700 break-all"><?= esc($ticket['requestor_email']) ?></p>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($ticket['requestor_phone_number'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Requestor Contact</span>
+          <p class="text-sm text-gray-700"><?= esc($ticket['requestor_phone_number']) ?></p>
+        </div>
+        <?php endif; ?>
+        <div>
           <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Problem Description</span>
           <p class="text-sm text-gray-700"><?= esc($ticket['problem_description'] ?? 'N/A') ?></p>
         </div>
-        <?php if(!empty($ticket['hardware_issues'])): ?>
+        <?php if(!empty($asset)): ?>
+        <div class="md:col-span-2 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <span class="text-slate-600 text-xs font-bold uppercase tracking-wider block mb-2">Linked Asset Information</span>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+            <div>
+              <span class="text-gray-400 text-[10px] uppercase">Asset Tag</span>
+              <p class="text-sm font-semibold text-slate-800"><?= esc($asset['asset_tag'] ?? 'N/A') ?></p>
+            </div>
+            <div>
+              <span class="text-gray-400 text-[10px] uppercase">Property No.</span>
+              <p class="text-sm font-semibold text-slate-800"><?= esc($asset['property_no'] ?? 'N/A') ?></p>
+            </div>
+            <div>
+              <span class="text-gray-400 text-[10px] uppercase">Brand/Model</span>
+              <p class="text-sm font-semibold text-slate-800"><?= esc($asset['brand_model'] ?? 'N/A') ?></p>
+            </div>
+            <div>
+              <span class="text-gray-400 text-[10px] uppercase">Serial Number</span>
+              <p class="text-sm font-semibold text-slate-800"><?= esc($asset['serial_number'] ?? 'N/A') ?></p>
+            </div>
+          </div>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($ticket['additional_details'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Additional Details</span>
+          <p class="text-sm text-gray-700 whitespace-pre-line"><?= esc($ticket['additional_details']) ?></p>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($ticket['hardware_issues_text'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Hardware Issues</span>
+          <p class="text-sm text-gray-700"><?= esc($ticket['hardware_issues_text']) ?></p>
+        </div>
+        <?php elseif(!empty($ticket['hardware_issues'])): ?>
         <div>
           <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Hardware Issues</span>
           <p class="text-sm text-gray-700"><?= esc($ticket['hardware_issues']) ?></p>
         </div>
         <?php endif; ?>
-        <?php $softwareIssues = $ticket['software_issues'] ?? ($ticket['sofware_issues'] ?? null); ?>
+        <?php $softwareIssues = $ticket['software_issues_text'] ?? ($ticket['software_issues'] ?? ($ticket['sofware_issues'] ?? null)); ?>
         <?php if(!empty($softwareIssues)): ?>
         <div>
           <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Software Issues</span>
           <p class="text-sm text-gray-700"><?= esc($softwareIssues) ?></p>
         </div>
         <?php endif; ?>
+        <?php if(!empty($ticket['verification_date'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Verification Date</span>
+          <p class="text-sm text-gray-700"><?= date('F d, Y h:i A', strtotime($ticket['verification_date'])) ?></p>
+        </div>
+        <?php endif; ?>
       </div>
       <div class="space-y-4">
-        <?php if(!empty($ticket['equipment_name'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-2">Requestor Details</span>
+          <div class="bg-gray-50 rounded-lg p-3 space-y-2">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-xs uppercase"><?= substr($ticket['requestor_name'] ?? 'U', 0, 1) ?></div>
+              <div>
+                <p class="text-sm font-bold text-gray-800 leading-none"><?= esc($ticket['requestor_name'] ?? 'Unknown User') ?></p>
+                <p class="text-[10px] text-gray-500 uppercase mt-1">Requestor</p>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 gap-1 pt-1 border-t border-gray-200/60">
+              <div class="flex items-center gap-2 text-[11px] text-gray-600">
+                <svg class="w-3.5 h-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002 0V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                <?= esc($ticket['requestor_email'] ?? 'N/A') ?>
+              </div>
+              <?php if(!empty($ticket['requestor_account_no'])): ?>
+              <div class="flex items-center gap-2 text-[11px] text-gray-600">
+                <svg class="w-3.5 h-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/></svg>
+                ID: <?= esc($ticket['requestor_account_no']) ?>
+              </div>
+              <?php endif; ?>
+              <?php if(!empty($ticket['requestor_phone_number'])): ?>
+              <div class="flex items-center gap-2 text-[11px] text-gray-600">
+                <svg class="w-3.5 h-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                <?= esc($ticket['requestor_phone_number']) ?>
+              </div>
+              <?php endif; ?>
+            </div>
+          </div>
+        </div>
+        <?php if(!empty($ticket['request_type'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Request Type</span>
+          <p class="text-sm text-gray-700"><?= esc($ticket['request_type']) ?></p>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($ticket['request_platform'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Platform</span>
+          <p class="text-sm text-gray-700"><?= esc($ticket['request_platform']) ?></p>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($ticket['request_action'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Action</span>
+          <p class="text-sm text-gray-700"><?= esc($ticket['request_action']) ?></p>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($ticket['request_equipment'])): ?>
         <div>
           <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Equipment</span>
-          <p class="text-sm text-gray-700"><?= esc($ticket['equipment_name']) ?></p>
+          <p class="text-sm text-gray-700"><?= esc($ticket['request_equipment']) ?></p>
         </div>
         <?php endif; ?>
         <?php if(!empty($ticket['serial_no'])): ?>
@@ -85,10 +195,62 @@
           <p class="mono text-sm text-gray-700"><?= esc($ticket['property_no']) ?></p>
         </div>
         <?php endif; ?>
+        <?php if(!empty($ticket['peripheral_description'])): ?>
+        <div>
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Peripheral Description</span>
+          <p class="text-sm text-gray-700"><?= esc($ticket['peripheral_description']) ?></p>
+        </div>
+        <?php endif; ?>
         <?php if(!empty($ticket['attachments'])): ?>
         <div>
           <span class="text-xs text-gray-400 uppercase tracking-wider block mb-1">Attachment</span>
-          <a href="<?= base_url('uploads/tickets/' . $ticket['attachments']) ?>" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 underline"><?= esc($ticket['attachments']) ?></a>
+          <a href="<?= base_url($ticket['attachments']) ?>" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 underline"><?= esc($ticket['attachments']) ?></a>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($ticket['additional_request_file'])): ?>
+        <div class="md:col-span-2">
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-2">Additional File</span>
+          <?php 
+            $fileExt = strtolower(pathinfo($ticket['additional_request_file'], PATHINFO_EXTENSION));
+            $isImage = in_array($fileExt, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+          ?>
+          <?php if ($isImage): ?>
+            <div class="mt-2 group relative inline-block">
+              <img src="<?= base_url($ticket['additional_request_file']) ?>" 
+                   alt="Additional File" 
+                   class="max-w-md rounded-lg shadow-md border border-gray-200 cursor-zoom-in hover:shadow-xl transition-shadow">
+              <a href="<?= base_url($ticket['additional_request_file']) ?>" 
+                 target="_blank" 
+                 class="absolute bottom-2 right-2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+              </a>
+            </div>
+          <?php else: ?>
+            <a href="<?= base_url($ticket['additional_request_file']) ?>" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 underline"><?= esc($ticket['additional_request_file']) ?></a>
+          <?php endif; ?>
+        </div>
+        <?php endif; ?>
+        <?php if(!empty($ticket['pre_repair_form'])): ?>
+        <div class="md:col-span-2">
+          <span class="text-xs text-gray-400 uppercase tracking-wider block mb-2">Pre-repair Form</span>
+          <?php 
+            $fileExt = strtolower(pathinfo($ticket['pre_repair_form'], PATHINFO_EXTENSION));
+            $isImage = in_array($fileExt, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+          ?>
+          <?php if ($isImage): ?>
+            <div class="mt-2 group relative inline-block">
+              <img src="<?= base_url($ticket['pre_repair_form']) ?>" 
+                   alt="Pre-repair Form" 
+                   class="max-w-md rounded-lg shadow-md border border-gray-200 cursor-zoom-in hover:shadow-xl transition-shadow">
+              <a href="<?= base_url($ticket['pre_repair_form']) ?>" 
+                 target="_blank" 
+                 class="absolute bottom-2 right-2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+              </a>
+            </div>
+          <?php else: ?>
+            <a href="<?= base_url($ticket['pre_repair_form']) ?>" target="_blank" class="text-sm text-blue-600 hover:text-blue-800 underline"><?= esc($ticket['pre_repair_form']) ?></a>
+          <?php endif; ?>
         </div>
         <?php endif; ?>
       </div>

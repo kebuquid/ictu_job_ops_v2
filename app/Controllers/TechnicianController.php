@@ -11,6 +11,12 @@ use App\Models\SectionModel;
 use App\Models\UserModel;
 use App\Models\TicketHistoryModel;
 use App\Models\JobStatusModel;
+use App\Models\AssetModel;
+use App\Models\IssueTypeModel;
+use App\Models\RequestTypeModel;
+use App\Models\RequestPlatformModel;
+use App\Models\RequestActionModel;
+use App\Models\TicketEquipmentModel;
 use App\Libraries\TicketSlaResolver;
 
 class TechnicianController extends BaseController
@@ -23,6 +29,12 @@ class TechnicianController extends BaseController
     private UserModel $userModel;
     private TicketHistoryModel $ticketHistoryModel;
     private TicketSlaResolver $ticketSlaResolver;
+    private AssetModel $assetModel;
+    private IssueTypeModel $issueTypeModel;
+    private RequestTypeModel $requestTypeModel;
+    private RequestPlatformModel $requestPlatformModel;
+    private RequestActionModel $requestActionModel;
+    private TicketEquipmentModel $ticketEquipmentModel;
 
     public function __construct()
     {
@@ -34,6 +46,12 @@ class TechnicianController extends BaseController
         $this->userModel              = new UserModel();
         $this->ticketHistoryModel     = new TicketHistoryModel();
         $this->ticketSlaResolver      = new TicketSlaResolver();
+        $this->assetModel             = new AssetModel();
+        $this->issueTypeModel         = new IssueTypeModel();
+        $this->requestTypeModel       = new RequestTypeModel();
+        $this->requestPlatformModel   = new RequestPlatformModel();
+        $this->requestActionModel     = new RequestActionModel();
+        $this->ticketEquipmentModel   = new TicketEquipmentModel();
     }
 
     private function userId(): int
@@ -150,6 +168,20 @@ class TechnicianController extends BaseController
             return redirect()->to($this->urlPrefix() . '/my-tickets')->with('error', 'Ticket not found.');
         }
 
+        $asset = null;
+        if (! empty($ticket['asset_id'])) {
+            $asset = $this->assetModel->find($ticket['asset_id']);
+        }
+
+        $ticket['hardware_issues_text'] = $this->resolveIssueTypes($ticket['hardware_issues'] ?? '');
+        $ticket['software_issues_text'] = $this->resolveIssueTypes($ticket['software_issues'] ?? '');
+
+        // Resolve other request details if they are numeric IDs
+        $ticket['request_type']      = $this->resolveRequestType($ticket['request_type'] ?? '');
+        $ticket['request_platform']  = $this->resolveRequestPlatform($ticket['request_platform'] ?? '');
+        $ticket['request_action']    = $this->resolveRequestAction($ticket['request_action'] ?? '');
+        $ticket['request_equipment'] = $this->resolveTicketEquipment($ticket['request_equipment'] ?? '');
+
         $response = $this->jobTicketResponseModel
             ->select('job_ticket_responses.*, users.name as staff_name')
             ->join('users', 'users.user_id = job_ticket_responses.staff_id', 'left')
@@ -160,6 +192,7 @@ class TechnicianController extends BaseController
 
         return view($this->viewFolder() . '/view_ticket', [
             'ticket'        => $ticket,
+            'asset'         => $asset,
             'response'      => $response,
             'responseParts' => $response ? $this->responsePartModel->getByResponseId((int) $response['job_ticket_response_id']) : [],
             'history'       => $this->ticketHistoryModel->getByTicketId($ticketId),
@@ -188,13 +221,90 @@ class TechnicianController extends BaseController
             return redirect()->to($this->urlPrefix() . '/my-tickets')->with('error', 'Ticket response not found or not assigned to you.');
         }
 
+        $asset = null;
+        if (! empty($response['asset_id'])) {
+            $asset = $this->assetModel->find($response['asset_id']);
+        }
+
+        $response['hardware_issues_text'] = $this->resolveIssueTypes($response['hardware_issues'] ?? '');
+        $response['software_issues_text'] = $this->resolveIssueTypes($response['software_issues'] ?? '');
+
+        // Resolve other request details if they are numeric IDs
+        $response['request_type']      = $this->resolveRequestType($response['request_type'] ?? '');
+        $response['request_platform']  = $this->resolveRequestPlatform($response['request_platform'] ?? '');
+        $response['request_action']    = $this->resolveRequestAction($response['request_action'] ?? '');
+        $response['request_equipment'] = $this->resolveTicketEquipment($response['request_equipment'] ?? '');
+
         $existingParts = $this->responsePartModel->getByResponseId($responseId);
 
         return view($this->viewFolder() . '/respond', [
             'response'      => $response,
+            'asset'         => $asset,
             'existingParts' => $existingParts,
             'urlPrefix'     => $this->urlPrefix(),
         ]);
+    }
+
+    private function resolveIssueTypes(string $ids): string
+    {
+        if (empty($ids)) {
+            return '';
+        }
+
+        $idArray = explode(',', $ids);
+        $resolvedNames = [];
+
+        foreach ($idArray as $id) {
+            $id = trim($id);
+            if (is_numeric($id)) {
+                $issue = $this->issueTypeModel->find($id);
+                if ($issue) {
+                    $resolvedNames[] = $issue['issue_type_name'];
+                } else {
+                    $resolvedNames[] = $id;
+                }
+            } else {
+                $resolvedNames[] = $id;
+            }
+        }
+
+        return implode(', ', $resolvedNames);
+    }
+
+    private function resolveRequestType($id)
+    {
+        if (is_numeric($id)) {
+            $item = $this->requestTypeModel->find($id);
+            return $item ? $item['request_type_name'] : $id;
+        }
+        return $id;
+    }
+
+    private function resolveRequestPlatform($id)
+    {
+        if (is_numeric($id)) {
+            $item = $this->requestPlatformModel->find($id);
+            return $item ? $item['platform_name'] : $id;
+        }
+        return $id;
+    }
+
+    private function resolveRequestAction($id)
+    {
+        if (is_numeric($id)) {
+            $item = $this->requestActionModel->find($id);
+            return $item ? $item['action_name'] : $id;
+        }
+        return $id;
+    }
+
+    private function resolveTicketEquipment($id)
+    {
+        if (is_numeric($id)) {
+            $item = $this->ticketEquipmentModel->find($id);
+            return $item ? $item['name'] : $id;
+        }
+        return $id;
     }
 
     /**
