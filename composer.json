@@ -12,7 +12,6 @@
     "require": {
         "php": "^8.2",
         "codeigniter4/framework": "^4.7",
-        "google/apiclient": "^2.19",
         "league/oauth2-google": "^4.1"
     },
     "require-dev": {

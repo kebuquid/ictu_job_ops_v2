@@ -22,7 +22,7 @@ class EmployeeAuthenticationController extends BaseController
     private string $validationEndpoint;
     private JobTicketModel $jobTicketModel;
     private JobTicketRequestModel $jobTicketRequestModel;
-    private JobTicketResponseModel $jobTicketResponseModel;
+    private JobTicketResponseModel $jobTicketResponseModel; 
     private SectionModel $sectionModel;
     private UserModel $userModel;
     private ExpertiseSignalMapModel $signalMapModel;
@@ -67,6 +67,14 @@ class EmployeeAuthenticationController extends BaseController
 
         log_message('debug', 'UNISAP API Response: ' . print_r($unisapResponse['EmployeeInfo'], true));
 
+        if (!$this->checkUserInLocalDB($unisapResponse['EmployeeInfo'])) {
+            return $this->response->setStatusCode(ResponseInterface::HTTP_INTERNAL_SERVER_ERROR)
+                                  ->setJSON([
+                                      'status'  => 'error',
+                                      'message' => 'Failed to process employee data. Please try again later.'
+                                  ]);
+        }
+
         // Always store in session so the forgot-account flow can reference it
         session()->set('pending_employee', $unisapResponse['EmployeeInfo']);
 
@@ -86,6 +94,29 @@ class EmployeeAuthenticationController extends BaseController
                                   'status'  => 'success',
                                   'message' => 'Employee found. Please verify your identity.'
                               ]);
+    }
+
+    private function checkUserInLocalDB(array $employeeData): bool
+    {
+        $user = $this->userModel->where('LOWER(email)', strtolower($employeeData['EmailAddress']))->first();
+
+        if ($user) {
+            return true;
+        }
+
+        $addUser = $this->userModel->insert([
+            'name'    => trim(($employeeData['FirstName'] ?? '') . ' ' . ($employeeData['LastName'] ?? '')),
+            'email'   => $employeeData['EmailAddress'],
+            'role_id' => 4,
+        ]);
+
+        if(!$addUser) {
+            log_message('error', 'Failed to add user to local DB for EmployeeNo: ' . ($employeeData['EmployeeNo'] ?? '?'));
+            return false;
+        }
+
+        return true;
+
     }
 
     private function callValidationApi(string $employeeNumber): array
@@ -294,6 +325,13 @@ class EmployeeAuthenticationController extends BaseController
             return false;
         }
 
+        $user = $this->userModel->where('LOWER(email)', strtolower($employeeData['EmailAddress']))->first();
+
+        if(empty($user)) {
+            log_message('error', 'Account recovery: Employee email not found in local DB for EmployeeNo: ' . ($employeeData['EmployeeNo'] ?? '?'));
+            return false;
+        }
+
         // Find MIS section
         $section = $this->sectionModel->where('acronym', 'MIS')->first();
         if (empty($section)) {
@@ -416,7 +454,10 @@ class EmployeeAuthenticationController extends BaseController
         }
 
         // -- 7. Create job ticket --
-        $this->jobTicketModel->insert(['job_status' => $newStatus]);
+        $this->jobTicketModel->insert([
+            'requestor_id' => $user['user_id'],
+            'job_status' => $newStatus
+            ]);
         $jobTicketId = $this->jobTicketModel->getInsertID();
 
         if (!$jobTicketId) {
