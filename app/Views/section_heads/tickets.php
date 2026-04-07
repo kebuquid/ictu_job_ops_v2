@@ -4,13 +4,86 @@
 <?= $this->section('pageSubtitle') ?>All Tickets<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
+<style>
+ /* --- DataTables Static Light Theme Override --- */
+
+/* 1. The Main Table & Header Cells */
+#ticketsTable, 
+#ticketsTable thead th {
+    background-color: #f8fafc !important; /* slate-50 */
+    color: #1e293b !important;            /* slate-800 */
+    border-color: #e2e8f0 !important;      /* slate-200 */
+}
+
+/* 2. Table Body Rows (Static White & Light Gray Striping) */
+#ticketsTable tbody tr {
+    background-color: #ffffff !important;
+    color: #334155 !important;            /* slate-700 */
+}
+
+#ticketsTable tbody tr.odd {
+    background-color: #ffffff !important;
+}
+
+#ticketsTable tbody tr.even {
+    background-color: #f9fafb !important; /* gray-50 */
+}
+
+/* 3. Search Input & Length Dropdown */
+#dt-search-0, 
+#dt-length-0,
+.dataTables_wrapper .dataTables_filter input,
+.dataTables_wrapper .dataTables_length select {
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+}
+
+/* 4. Pagination Buttons */
+.dt-paging .pagination a, 
+.dt-paging .pagination span,
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    background-color: #ffffff !important;
+    color: #475569 !important;            /* slate-600 */
+    border: 1px solid #e2e8f0 !important;
+}
+
+/* 5. Active/Selected Page Button */
+.dt-paging .pagination a[aria-current="page"],
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background-color: #eff6ff !important; /* blue-50 */
+    color: #2563eb !important;            /* blue-600 */
+    border-color: #bfdbfe !important;      /* blue-200 */
+    font-weight: 700 !important;
+}
+
+/* 6. Disabled Buttons (Previous/Next when inactive) */
+.dt-paging .pagination a[aria-disabled="true"],
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+    background-color: #ffffff !important;
+    color: #cbd5e1 !important;            /* slate-300 */
+    cursor: not-allowed !important;
+}
+
+/* 7. Footer Info Text ("Showing 1 to 7...") */
+.dt-info, 
+.dataTables_wrapper .dataTables_info {
+    color: #64748b !important;            /* slate-500 */
+}
+
+/* 8. Fix for the horizontal scroll area background */
+.dt-scroll-body {
+    background-color: #ffffff !important;
+}
+</style>
 <div class="p-4 sm:p-6 lg:p-8 space-y-6">
 
   <?php if(session()->getFlashdata('success')): ?>
     <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm"><?= session()->getFlashdata('success') ?></div>
   <?php endif; ?>
 
-  <div class="fade-in delay-1 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-blue-100/50 shadow-lg">
+  <div class="fade-in delay-1 bg-white backdrop-blur-sm rounded-2xl p-6 border border-blue-100/50 shadow-lg">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
       <h3 class="font-bold text-gray-900 text-lg">All Section Tickets</h3>
       <a href="<?= base_url('create-ticket') ?>" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-semibold text-sm rounded-xl shadow hover:shadow-lg transition-all">+ New Ticket</a>

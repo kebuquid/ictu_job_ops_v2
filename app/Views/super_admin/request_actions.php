@@ -1,6 +1,79 @@
 <?= $this->extend('super_admin/layout') ?>
 
 <?= $this->section('content') ?>
+<style>
+ /* --- DataTables Static Light Theme Override --- */
+
+/* 1. The Main Table & Header Cells */
+#requestActionsTable, 
+#requestActionsTable thead th {
+    background-color: #f8fafc !important; /* slate-50 */
+    color: #1e293b !important;            /* slate-800 */
+    border-color: #e2e8f0 !important;      /* slate-200 */
+}
+
+/* 2. Table Body Rows (Static White & Light Gray Striping) */
+#requestActionsTable tbody tr {
+    background-color: #ffffff !important;
+    color: #334155 !important;            /* slate-700 */
+}
+
+#requestActionsTable tbody tr.odd {
+    background-color: #ffffff !important;
+}
+
+#requestActionsTable tbody tr.even {
+    background-color: #f9fafb !important; /* gray-50 */
+}
+
+/* 3. Search Input & Length Dropdown */
+#dt-search-0, 
+#dt-length-0,
+.dataTables_wrapper .dataTables_filter input,
+.dataTables_wrapper .dataTables_length select {
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+}
+
+/* 4. Pagination Buttons */
+.dt-paging .pagination a, 
+.dt-paging .pagination span,
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    background-color: #ffffff !important;
+    color: #475569 !important;            /* slate-600 */
+    border: 1px solid #e2e8f0 !important;
+}
+
+/* 5. Active/Selected Page Button */
+.dt-paging .pagination a[aria-current="page"],
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background-color: #eff6ff !important; /* blue-50 */
+    color: #2563eb !important;            /* blue-600 */
+    border-color: #bfdbfe !important;      /* blue-200 */
+    font-weight: 700 !important;
+}
+
+/* 6. Disabled Buttons (Previous/Next when inactive) */
+.dt-paging .pagination a[aria-disabled="true"],
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+    background-color: #ffffff !important;
+    color: #cbd5e1 !important;            /* slate-300 */
+    cursor: not-allowed !important;
+}
+
+/* 7. Footer Info Text ("Showing 1 to 7...") */
+.dt-info, 
+.dataTables_wrapper .dataTables_info {
+    color: #64748b !important;            /* slate-500 */
+}
+
+/* 8. Fix for the horizontal scroll area background */
+.dt-scroll-body {
+    background-color: #ffffff !important;
+}
+</style>
 <div class="p-8 space-y-6">
 
   <?php if (session()->getFlashdata('success')): ?>
