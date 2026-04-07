@@ -215,6 +215,13 @@
           Disposals
         </a>
 
+        <p class="text-xs font-700 text-gray-400 uppercase tracking-widest px-3 pb-1 pt-4">System</p>
+
+        <a href="<?= base_url('logs') ?>" class="sidebar-item <?= str_starts_with(uri_string(), 'logs') ? 'sidebar-active' : 'text-gray-600 hover:text-blue-700 hover:bg-blue-50' ?> flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all">
+          <svg class="sidebar-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          Logs
+        </a>
+
       <!-- Bottom logout -->
       <div class="p-4 border-t border-blue-100/60">
         <a href="<?= base_url('logout') ?>" class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 font-medium text-sm transition-all">

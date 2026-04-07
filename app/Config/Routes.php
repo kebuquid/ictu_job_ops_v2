@@ -332,3 +332,11 @@ $routes->group('student', ['filter' => 'role:5'], static function ($routes) {
     $routes->get('create-ticket/request-type-data/(:num)', 'TicketController::getRequestTypeData/$1');
     $routes->get('create-ticket/requestor-assets', 'TicketController::getRequestorAssets');
 });
+
+// ─── Log Viewer Routes (Super Admin, Admin, ICTU Staff) ──
+$routes->group('logs', ['filter' => 'role:1,2,3'], static function ($routes) {
+    $routes->get('', 'Admin\LogViewerController::index');
+    $routes->get('view/(:any)', 'Admin\LogViewerController::view/$1');
+    $routes->get('download/(:any)', 'Admin\LogViewerController::download/$1');
+    $routes->post('delete/(:any)', 'Admin\LogViewerController::delete/$1');
+});
