@@ -184,70 +184,63 @@ class LogViewerController extends BaseController
     }
 
     /**
-     * Parse a log file into structured lines.
-     * Each line has: timestamp, level, message.
+     * Parse a log file into structured entries.
+     * Groups multi-line entries (stack traces, etc.) together.
+     * Each entry has: timestamp, level, message (which may be multi-line).
      *
      * @param string $filePath The full path to the log file
-     * @return array Array of parsed log lines
+     * @return array Array of parsed log entries
      */
     private function parseLogFile(string $filePath): array
     {
-        $lines = [];
+        $entries = [];
         $handle = fopen($filePath, 'r');
 
         if ($handle === false) {
             return [];
         }
 
+        $currentEntry = null;
+
         while (($line = fgets($handle)) !== false) {
-            $parsed = $this->parseSingleLogLine(trim($line));
-            if ($parsed !== null) {
-                $lines[] = $parsed;
+            $line = rtrim($line, "\r\n");
+
+            // Check if this line starts a new log entry
+            if (preg_match('/^([A-Z]+)\s+-\s+([\d\-\s:]+)\s+-->\s+(.*)$/', $line, $matches)) {
+                // Save the previous entry if exists
+                if ($currentEntry !== null) {
+                    $entries[] = $currentEntry;
+                }
+
+                // Start a new entry
+                $currentEntry = [
+                    'level' => $matches[1],
+                    'timestamp' => $matches[2],
+                    'message' => $matches[3],
+                ];
+            } else {
+                // This is a continuation line - append to current entry
+                if ($currentEntry !== null) {
+                    $currentEntry['message'] .= "\n" . $line;
+                }
             }
+        }
+
+        // Don't forget the last entry
+        if ($currentEntry !== null) {
+            $entries[] = $currentEntry;
         }
 
         fclose($handle);
 
-        return $lines;
+        return $entries;
     }
 
     /**
-     * Parse a single log line.
-     * Expected format: LEVEL - YYYY-MM-DD HH:MM:SS --> message
-     * (CodeIgniter 4 format)
-     *
-     * @param string $line The log line to parse
-     * @return array|null Parsed line as ['timestamp', 'level', 'message'], or null if invalid
-     */
-    private function parseSingleLogLine(string $line): ?array
-    {
-        if (empty($line)) {
-            return null;
-        }
-
-        // Pattern: LEVEL - YYYY-MM-DD HH:MM:SS --> message
-        // e.g., "DEBUG - 2026-04-07 09:00:01 --> Session: Class initialized..."
-        if (preg_match('/^([A-Z]+)\s+-\s+([\d\-\s:]+)\s+-->\s+(.*)$/', $line, $matches)) {
-            return [
-                'level' => $matches[1],
-                'timestamp' => $matches[2],
-                'message' => $matches[3],
-            ];
-        }
-
-        // Fallback: treat entire line as message if no pattern match
-        return [
-            'timestamp' => '',
-            'level' => 'INFO',
-            'message' => $line,
-        ];
-    }
-
-    /**
-     * Count ERROR or CRITICAL level entries in a file.
+     * Count ERROR or higher severity level entries in a file.
      *
      * @param string $filePath The full path to the log file
-     * @return int Count of error lines
+     * @return int Count of error/critical/alert/emergency lines
      */
     private function countErrorsInFile(string $filePath): int
     {
@@ -259,8 +252,8 @@ class LogViewerController extends BaseController
         }
 
         while (($line = fgets($handle)) !== false) {
-            // Check if line starts with ERROR or CRITICAL
-            if (preg_match('/^(ERROR|CRITICAL)\s+-/', $line)) {
+            // Check if line starts with EMERGENCY, ALERT, CRITICAL, or ERROR
+            if (preg_match('/^(EMERGENCY|ALERT|CRITICAL|ERROR)\s+-/', $line)) {
                 $count++;
             }
         }

@@ -80,8 +80,12 @@
                 class="px-4 py-2 rounded-lg border border-blue-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-700"
                 onchange="filterLogs()">
           <option value="">All Levels</option>
+          <option value="EMERGENCY">EMERGENCY</option>
+          <option value="ALERT">ALERT</option>
+          <option value="CRITICAL">CRITICAL</option>
           <option value="ERROR">ERROR</option>
           <option value="WARNING">WARNING</option>
+          <option value="NOTICE">NOTICE</option>
           <option value="INFO">INFO</option>
           <option value="DEBUG">DEBUG</option>
         </select>
@@ -146,9 +150,12 @@
    * Level badge color mapping
    */
   const levelColors = {
+    'EMERGENCY': { bg: 'bg-red-900', text: 'text-red-50', border: 'border-red-800', dot: 'bg-red-600' },
+    'ALERT': { bg: 'bg-red-700', text: 'text-red-50', border: 'border-red-600', dot: 'bg-red-500' },
+    'CRITICAL': { bg: 'bg-red-600', text: 'text-red-50', border: 'border-red-500', dot: 'bg-red-400' },
     'ERROR': { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300', dot: 'bg-red-500' },
-    'CRITICAL': { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300', dot: 'bg-red-500' },
     'WARNING': { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-300', dot: 'bg-amber-500' },
+    'NOTICE': { bg: 'bg-cyan-100', text: 'text-cyan-700', border: 'border-cyan-300', dot: 'bg-cyan-500' },
     'INFO': { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300', dot: 'bg-blue-500' },
     'DEBUG': { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300', dot: 'bg-gray-500' },
   };
@@ -206,12 +213,12 @@
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const levelFilter = document.getElementById('levelFilter').value;
 
-    filteredLines = allLines.filter(line => {
+    filteredLines = allLines.filter(entry => {
       const matchesSearch = !searchTerm || 
-        line.timestamp.toLowerCase().includes(searchTerm) ||
-        line.message.toLowerCase().includes(searchTerm);
+        entry.timestamp.toLowerCase().includes(searchTerm) ||
+        entry.message.toLowerCase().includes(searchTerm);
       
-      const matchesLevel = !levelFilter || line.level === levelFilter;
+      const matchesLevel = !levelFilter || entry.level === levelFilter;
 
       return matchesSearch && matchesLevel;
     });
@@ -231,18 +238,22 @@
       return;
     }
 
-    const html = filteredLines.map((line, idx) => {
-      const colors = levelColors[line.level] || levelColors['INFO'];
+    const html = filteredLines.map((entry, idx) => {
+      const colors = levelColors[entry.level] || levelColors['INFO'];
+      const messageLines = entry.message.split('\n');
+      
       return `
-        <div class="mb-2 p-3 bg-white rounded border border-blue-100/50 mono text-xs transition hover:shadow-md">
-          <div class="flex gap-3 items-start">
-            <span class="text-gray-400 flex-shrink-0">${idx + 1}</span>
-            <span class="text-gray-500">${escapeHtml(line.timestamp)}</span>
-            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded ${colors.bg} ${colors.text} font-semibold whitespace-nowrap">
+        <div class="mb-3 bg-white rounded border border-blue-100/50 overflow-hidden transition hover:shadow-md">
+          <div class="px-4 py-3 flex gap-3 items-start bg-gray-50 border-b border-blue-100/30">
+            <span class="text-gray-400 flex-shrink-0 font-semibold">${idx + 1}</span>
+            <span class="text-gray-500 mono text-xs flex-shrink-0">${escapeHtml(entry.timestamp)}</span>
+            <span class="inline-flex items-center gap-1 px-2 py-1 rounded ${colors.bg} ${colors.text} font-semibold whitespace-nowrap flex-shrink-0">
               <span class="w-1.5 h-1.5 ${colors.dot} rounded-full"></span>
-              ${escapeHtml(line.level)}
+              ${escapeHtml(entry.level)}
             </span>
-            <span class="text-gray-800">${escapeHtml(line.message)}</span>
+          </div>
+          <div class="px-4 py-3 mono text-xs text-gray-800 whitespace-pre-wrap break-words">
+            ${messageLines.map(msg => escapeHtml(msg)).join('<br>')}
           </div>
         </div>
       `;
@@ -255,8 +266,8 @@
    * Update the status bar statistics
    */
   function updateStats() {
-    const errorCount = filteredLines.filter(l => l.level === 'ERROR' || l.level === 'CRITICAL').length;
-    const warningCount = filteredLines.filter(l => l.level === 'WARNING').length;
+    const errorCount = filteredLines.filter(e => ['EMERGENCY', 'ALERT', 'CRITICAL', 'ERROR'].includes(e.level)).length;
+    const warningCount = filteredLines.filter(e => e.level === 'WARNING').length;
 
     document.getElementById('statsErrors').textContent = errorCount;
     document.getElementById('statsWarnings').textContent = warningCount;
