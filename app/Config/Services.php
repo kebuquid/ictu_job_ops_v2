@@ -29,4 +29,21 @@ class Services extends BaseService
      *     return new \CodeIgniter\Example();
      * }
      */
+
+    /**
+     * Override the logger to use NotifyingLogger instead of the default.
+     * This enables automatic log notifications for critical levels.
+     *
+     * @param bool $getShared
+     * @return \App\Libraries\NotifyingLogger
+     */
+    public static function logger($getShared = true)
+    {
+        if ($getShared) {
+            return static::getSharedInstance('logger');
+        }
+
+        $config = config('Logger');
+        return new \App\Libraries\NotifyingLogger($config);
+    }
 }

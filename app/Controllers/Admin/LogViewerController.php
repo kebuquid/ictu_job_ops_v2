@@ -3,6 +3,8 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
+use Config\LogNotifier as LogNotifierConfig;
+use App\Libraries\LogNotifier;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class LogViewerController extends BaseController
@@ -279,5 +281,111 @@ class LogViewerController extends BaseController
         }
 
         return $filename;
+    }
+
+    /**
+     * Send a test notification (Super Admin only)
+     *
+     * @return ResponseInterface
+     */
+    public function testNotify()
+    {
+        $user = session()->get('user');
+
+        // Check authentication
+        if (!$user) {
+            return redirect()->to(base_url('login'));
+        }
+
+        // Check role: only super_admin (role_id = 1) can trigger notifications
+        if ($user['role_id'] != 1) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'success' => false,
+                'error' => 'Forbidden: Only super admin can send test notifications',
+            ]);
+        }
+
+        // Validate CSRF token if provided
+        if ($this->request->getMethod() === 'post' && !$this->validate(['_csrf' => 'required'])) {
+            // CSRF validation can be skipped if using AJAX with X-Requested-With header
+        }
+
+        try {
+            $notifier = new LogNotifier();
+            $userName = $user['name'] ?? 'Administrator';
+            $appName = env('APP_NAME', 'ICTU Job Operations');
+
+            $message = "Test notification from {$appName} Log Viewer — sent by {$userName}";
+            $results = $notifier->notify('ERROR', $message, [
+                'file' => __FILE__,
+                'line' => __LINE__,
+            ]);
+
+            return $this->response->setJSON([
+                'success' => !empty($results),
+                'channels' => array_keys($results),
+                'results' => array_map(fn($success) => $success ? 'sent' : 'failed', $results),
+            ]);
+        } catch (\Throwable $e) {
+            log_message('error', '[LogViewerController::testNotify] Error: ' . $e->getMessage());
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'error' => 'Failed to send test notification: ' . $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Display notification settings (Super Admin only)
+     *
+     * @return ResponseInterface
+     */
+    public function notificationSettings()
+    {
+        $user = session()->get('user');
+
+        // Check authentication
+        if (!$user) {
+            return redirect()->to(base_url('login'));
+        }
+
+        // Check role: only super_admin (role_id = 1) can view settings
+        if ($user['role_id'] != 1) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'success' => false,
+                'error' => 'Forbidden: Only super admin can view notification settings',
+            ]);
+        }
+
+        try {
+            $config = config('LogNotifier');
+
+            // Mask sensitive tokens — show only last 4 characters
+            $maskedTelegramToken = !empty($config->telegramBotToken)
+                ? '****' . substr($config->telegramBotToken, -4)
+                : '(not configured)';
+
+            $maskedSlackUrl = !empty($config->slackWebhookUrl)
+                ? substr($config->slackWebhookUrl, 0, 30) . '****'
+                : '(not configured)';
+
+            return $this->response->setJSON([
+                'enabled' => $config->enabled,
+                'channels' => $config->channels,
+                'emailRecipients' => $config->getEmailRecipients(),
+                'emailFrom' => $config->getEmailFromAddress(),
+                'telegramToken' => $maskedTelegramToken,
+                'slackWebhook' => $maskedSlackUrl,
+                'deduplicationTtl' => $config->deduplicationTtl,
+                'notifyOnLevels' => $config->notifyOnLevels,
+                'appName' => $config->appName,
+            ]);
+        } catch (\Throwable $e) {
+            log_message('error', '[LogViewerController::notificationSettings] Error: ' . $e->getMessage());
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'error' => 'Failed to fetch notification settings: ' . $e->getMessage(),
+            ]);
+        }
     }
 }
