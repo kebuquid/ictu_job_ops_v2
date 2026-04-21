@@ -39,7 +39,7 @@ class DevAuth extends BaseController
                 return redirect()->back()->with('error', 'User not found.');
             }
 
-            $user = $this->userModel->getUserWithNoRole($userData['user_id']);
+            $user = $this->userModel->getUserWithRole($userData['user_id']);
                 session()->set('user', $user);
 
                 $roleData = (new RoleModel())->find((int) $user['role_id']);
