@@ -32,16 +32,23 @@ class DevAuth extends BaseController
             return redirect()->back()->with('error', 'This login method is only available in development environment.');
         }
 
-        $email = $user . '@cspc.edu.ph';
-        $userData = $this->userModel->where('email', $email)->first();
-        if (!$userData) {
-            return redirect()->back()->with('error', 'User not found.');
+        try {
+            $email = $user . '@cspc.edu.ph';
+            $userData = $this->userModel->where('email', $email)->first();
+            if (!$userData) {
+                return redirect()->back()->with('error', 'User not found.');
+            }
+
+            $user = $this->userModel->getUserWithRole($userData['user_id']);
+                session()->set('user', $user);
+
+                $roleData = (new RoleModel())->find((int) $user['role_id']);
+                return redirect()->to(($roleData['url_path'] ?? '/employee') . '/dashboard');
+        } catch (\Throwable $e) {
+            log_message('error', 'Error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'The system encountered an error. Please try again later.');
         }
 
-        $user = $this->userModel->getUserWithRole($userData['user_id']);
-            session()->set('user', $user);
-
-            $roleData = (new RoleModel())->find((int) $user['role_id']);
-            return redirect()->to(($roleData['url_path'] ?? '/employee') . '/dashboard');
+        
     }
 }

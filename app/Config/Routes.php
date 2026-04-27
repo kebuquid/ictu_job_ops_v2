@@ -343,4 +343,8 @@ $routes->group('logs', ['filter' => 'role:1,2,3'], static function ($routes) {
     $routes->get('view/(:any)', 'Admin\LogViewerController::view/$1');
     $routes->get('download/(:any)', 'Admin\LogViewerController::download/$1');
     $routes->post('delete/(:any)', 'Admin\LogViewerController::delete/$1');
+    
+    // Notification endpoints (super admin only)
+    $routes->post('test-notify', 'Admin\LogViewerController::testNotify');
+    $routes->get('settings', 'Admin\LogViewerController::notificationSettings');
 });
