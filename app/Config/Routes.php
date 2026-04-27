@@ -214,6 +214,7 @@ $routes->group('admin', ['filter' => 'role:2'], static function ($routes) {
     $routes->post('respond/(:num)', 'SectionHeadController::submitResponse/$1');
     $routes->get('transfer/(:num)', 'SectionHeadController::transferForm/$1');
     $routes->post('transfer/(:num)', 'SectionHeadController::transferTicket/$1');
+    $routes->post('transfer-request/(:num)/reject', 'SectionHeadController::rejectTransferRequest/$1');
 
     // Keyword Rules CRUD (section-scoped)
     $routes->get('keyword-rules', 'SectionHeadController::keywordRules');
@@ -279,6 +280,7 @@ $routes->group('ictu-staff', ['filter' => 'role:3'], static function ($routes) {
     $routes->get('ticket/(:num)', 'TechnicianController::viewTicket/$1');
     $routes->get('respond/(:num)', 'TechnicianController::respondForm/$1');
     $routes->post('respond/(:num)', 'TechnicianController::submitResponse/$1');
+    $routes->post('take-ticket/(:num)', 'TechnicianController::takeTicket/$1');
     $routes->get('transfer/(:num)', 'TechnicianController::transferForm/$1');
     $routes->post('transfer/(:num)', 'TechnicianController::transferTicket/$1');
 });
@@ -290,6 +292,7 @@ $routes->group('technician', ['filter' => 'role:3'], static function ($routes) {
     $routes->get('ticket/(:num)', 'TechnicianController::viewTicket/$1');
     $routes->get('respond/(:num)', 'TechnicianController::respondForm/$1');
     $routes->post('respond/(:num)', 'TechnicianController::submitResponse/$1');
+    $routes->post('take-ticket/(:num)', 'TechnicianController::takeTicket/$1');
     $routes->get('transfer/(:num)', 'TechnicianController::transferForm/$1');
     $routes->post('transfer/(:num)', 'TechnicianController::transferTicket/$1');
 });
@@ -301,6 +304,7 @@ $routes->group('staff', ['filter' => 'role:3'], static function ($routes) {
     $routes->get('ticket/(:num)', 'TechnicianController::viewTicket/$1');
     $routes->get('respond/(:num)', 'TechnicianController::respondForm/$1');
     $routes->post('respond/(:num)', 'TechnicianController::submitResponse/$1');
+    $routes->post('take-ticket/(:num)', 'TechnicianController::takeTicket/$1');
     $routes->get('transfer/(:num)', 'TechnicianController::transferForm/$1');
     $routes->post('transfer/(:num)', 'TechnicianController::transferTicket/$1');
 });

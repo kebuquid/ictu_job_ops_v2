@@ -18,6 +18,7 @@ use App\Models\RequestPlatformModel;
 use App\Models\RequestActionModel;
 use App\Models\TicketEquipmentModel;
 use App\Models\TicketSlaRuleModel;
+use App\Models\TicketTransferRequestModel;
 use App\Models\AssetModel;
 use App\Models\IssueTypeModel;
 use App\Libraries\TicketSlaResolver;
@@ -37,6 +38,7 @@ class SectionHeadController extends BaseController
     private RequestActionModel $requestActionModel;
     private TicketEquipmentModel $ticketEquipmentModel;
     private TicketSlaRuleModel $ticketSlaRuleModel;
+    private TicketTransferRequestModel $transferRequestModel;
     private TicketSlaResolver $ticketSlaResolver;
     private AssetModel $assetModel;
     private IssueTypeModel $issueTypeModel;
@@ -56,6 +58,7 @@ class SectionHeadController extends BaseController
         $this->requestActionModel     = new RequestActionModel();
         $this->ticketEquipmentModel   = new TicketEquipmentModel();
         $this->ticketSlaRuleModel     = new TicketSlaRuleModel();
+        $this->transferRequestModel   = new TicketTransferRequestModel();
         $this->ticketSlaResolver      = new TicketSlaResolver();
         $this->assetModel             = new AssetModel();
         $this->issueTypeModel         = new IssueTypeModel();
@@ -165,6 +168,33 @@ class SectionHeadController extends BaseController
             ->where('job_ticket_requests.section_id', $sectionId)
             ->orderBy('job_tickets.created_at', 'DESC')
             ->findAll();
+
+        $responseIds = array_values(array_filter(array_map(static fn($ticket) => (int) ($ticket['job_ticket_response_id'] ?? 0), $tickets)));
+        $pendingTransferRequestByResponse = [];
+
+        if (! empty($responseIds)) {
+            $pendingRequests = $this->transferRequestModel
+                ->select('ticket_transfer_requests.*, requested.name as requested_by_name, suggested.name as suggested_staff_name')
+                ->join('users as requested', 'requested.user_id = ticket_transfer_requests.requested_by', 'left')
+                ->join('users as suggested', 'suggested.user_id = ticket_transfer_requests.suggested_staff_id', 'left')
+                ->whereIn('job_ticket_response_id', $responseIds)
+                ->where('status', 'pending')
+                ->orderBy('transfer_request_id', 'DESC')
+                ->findAll();
+
+            foreach ($pendingRequests as $request) {
+                $responseId = (int) $request['job_ticket_response_id'];
+                if (! isset($pendingTransferRequestByResponse[$responseId])) {
+                    $pendingTransferRequestByResponse[$responseId] = $request;
+                }
+            }
+        }
+
+        foreach ($tickets as &$ticket) {
+            $responseId = (int) ($ticket['job_ticket_response_id'] ?? 0);
+            $ticket['pending_transfer_request'] = $pendingTransferRequestByResponse[$responseId] ?? null;
+        }
+        unset($ticket);
 
         return view('section_heads/tickets', [
             'tickets' => $tickets,
@@ -522,7 +552,7 @@ class SectionHeadController extends BaseController
     public function transferForm(int $responseId)
     {
         $sectionId = $this->sectionId();
-        $userId = $this->userId();
+        $transferRequestId = (int) ($this->request->getGet('transfer_request_id') ?? 0);
 
         // Get the response with ticket details
         $response = $this->jobTicketResponseModel
@@ -543,6 +573,22 @@ class SectionHeadController extends BaseController
             return redirect()->to('admin/tickets')->with('error', 'Only active tickets can be transferred.');
         }
 
+        $transferRequest = null;
+        if ($transferRequestId > 0) {
+            $transferRequest = $this->transferRequestModel
+                ->select('ticket_transfer_requests.*, requested.name as requested_by_name, suggested.name as suggested_staff_name')
+                ->join('users as requested', 'requested.user_id = ticket_transfer_requests.requested_by', 'left')
+                ->join('users as suggested', 'suggested.user_id = ticket_transfer_requests.suggested_staff_id', 'left')
+                ->where('ticket_transfer_requests.transfer_request_id', $transferRequestId)
+                ->where('ticket_transfer_requests.job_ticket_response_id', $responseId)
+                ->where('ticket_transfer_requests.status', 'pending')
+                ->first();
+
+            if (! $transferRequest) {
+                return redirect()->to('admin/tickets')->with('error', 'Pending transfer request not found.');
+            }
+        }
+
         // Get eligible employees in the section (excluding current assignee)
         $employees = $this->userModel
             ->whereIn('role_id', [2, 3])
@@ -560,8 +606,9 @@ class SectionHeadController extends BaseController
         }
 
         return view('section_heads/transfer', [
-            'response'  => $response,
-            'employees' => $employees,
+            'response'        => $response,
+            'employees'       => $employees,
+            'transferRequest' => $transferRequest,
         ]);
     }
 
@@ -573,10 +620,12 @@ class SectionHeadController extends BaseController
         $sectionId = $this->sectionId();
         $userId = $this->userId();
         $newStaffId = (int) $this->request->getPost('new_staff_id');
+        $transferRequestId = (int) ($this->request->getPost('transfer_request_id') ?? 0);
+        $reviewNote = trim((string) $this->request->getPost('review_note'));
 
         // Verify the response belongs to this section
         $response = $this->jobTicketResponseModel
-            ->select('job_ticket_responses.*, job_ticket_requests.section_id')
+            ->select('job_ticket_responses.*, job_tickets.job_status, job_ticket_requests.section_id')
             ->join('job_tickets', 'job_tickets.job_ticket_id = job_ticket_responses.job_ticket_id')
             ->join('job_ticket_requests', 'job_ticket_requests.job_ticket_id = job_tickets.job_ticket_id')
             ->where('job_ticket_responses.job_ticket_response_id', $responseId)
@@ -587,10 +636,35 @@ class SectionHeadController extends BaseController
             return redirect()->to('admin/tickets')->with('error', 'Ticket not found.');
         }
 
+        $activeStatuses = [
+            JobStatusModel::getIdByLabel('Open'),
+            JobStatusModel::getIdByLabel('In Progress'),
+        ];
+        if (! in_array((int) $response['job_status'], $activeStatuses, true)) {
+            return redirect()->to('admin/tickets')->with('error', 'Only active tickets can be transferred.');
+        }
+
         // Verify new staff is in the same section
         $newStaff = $this->userModel->find($newStaffId);
         if (! $newStaff || (int) $newStaff['section_id'] !== $sectionId) {
             return redirect()->to('admin/tickets')->with('error', 'Invalid employee selected.');
+        }
+
+        if ((int) $newStaff['user_id'] === (int) $response['staff_id']) {
+            return redirect()->back()->withInput()->with('error', 'Selected employee is already the current assignee.');
+        }
+
+        $transferRequest = null;
+        if ($transferRequestId > 0) {
+            $transferRequest = $this->transferRequestModel
+                ->where('transfer_request_id', $transferRequestId)
+                ->where('job_ticket_response_id', $responseId)
+                ->where('status', 'pending')
+                ->first();
+
+            if (! $transferRequest) {
+                return redirect()->to('admin/tickets')->with('error', 'Pending transfer request not found.');
+            }
         }
 
         // Update the response with new assignee
@@ -599,6 +673,41 @@ class SectionHeadController extends BaseController
             'transferred_by' => $userId,
             'transferred_at' => date('Y-m-d H:i:s'),
         ]);
+
+        if ($transferRequest) {
+            $this->transferRequestModel->update((int) $transferRequest['transfer_request_id'], [
+                'status'            => 'approved',
+                'reviewed_by'       => $userId,
+                'reviewed_at'       => date('Y-m-d H:i:s'),
+                'review_note'       => $reviewNote !== '' ? $reviewNote : 'Approved by section head and reassigned.',
+                'approved_staff_id' => $newStaffId,
+            ]);
+
+            $this->ticketHistoryModel->log(
+                (int) $response['job_ticket_id'],
+                'transfer_request_approved',
+                null,
+                null,
+                $userId,
+                'Transfer request approved' . ($reviewNote !== '' ? (': ' . $reviewNote) : '.')
+            );
+        }
+
+        // Resolve other pending requests now that ownership changed.
+        $pendingResolver = $this->transferRequestModel
+            ->where('job_ticket_response_id', $responseId)
+            ->where('status', 'pending');
+        if ($transferRequestId > 0) {
+            $pendingResolver->where('transfer_request_id !=', $transferRequestId);
+        }
+        $pendingResolver
+            ->set([
+                'status'      => 'cancelled',
+                'reviewed_by' => $userId,
+                'reviewed_at' => date('Y-m-d H:i:s'),
+                'review_note' => 'Resolved automatically because the ticket was reassigned.',
+            ])
+            ->update();
 
         // Log: ticket transferred
         $this->ticketHistoryModel->log(
@@ -610,7 +719,53 @@ class SectionHeadController extends BaseController
             'Transferred to ' . esc($newStaff['name'])
         );
 
-        return redirect()->to('admin/tickets')->with('success', 'Ticket successfully transferred to ' . esc($newStaff['name']) . '.');
+        $message = $transferRequest
+            ? 'Transfer request approved. Ticket transferred to ' . esc($newStaff['name']) . '.'
+            : 'Ticket successfully transferred to ' . esc($newStaff['name']) . '.';
+
+        return redirect()->to('admin/tickets')->with('success', $message);
+    }
+
+    /**
+     * Reject a pending transfer request.
+     */
+    public function rejectTransferRequest(int $transferRequestId)
+    {
+        $sectionId = $this->sectionId();
+        $userId = $this->userId();
+        $reviewNote = trim((string) $this->request->getPost('review_note'));
+
+        $transferRequest = $this->transferRequestModel
+            ->select('ticket_transfer_requests.*, job_ticket_requests.section_id')
+            ->join('job_ticket_responses', 'job_ticket_responses.job_ticket_response_id = ticket_transfer_requests.job_ticket_response_id')
+            ->join('job_tickets', 'job_tickets.job_ticket_id = job_ticket_responses.job_ticket_id')
+            ->join('job_ticket_requests', 'job_ticket_requests.job_ticket_id = job_tickets.job_ticket_id')
+            ->where('ticket_transfer_requests.transfer_request_id', $transferRequestId)
+            ->where('ticket_transfer_requests.status', 'pending')
+            ->where('job_ticket_requests.section_id', $sectionId)
+            ->first();
+
+        if (! $transferRequest) {
+            return redirect()->to('admin/tickets')->with('error', 'Pending transfer request not found.');
+        }
+
+        $this->transferRequestModel->update($transferRequestId, [
+            'status'      => 'rejected',
+            'reviewed_by' => $userId,
+            'reviewed_at' => date('Y-m-d H:i:s'),
+            'review_note' => $reviewNote !== '' ? $reviewNote : 'Rejected by section head.',
+        ]);
+
+        $this->ticketHistoryModel->log(
+            (int) $transferRequest['job_ticket_id'],
+            'transfer_request_rejected',
+            null,
+            null,
+            $userId,
+            'Transfer request rejected' . ($reviewNote !== '' ? (': ' . $reviewNote) : '.')
+        );
+
+        return redirect()->to('admin/tickets')->with('success', 'Transfer request rejected.');
     }
 
     /**

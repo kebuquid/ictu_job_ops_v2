@@ -11,6 +11,7 @@ use App\Models\SectionModel;
 use App\Models\UserModel;
 use App\Models\TicketHistoryModel;
 use App\Models\JobStatusModel;
+use App\Models\TicketTransferRequestModel;
 use App\Models\AssetModel;
 use App\Models\IssueTypeModel;
 use App\Models\RequestTypeModel;
@@ -28,6 +29,7 @@ class TechnicianController extends BaseController
     private SectionModel $sectionModel;
     private UserModel $userModel;
     private TicketHistoryModel $ticketHistoryModel;
+    private TicketTransferRequestModel $transferRequestModel;
     private TicketSlaResolver $ticketSlaResolver;
     private AssetModel $assetModel;
     private IssueTypeModel $issueTypeModel;
@@ -45,6 +47,7 @@ class TechnicianController extends BaseController
         $this->sectionModel           = new SectionModel();
         $this->userModel              = new UserModel();
         $this->ticketHistoryModel     = new TicketHistoryModel();
+        $this->transferRequestModel   = new TicketTransferRequestModel();
         $this->ticketSlaResolver      = new TicketSlaResolver();
         $this->assetModel             = new AssetModel();
         $this->issueTypeModel         = new IssueTypeModel();
@@ -127,20 +130,61 @@ class TechnicianController extends BaseController
     }
 
     /**
-     * All my assigned tickets.
+     * All tickets in my section.
      */
     public function myTickets()
     {
         $userId = $this->userId();
+        $sectionId = (int) (session()->get('user')['section_id'] ?? 0);
+
+        $openId = JobStatusModel::getIdByLabel('Open');
+        $inProgressId = JobStatusModel::getIdByLabel('In Progress');
 
         $tickets = $this->jobTicketResponseModel
-            ->select('job_ticket_responses.*, job_tickets.job_status, job_tickets.created_at as ticket_date, job_ticket_requests.problem_description, job_ticket_requests.priority_level, requestor.name as requestor_name')
+            ->select('job_ticket_responses.*, job_tickets.job_status, job_tickets.created_at as ticket_date, job_ticket_requests.problem_description, job_ticket_requests.priority_level, requestor.name as requestor_name, assigned.name as assigned_name')
             ->join('job_tickets', 'job_tickets.job_ticket_id = job_ticket_responses.job_ticket_id')
             ->join('job_ticket_requests', 'job_ticket_requests.job_ticket_id = job_tickets.job_ticket_id')
             ->join('users as requestor', 'requestor.user_id = job_tickets.requestor_id', 'left')
-            ->where('job_ticket_responses.staff_id', $userId)
+            ->join('users as assigned', 'assigned.user_id = job_ticket_responses.staff_id', 'left')
+            ->where('job_ticket_requests.section_id', $sectionId)
             ->orderBy('job_tickets.created_at', 'DESC')
             ->findAll();
+
+        $responseIds = array_values(array_filter(array_map(static fn($ticket) => (int) ($ticket['job_ticket_response_id'] ?? 0), $tickets)));
+        $latestTransferRequestByResponse = [];
+
+        if (! empty($responseIds)) {
+            $transferRequests = $this->transferRequestModel
+                ->select('ticket_transfer_requests.*, requested.name as requested_by_name, suggested.name as suggested_staff_name')
+                ->join('users as requested', 'requested.user_id = ticket_transfer_requests.requested_by', 'left')
+                ->join('users as suggested', 'suggested.user_id = ticket_transfer_requests.suggested_staff_id', 'left')
+                ->whereIn('job_ticket_response_id', $responseIds)
+                ->orderBy('transfer_request_id', 'DESC')
+                ->findAll();
+
+            foreach ($transferRequests as $request) {
+                $responseId = (int) $request['job_ticket_response_id'];
+                if (! isset($latestTransferRequestByResponse[$responseId])) {
+                    $latestTransferRequestByResponse[$responseId] = $request;
+                }
+            }
+        }
+
+        foreach ($tickets as &$ticket) {
+            $responseId = (int) ($ticket['job_ticket_response_id'] ?? 0);
+            $latestRequest = $latestTransferRequestByResponse[$responseId] ?? null;
+
+            $ticket['latest_transfer_request'] = $latestRequest;
+            $ticket['can_take'] = ((int) $ticket['job_status'] === $openId)
+                && ((int) ($ticket['staff_id'] ?? 0) !== $userId);
+            $ticket['can_respond'] = ((int) ($ticket['staff_id'] ?? 0) === $userId)
+                && in_array((int) $ticket['job_status'], [1, 2, 3], true);
+            $ticket['can_request_transfer'] = ((int) ($ticket['staff_id'] ?? 0) === $userId)
+                && in_array((int) $ticket['job_status'], [$openId, $inProgressId], true);
+            $ticket['has_pending_transfer_request'] = ! empty($latestRequest)
+                && ($latestRequest['status'] ?? '') === 'pending';
+        }
+        unset($ticket);
 
         return view($this->viewFolder() . '/my_tickets', [
             'tickets'   => $tickets,
@@ -153,15 +197,15 @@ class TechnicianController extends BaseController
      */
     public function viewTicket(int $ticketId)
     {
-        $userId = $this->userId();
+        $sectionId = (int) (session()->get('user')['section_id'] ?? 0);
 
         $ticket = $this->jobTicketModel
             ->select('job_tickets.*, job_ticket_requests.*, requestor.name as requestor_name, requestor.email as requestor_email, requestor.account_no as requestor_account_no, requestor.phone_number as requestor_phone_number')
             ->join('job_ticket_requests', 'job_ticket_requests.job_ticket_id = job_tickets.job_ticket_id')
-            ->join('job_ticket_responses', 'job_ticket_responses.job_ticket_id = job_tickets.job_ticket_id')
+            ->join('job_ticket_responses', 'job_ticket_responses.job_ticket_id = job_tickets.job_ticket_id', 'left')
             ->join('users as requestor', 'requestor.user_id = job_tickets.requestor_id', 'left')
             ->where('job_tickets.job_ticket_id', $ticketId)
-            ->where('job_ticket_responses.staff_id', $userId)
+            ->where('job_ticket_requests.section_id', $sectionId)
             ->first();
 
         if (! $ticket) {
@@ -382,8 +426,7 @@ class TechnicianController extends BaseController
     }
 
     /**
-     * Show the transfer form for an assigned ticket.
-     * Employees can transfer their own assigned tickets.
+     * Show transfer request form for an assigned ticket.
      */
     public function transferForm(int $responseId)
     {
@@ -424,53 +467,201 @@ class TechnicianController extends BaseController
                 ->countAllResults();
         }
 
+        $pendingRequest = $this->transferRequestModel
+            ->select('ticket_transfer_requests.*, suggested.name as suggested_staff_name')
+            ->join('users as suggested', 'suggested.user_id = ticket_transfer_requests.suggested_staff_id', 'left')
+            ->where('job_ticket_response_id', $responseId)
+            ->where('requested_by', $userId)
+            ->where('status', 'pending')
+            ->orderBy('transfer_request_id', 'DESC')
+            ->first();
+
         return view($this->viewFolder() . '/transfer', [
-            'response'  => $response,
-            'employees' => $employees,
-            'urlPrefix' => $this->urlPrefix(),
+            'response'       => $response,
+            'employees'      => $employees,
+            'pendingRequest' => $pendingRequest,
+            'urlPrefix'      => $this->urlPrefix(),
         ]);
     }
 
     /**
-     * Process ticket transfer.
+     * Submit transfer request for section head review.
      */
     public function transferTicket(int $responseId)
     {
         $userId = $this->userId();
         $user = session()->get('user');
         $sectionId = (int) ($user['section_id'] ?? 0);
-        $newStaffId = (int) $this->request->getPost('new_staff_id');
+        $newStaffRaw = trim((string) $this->request->getPost('new_staff_id'));
+        $newStaffId = ctype_digit($newStaffRaw) ? (int) $newStaffRaw : 0;
+        $reason = trim((string) $this->request->getPost('reason'));
 
         // Verify ownership
-        $existing = $this->jobTicketResponseModel->find($responseId);
-        if (! $existing || (int) $existing['staff_id'] !== $userId) {
+        $existing = $this->jobTicketResponseModel
+            ->select('job_ticket_responses.*, job_tickets.job_status, job_ticket_requests.section_id')
+            ->join('job_tickets', 'job_tickets.job_ticket_id = job_ticket_responses.job_ticket_id')
+            ->join('job_ticket_requests', 'job_ticket_requests.job_ticket_id = job_tickets.job_ticket_id')
+            ->where('job_ticket_responses.job_ticket_response_id', $responseId)
+            ->where('job_ticket_responses.staff_id', $userId)
+            ->first();
+
+        if (! $existing || (int) $existing['section_id'] !== $sectionId) {
             return redirect()->to($this->urlPrefix() . '/my-tickets')->with('error', 'Unauthorized.');
         }
 
-        // Verify new staff is in the same section
-        $newStaff = $this->userModel->find($newStaffId);
-        if (! $newStaff || (int) $newStaff['section_id'] !== $sectionId) {
-            return redirect()->to($this->urlPrefix() . '/my-tickets')->with('error', 'Invalid employee selected.');
+        $activeStatuses = [
+            JobStatusModel::getIdByLabel('Open'),
+            JobStatusModel::getIdByLabel('In Progress'),
+        ];
+
+        if (! in_array((int) $existing['job_status'], $activeStatuses, true)) {
+            return redirect()->to($this->urlPrefix() . '/my-tickets')->with('error', 'Only active tickets can be requested for transfer.');
         }
 
-        // Update the response with new assignee
-        $this->jobTicketResponseModel->update($responseId, [
-            'staff_id'       => $newStaffId,
-            'transferred_by' => $userId,
-            'transferred_at' => date('Y-m-d H:i:s'),
+        if ($reason === '') {
+            return redirect()->back()->withInput()->with('error', 'Transfer reason is required.');
+        }
+
+        $existingPending = $this->transferRequestModel
+            ->where('job_ticket_response_id', $responseId)
+            ->where('status', 'pending')
+            ->first();
+
+        if ($existingPending) {
+            return redirect()->to($this->urlPrefix() . '/my-tickets')->with('error', 'A transfer request is already pending for this ticket.');
+        }
+
+        $suggestedStaffName = null;
+        if ($newStaffId > 0) {
+            $newStaff = $this->userModel->find($newStaffId);
+            if (! $newStaff || (int) $newStaff['section_id'] !== $sectionId || (int) $newStaff['user_id'] === $userId) {
+                return redirect()->back()->withInput()->with('error', 'Invalid suggested assignee selected.');
+            }
+            $suggestedStaffName = (string) ($newStaff['name'] ?? '');
+        }
+
+        $this->transferRequestModel->insert([
+            'job_ticket_response_id' => $responseId,
+            'job_ticket_id'          => (int) $existing['job_ticket_id'],
+            'requested_by'           => $userId,
+            'suggested_staff_id'     => $newStaffId > 0 ? $newStaffId : null,
+            'reason'                 => $reason,
+            'status'                 => 'pending',
         ]);
 
-        // Log: ticket transferred
+        $remarks = 'Transfer requested for section head approval.';
+        if ($suggestedStaffName !== null && $suggestedStaffName !== '') {
+            $remarks .= ' Suggested assignee: ' . $suggestedStaffName . '.';
+        }
+
         $this->ticketHistoryModel->log(
             (int) $existing['job_ticket_id'],
-            'transferred',
+            'transfer_requested',
             null,
             null,
             $userId,
-            'Transferred to ' . esc($newStaff['name'])
+            $remarks
         );
 
-        return redirect()->to($this->urlPrefix() . '/my-tickets')->with('success', 'Ticket successfully transferred to ' . esc($newStaff['name']) . '.');
+        return redirect()->to($this->urlPrefix() . '/my-tickets')->with('success', 'Transfer request submitted. The section head will review it.');
+    }
+
+    /**
+     * Take an OPEN ticket from the section queue.
+     */
+    public function takeTicket(int $responseId)
+    {
+        $userId = $this->userId();
+        $user = session()->get('user');
+        $sectionId = (int) ($user['section_id'] ?? 0);
+
+        $response = $this->jobTicketResponseModel
+            ->select('job_ticket_responses.*, job_tickets.job_status, job_ticket_requests.section_id')
+            ->join('job_tickets', 'job_tickets.job_ticket_id = job_ticket_responses.job_ticket_id')
+            ->join('job_ticket_requests', 'job_ticket_requests.job_ticket_id = job_tickets.job_ticket_id')
+            ->where('job_ticket_responses.job_ticket_response_id', $responseId)
+            ->where('job_ticket_requests.section_id', $sectionId)
+            ->first();
+
+        if (! $response) {
+            return redirect()->to($this->urlPrefix() . '/my-tickets')->with('error', 'Ticket not found in your section.');
+        }
+
+        $openId = JobStatusModel::getIdByLabel('Open');
+        $inProgressId = JobStatusModel::getIdByLabel('In Progress');
+
+        if ((int) $response['job_status'] !== $openId) {
+            return redirect()->to($this->urlPrefix() . '/my-tickets')->with('error', 'Only OPEN tickets can be taken.');
+        }
+
+        if ((int) $response['staff_id'] === $userId) {
+            return redirect()->to($this->urlPrefix() . '/my-tickets')->with('success', 'This ticket is already assigned to you.');
+        }
+
+        $hasInProgress = $this->jobTicketResponseModel
+            ->join('job_tickets', 'job_tickets.job_ticket_id = job_ticket_responses.job_ticket_id')
+            ->where('job_ticket_responses.staff_id', $userId)
+            ->where('job_tickets.job_status', $inProgressId)
+            ->where('job_tickets.job_ticket_id !=', (int) $response['job_ticket_id'])
+            ->countAllResults();
+
+        $newStatus = $hasInProgress > 0 ? $openId : $inProgressId;
+
+        $this->jobTicketResponseModel->update($responseId, [
+            'staff_id'       => $userId,
+            'transferred_by' => $userId,
+            'transferred_at' => date('Y-m-d H:i:s'),
+            'start_date'     => $newStatus === $inProgressId ? date('Y-m-d') : null,
+        ]);
+
+        $this->jobTicketModel->update((int) $response['job_ticket_id'], [
+            'job_status' => $newStatus,
+        ]);
+
+        // Cancel stale pending transfer requests once ownership changes.
+        $this->transferRequestModel
+            ->where('job_ticket_response_id', $responseId)
+            ->where('status', 'pending')
+            ->set([
+                'status'      => 'cancelled',
+                'reviewed_by' => $userId,
+                'reviewed_at' => date('Y-m-d H:i:s'),
+                'review_note' => 'Cancelled automatically because ticket was taken from section queue.',
+            ])
+            ->update();
+
+        $this->ticketHistoryModel->log(
+            (int) $response['job_ticket_id'],
+            'assigned',
+            $openId,
+            $newStatus,
+            $userId,
+            'Taken from section queue by ' . ($user['name'] ?? ('Staff #' . $userId))
+        );
+
+        if ($newStatus === $inProgressId) {
+            $this->ticketHistoryModel->log(
+                (int) $response['job_ticket_id'],
+                'in_progress',
+                $openId,
+                $inProgressId,
+                $userId,
+                'Ticket taken from queue and set to In Progress'
+            );
+
+            $this->sendStatusUpdateEmail(
+                (int) $response['job_ticket_id'],
+                'in_progress',
+                'In Progress',
+                'A technician has taken your ticket and is now actively working on it.'
+            );
+        }
+
+        $message = $newStatus === $inProgressId
+            ? 'Ticket taken successfully and moved to In Progress.'
+            : 'Ticket taken successfully and added to your queue.';
+
+        return redirect()->to($this->urlPrefix() . '/my-tickets')->with('success', $message);
     }
 
     /**

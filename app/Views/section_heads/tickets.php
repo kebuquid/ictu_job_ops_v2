@@ -89,7 +89,7 @@
       <a href="<?= base_url('create-ticket') ?>" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-semibold text-sm rounded-xl shadow hover:shadow-lg transition-all">+ New Ticket</a>
     </div>
     <div class="overflow-x-auto">
-      <table id="ticketsTable" class="w-full min-w-[980px] text-sm">
+      <table id="ticketsTable" class="w-full min-w-[1100px] text-sm">
         <thead>
           <tr class="text-left text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
             <th class="pb-3 pr-4">ID</th>
@@ -98,6 +98,7 @@
             <th class="pb-3 pr-4">Assigned To</th>
             <th class="pb-3 pr-4">Priority</th>
             <th class="pb-3 pr-4">Status</th>
+            <th class="pb-3 pr-4">Transfer Request</th>
             <th class="pb-3 pr-4">Date</th>
             <th class="pb-3">Action</th>
           </tr>
@@ -119,6 +120,15 @@
               <td class="py-3 pr-4">
                 <?= \App\Models\JobStatusModel::badge((int) $ticket['job_status']) ?: '<span class="text-xs font-bold px-2 py-1 rounded-full bg-gray-100 text-gray-600">Unknown</span>' ?>
               </td>
+              <td class="py-3 pr-4 text-xs">
+                <?php $pendingRequest = $ticket['pending_transfer_request'] ?? null; ?>
+                <?php if (!empty($pendingRequest)): ?>
+                  <span class="inline-flex items-center px-2 py-1 rounded-full font-bold bg-amber-100 text-amber-700">Pending</span>
+                  <div class="mt-1 text-[11px] text-gray-500">By: <?= esc($pendingRequest['requested_by_name'] ?? ('Staff #' . (int) $pendingRequest['requested_by'])) ?></div>
+                <?php else: ?>
+                  <span class="inline-flex items-center px-2 py-1 rounded-full font-bold bg-gray-100 text-gray-600">None</span>
+                <?php endif; ?>
+              </td>
               <td class="py-3 mono text-xs text-gray-500"><?= date('M d, Y', strtotime($ticket['created_at'])) ?></td>
               <td class="py-3">
                 <div class="flex items-center gap-2">
@@ -126,6 +136,9 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     View
                   </a>
+                  <?php if(!empty($pendingRequest)): ?>
+                    <a href="<?= base_url('admin/transfer/' . $ticket['job_ticket_response_id'] . '?transfer_request_id=' . (int) $pendingRequest['transfer_request_id']) ?>" class="text-xs font-bold text-amber-700 hover:text-amber-900 bg-amber-100 px-3 py-1.5 rounded-lg hover:bg-amber-200 transition-all">Review Request</a>
+                  <?php endif; ?>
                   <?php if(!empty($ticket['job_ticket_response_id']) && in_array((int)$ticket['job_status'], [1, 2, 3])): ?>
                     <a href="<?= base_url('admin/transfer/' . $ticket['job_ticket_response_id']) ?>" class="text-xs font-bold text-orange-600 hover:text-orange-800 bg-orange-50 px-3 py-1.5 rounded-lg hover:bg-orange-100 transition-all">Transfer</a>
                   <?php endif; ?>

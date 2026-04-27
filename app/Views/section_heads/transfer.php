@@ -1,7 +1,7 @@
 <?= $this->extend('section_heads/layout') ?>
 
 <?= $this->section('pageTitle') ?>Transfer Ticket<?= $this->endSection() ?>
-<?= $this->section('pageSubtitle') ?>Reassign to Another Employee<?= $this->endSection() ?>
+<?= $this->section('pageSubtitle') ?>Reassign or Review Request<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
 <div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-3xl mx-auto">
@@ -29,12 +29,29 @@
     </div>
   </div>
 
+  <?php if (!empty($transferRequest)): ?>
+    <div class="fade-in delay-1 bg-amber-50/90 backdrop-blur-sm rounded-2xl p-6 border border-amber-200 shadow-lg">
+      <h3 class="font-bold text-amber-800 text-lg mb-3">Pending Transfer Request</h3>
+      <div class="text-sm text-gray-700 space-y-2">
+        <p><span class="font-semibold text-gray-900">Requested By:</span> <?= esc($transferRequest['requested_by_name'] ?? ('Staff #' . (int) $transferRequest['requested_by'])) ?></p>
+        <p><span class="font-semibold text-gray-900">Reason:</span> <?= esc($transferRequest['reason'] ?? 'N/A') ?></p>
+        <?php if (!empty($transferRequest['suggested_staff_name'])): ?>
+          <p><span class="font-semibold text-gray-900">Suggested Assignee:</span> <?= esc($transferRequest['suggested_staff_name']) ?></p>
+        <?php endif; ?>
+        <p><span class="font-semibold text-gray-900">Requested At:</span> <?= date('M d, Y h:i A', strtotime($transferRequest['created_at'])) ?></p>
+      </div>
+    </div>
+  <?php endif; ?>
+
   <!-- Transfer Form -->
-  <div class="fade-in delay-1 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-blue-100/50 shadow-lg">
+  <div class="fade-in delay-2 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-blue-100/50 shadow-lg">
     <h3 class="font-bold text-gray-900 text-lg mb-4">Select New Assignee</h3>
 
     <form action="<?= base_url('admin/transfer/' . $response['job_ticket_response_id']) ?>" method="post">
       <?= csrf_field() ?>
+      <?php if (!empty($transferRequest)): ?>
+        <input type="hidden" name="transfer_request_id" value="<?= (int) $transferRequest['transfer_request_id'] ?>">
+      <?php endif; ?>
 
       <div class="space-y-3">
         <?php if(empty($employees)): ?>
@@ -57,19 +74,40 @@
         <?php endif; ?>
       </div>
 
+      <?php if (!empty($transferRequest)): ?>
+        <div class="mt-5 space-y-2">
+          <label for="review_note" class="text-xs uppercase tracking-wider text-gray-500 font-semibold">Review Note (Optional)</label>
+          <textarea id="review_note" name="review_note" rows="3" class="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" placeholder="Optional note for the requester."></textarea>
+        </div>
+      <?php endif; ?>
+
       <?php if(!empty($employees)): ?>
       <div class="flex flex-col sm:flex-row sm:items-center gap-3 mt-6">
         <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-semibold text-sm rounded-xl shadow hover:shadow-lg transition-all">
-          Transfer Ticket
+          <?= !empty($transferRequest) ? 'Approve and Transfer' : 'Transfer Ticket' ?>
         </button>
+
+        <?php if (!empty($transferRequest)): ?>
+          <button type="submit" form="rejectTransferRequestForm" class="px-6 py-2.5 bg-red-50 text-red-700 font-semibold text-sm rounded-xl border border-red-200 hover:bg-red-100 transition-all">Reject Request</button>
+        <?php endif; ?>
+
         <a href="<?= base_url('admin/tickets') ?>" class="px-4 py-2.5 text-gray-600 hover:text-gray-800 text-sm font-medium">Cancel</a>
       </div>
       <?php else: ?>
       <div class="mt-6">
+        <?php if (!empty($transferRequest)): ?>
+          <button type="submit" form="rejectTransferRequestForm" class="px-6 py-2.5 bg-red-50 text-red-700 font-semibold text-sm rounded-xl border border-red-200 hover:bg-red-100 transition-all mr-3">Reject Request</button>
+        <?php endif; ?>
         <a href="<?= base_url('admin/tickets') ?>" class="px-4 py-2.5 text-gray-600 hover:text-gray-800 text-sm font-medium">&larr; Back to Tickets</a>
       </div>
       <?php endif; ?>
     </form>
+
+    <?php if (!empty($transferRequest)): ?>
+      <form id="rejectTransferRequestForm" action="<?= base_url('admin/transfer-request/' . (int) $transferRequest['transfer_request_id'] . '/reject') ?>" method="post" class="hidden" onsubmit="return confirm('Reject this transfer request?');">
+        <?= csrf_field() ?>
+      </form>
+    <?php endif; ?>
   </div>
 </div>
 <?= $this->endSection() ?>

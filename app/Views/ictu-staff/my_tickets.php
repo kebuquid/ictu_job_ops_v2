@@ -1,7 +1,7 @@
 <?= $this->extend('ictu-staff/layout') ?>
 
 <?= $this->section('pageTitle') ?>My Tickets<?= $this->endSection() ?>
-<?= $this->section('pageSubtitle') ?>Assigned to Me<?= $this->endSection() ?>
+<?= $this->section('pageSubtitle') ?>Section Queue<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
 <style>
@@ -78,6 +78,7 @@
 }
 </style>
 <div class="p-4 sm:p-6 lg:p-8 space-y-6">
+  <?php $currentUserId = (int) (session()->get('user')['user_id'] ?? 0); ?>
 
   <?php if(session()->getFlashdata('success')): ?>
     <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm"><?= session()->getFlashdata('success') ?></div>
@@ -88,16 +89,18 @@
 
   <div class="fade-in delay-1 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-emerald-100/50 shadow-lg">
     <div class="flex items-center justify-between gap-3 flex-wrap mb-5">
-      <h3 class="font-bold text-gray-900 text-lg">My Assigned Tickets</h3>
+      <h3 class="font-bold text-gray-900 text-lg">Section Tickets</h3>
     </div>
     <div class="overflow-x-auto ticket-table-shell">
-      <table id="myTicketsTable" class="w-full min-w-[860px] text-sm">
+      <table id="myTicketsTable" class="w-full min-w-[1080px] text-sm">
         <thead>
           <tr class="text-left text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
             <th class="pb-3 pr-4">ID</th>
             <th class="pb-3 pr-4">Description</th>
             <th class="pb-3 pr-4">Requestor</th>
+            <th class="pb-3 pr-4">Assigned To</th>
             <th class="pb-3 pr-4">Status</th>
+            <th class="pb-3 pr-4">Transfer Request</th>
             <th class="pb-3 pr-4">Date</th>
             <th class="pb-3">Action</th>
           </tr>
@@ -108,8 +111,36 @@
               <td class="py-3 pr-4 mono text-xs font-bold text-emerald-600">ICTU-<?= date('Y', strtotime($ticket['created_at'])) ?>-<?= str_pad($ticket['job_ticket_id'], 5, '0', STR_PAD_LEFT) ?></td>
               <td class="py-3 pr-4 text-gray-700 max-w-[200px] truncate"><?= esc($ticket['problem_description'] ?? 'N/A') ?></td>
               <td class="py-3 pr-4 text-gray-600"><?= esc($ticket['requestor_name'] ?? 'N/A') ?></td>
+              <td class="py-3 pr-4 text-gray-600">
+                <?= esc($ticket['assigned_name'] ?? 'Unassigned') ?>
+                <?php if ((int) ($ticket['staff_id'] ?? 0) === $currentUserId): ?>
+                  <span class="ml-1 text-[10px] font-bold uppercase tracking-wide text-emerald-600">(You)</span>
+                <?php endif; ?>
+              </td>
               <td class="py-3 pr-4">
                 <?= \App\Models\JobStatusModel::badge((int) $ticket['job_status']) ?: '<span class="text-xs font-bold px-2 py-1 rounded-full bg-gray-100 text-gray-600">Unknown</span>' ?>
+              </td>
+              <td class="py-3 pr-4 text-xs">
+                <?php $transferRequest = $ticket['latest_transfer_request'] ?? null; ?>
+                <?php if (!empty($transferRequest)): ?>
+                  <?php
+                    $requestStatus = (string) ($transferRequest['status'] ?? '');
+                    $statusClass = match ($requestStatus) {
+                      'approved' => 'bg-emerald-100 text-emerald-700',
+                      'rejected' => 'bg-red-100 text-red-700',
+                      'cancelled' => 'bg-gray-100 text-gray-600',
+                      default => 'bg-amber-100 text-amber-700',
+                    };
+                  ?>
+                  <span class="inline-flex items-center px-2 py-1 rounded-full font-bold <?= $statusClass ?>">
+                    <?= esc(ucfirst($requestStatus)) ?>
+                  </span>
+                  <?php if ((int) ($transferRequest['requested_by'] ?? 0) === $currentUserId): ?>
+                    <div class="mt-1 text-[11px] text-gray-500">Requested by you</div>
+                  <?php endif; ?>
+                <?php else: ?>
+                  <span class="inline-flex items-center px-2 py-1 rounded-full font-bold bg-gray-100 text-gray-600">None</span>
+                <?php endif; ?>
               </td>
               <td class="py-3 pr-4 mono text-xs text-gray-500"><?= date('M d, Y', strtotime($ticket['ticket_date'])) ?></td>
               <td class="py-3">
@@ -118,9 +149,21 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     View
                   </a>
-                  <?php if(in_array((int)$ticket['job_status'], [1, 2, 3])): ?>
+                  <?php if(!empty($ticket['can_respond'])): ?>
                     <a href="<?= base_url($urlPrefix . '/respond/' . $ticket['job_ticket_response_id']) ?>" class="text-xs font-bold text-teal-600 hover:text-teal-800 bg-teal-50 px-3 py-1.5 rounded-lg hover:bg-teal-100 transition-all">Respond</a>
-                    <a href="<?= base_url($urlPrefix . '/transfer/' . $ticket['job_ticket_response_id']) ?>" class="text-xs font-bold text-orange-600 hover:text-orange-800 bg-orange-50 px-3 py-1.5 rounded-lg hover:bg-orange-100 transition-all">Transfer</a>
+                  <?php endif; ?>
+                  <?php if(!empty($ticket['can_take'])): ?>
+                    <form action="<?= base_url($urlPrefix . '/take-ticket/' . $ticket['job_ticket_response_id']) ?>" method="post" class="inline">
+                      <?= csrf_field() ?>
+                      <button type="submit" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-all">Take Ticket</button>
+                    </form>
+                  <?php endif; ?>
+                  <?php if(!empty($ticket['can_request_transfer'])): ?>
+                    <?php if(!empty($ticket['has_pending_transfer_request'])): ?>
+                      <span class="text-xs font-bold text-amber-700 bg-amber-100 px-3 py-1.5 rounded-lg">Transfer Pending</span>
+                    <?php else: ?>
+                      <a href="<?= base_url($urlPrefix . '/transfer/' . $ticket['job_ticket_response_id']) ?>" class="text-xs font-bold text-orange-600 hover:text-orange-800 bg-orange-50 px-3 py-1.5 rounded-lg hover:bg-orange-100 transition-all">Request Transfer</a>
+                    <?php endif; ?>
                   <?php endif; ?>
                 </div>
               </td>
@@ -140,7 +183,7 @@ $(document).ready(function() {
       order: [[0, 'desc']],
       scrollX: true,
       autoWidth: false,
-      language: { emptyTable: 'No tickets assigned to you' }
+      language: { emptyTable: 'No tickets found for your section' }
     });
   }
 });

@@ -468,8 +468,6 @@ class TicketController extends BaseController
             $staffName  = $this->userModel->find($assignment['staff_id'])['name'] ?? 'Unknown';
             $newStatus  = $assignment['status'];
 
-            $inProgressId = JobStatusModel::getIdByLabel('In Progress');
-
             // Log: assigned
             $this->ticketHistoryModel->log(
                 $ticketId,
@@ -480,29 +478,7 @@ class TicketController extends BaseController
                 'Auto-assigned to ' . $staffName
             );
 
-            // If the ticket was set to In Progress, also log the status change
-            if ($newStatus === $inProgressId) {
-                $this->ticketHistoryModel->log(
-                    $ticketId,
-                    'in_progress',
-                    $openId,
-                    $inProgressId,
-                    null,
-                    'Automatically set to In Progress (staff has no other active ticket)'
-                );
-            }
-
             $this->sendAssignmentEmail($assignment['staff_id'], $ticketId, $requestData);
-
-            // Notify the requestor if their ticket is immediately set to In Progress
-            if ($newStatus === $inProgressId) {
-                $this->notifyTicketStatusUpdate(
-                    $ticketId,
-                    'in_progress',
-                    'In Progress',
-                    'Your ticket has been assigned and a technician is already working on it.'
-                );
-            }
         }
 
         // ── 5) Send confirmation email to the requestor ──
@@ -521,7 +497,8 @@ class TicketController extends BaseController
      *  2. Look up expertise_signal_map for matching expertise_ids
      *  3. Find employees in the section that have those expertise
      *  4. Rank by: (a) signal match count DESC, (b) fewest active tickets ASC
-     *  5. If NO expertise match at all â†’ fall back to section head (role = ADMIN)
+        *  5. If NO expertise match at all -> fall back to section head (role = ADMIN)
+        *  6. Keep newly created tickets in OPEN so staff can explicitly take them.
      *
      * @return array{staff_id: int, status: int}|null  The assigned staff user_id and ticket status, or null.
      */
@@ -655,31 +632,14 @@ class TicketController extends BaseController
             }
         }
 
-        // -- 8. Determine ticket status based on staff workload --
-        // If no expertise match (section head fallback) → always OPEN
-        // If staff already has an IN_PROGRESS ticket → OPEN (queued)
-        // Otherwise → IN_PROGRESS
-        if (! $hasExpertiseMatch) {
-            // Escalated to section head – keep as OPEN
-            $newStatus = $openId;
-        } else {
-            // Check if the assigned staff already has a ticket IN_PROGRESS
-            $hasInProgress = $this->jobTicketResponseModel
-                ->join('job_tickets', 'job_tickets.job_ticket_id = job_ticket_responses.job_ticket_id')
-                ->where('job_ticket_responses.staff_id', $assignedStaffId)
-                ->where('job_tickets.job_status', $inProgressId)
-                ->countAllResults();
-
-            $newStatus = $hasInProgress > 0
-                ? $openId
-                : $inProgressId;
-        }
+        // -- 8. Keep new tickets OPEN; staff can claim/take from section queue --
+        $newStatus = $openId;
 
         // -- 9. Create response row & update status --
         $this->jobTicketResponseModel->insert([
             'job_ticket_id' => $ticketId,
             'staff_id'      => $assignedStaffId,
-            'start_date'    => $newStatus === $inProgressId ? date('Y-m-d') : null,
+            'start_date'    => null,
         ]);
 
         $this->jobTicketModel->update($ticketId, [
