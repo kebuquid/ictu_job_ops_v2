@@ -80,7 +80,8 @@ class Auth extends BaseController
             $userData['user_id'] = $this->checkUser($userData);
 
             if (!$userData['user_id']) {
-                return redirect()->back()->with('error', 'Failed to save user data');
+                return redirect()->back()->with('error', 'Please use your Personal CSPC email.');
+                log_message('notice', 'Failed to save user data for ' . $userData['email'] . ' account not found in the Profiling API.');
             }
 
             $user = $this->userModel->getUserWithRole($userData['user_id']);
@@ -103,7 +104,8 @@ class Auth extends BaseController
             return redirect()->to(($roleData['url_path'] ?? '/student') . '/dashboard');
 
         } catch (\Exception $e) {
-            exit('Authentication failed: ' . $e->getMessage());
+            log_message('error', 'Authentication failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Authentication failed. Please try again.');
         }
     }
 
@@ -115,8 +117,10 @@ class Auth extends BaseController
             if (!$user) {
                 if(str_ends_with($userData['email'], '@cspc.edu.ph')) {
                     $userData['role_id'] = 4; // Employee role
-                } else {
+                } else if(str_ends_with($userData['email'], '@my.cspc.edu.ph')) {
                     $userData['role_id'] = 5; // Student role
+                } else {
+                    return null;
                 }
                 $userData['account_no'] = $this->checkUserViaApi($userData['email']);
 
